@@ -1,0 +1,34 @@
+/* Windows Acrylic theme overrides */
+body.theme-acrylic:not(.platform-linux) {
+  background: rgba(16, 16, 16, 0.01);
+
+  /*--bg-subtle: rgba(0, 0, 0, 0.06);
+  --bg-smoke: rgba(255, 255, 255, 0.75); */
+  --bg-layer-2: rgba(255, 255, 255, 0.3);
+  --bg-card-hover: rgba(0, 110, 255, 0.2);
+  --bg-embed: rgba(13, 17, 23, 0.65);
+
+  --text-tertiary: #f8f7f7;
+
+  --border-default: rgba(0, 0, 0, 0.15);
+  --border-strong: rgba(0, 0, 0, 0.3);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-accent: rgba(14, 165, 233, 0.3);
+
+  --accent: rgb(1, 130, 236);
+  --accent-hover: #0037ff;
+  --accent-subtle: rgba(14, 165, 233, 0.15);
+  --accent-bg: rgba(14, 165, 233, 0.2);
+
+  --status-running: #059669;
+  --status-running-bg: rgba(5, 150, 105, 0.18);
+
+  --status-stopped: #dc2626;
+  --status-stopped-bg: rgba(220, 38, 38, 0.18);
+
+  --status-paused: #d97706;
+  --status-paused-bg: rgba(217, 119, 6, 0.18);
+
+  --danger: #dc2626;
+  --danger-bg: rgba(220, 38, 38, 0.18);
+}

@@ -1,0 +1,636 @@
+# Vietnamese translations for DDEV GUI
+#
+msgid ""
+msgstr ""
+"Language: vi\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# ── General ──────────────────────────────────────────────────────────────
+
+msgid "general.loading"
+msgstr "Đang tải…"
+
+msgid "general.cancel"
+msgstr "Hủy"
+
+msgid "general.close"
+msgstr "Đóng"
+
+msgid "general.save"
+msgstr "Lưu"
+
+msgid "general.saving"
+msgstr "Đang lưu…"
+
+msgid "general.retry"
+msgstr "Thử lại"
+
+msgid "general.delete"
+msgstr "Xóa"
+
+msgid "general.remove"
+msgstr "Gỡ bỏ"
+
+msgid "general.restore"
+msgstr "Khôi phục"
+
+msgid "general.create"
+msgstr "Tạo"
+
+msgid "general.install"
+msgstr "Cài đặt"
+
+msgid "general.installing"
+msgstr "Đang cài đặt…"
+
+msgid "general.add"
+msgstr "Thêm"
+
+msgid "general.go"
+msgstr "Đi"
+
+msgid "general.login"
+msgstr "Đăng nhập"
+
+msgid "general.home"
+msgstr "Trang chủ"
+
+msgid "general.name"
+msgstr "Tên"
+
+msgid "general.status"
+msgstr "Trạng thái"
+
+msgid "general.type"
+msgstr "Loại"
+
+msgid "general.version"
+msgstr "Phiên bản"
+
+msgid "general.repository"
+msgstr "Kho lưu trữ"
+
+msgid "general.description"
+msgstr "Mô tả"
+
+msgid "general.noResults"
+msgstr "Không tìm thấy kết quả."
+
+# ── Titlebar / Menubar ────────────────────────────────────────────────────
+
+msgid "menu.projects"
+msgstr "Dự án"
+
+msgid "menu.newProject"
+msgstr "Dự án mới"
+
+msgid "menu.refresh"
+msgstr "Làm mới"
+
+msgid "menu.stopAll"
+msgstr "Dừng tất cả"
+
+msgid "menu.view"
+msgstr "Xem"
+
+msgid "menu.toggleLog"
+msgstr "Bật/tắt nhật ký"
+
+msgid "menu.settings"
+msgstr "Cài đặt"
+
+msgid "menu.help"
+msgstr "Trợ giúp"
+
+msgid "menu.about"
+msgstr "Giới thiệu"
+
+msgid "menu.checkEnvironment"
+msgstr "Kiểm tra môi trường"
+
+msgid "titlebar.backToList"
+msgstr "Quay lại danh sách dự án"
+
+msgid "titlebar.useBrowser"
+msgstr "Dùng trình duyệt hệ thống"
+
+msgid "titlebar.useEmbedded"
+msgstr "Dùng trình duyệt nhúng"
+
+msgid "titlebar.hideLog"
+msgstr "Ẩn nhật ký"
+
+msgid "titlebar.showLog"
+msgstr "Hiện nhật ký"
+
+msgid "titlebar.minimize"
+msgstr "Thu nhỏ"
+
+msgid "titlebar.maximize"
+msgstr "Phóng to"
+
+msgid "titlebar.restore"
+msgstr "Khôi phục"
+
+msgid "titlebar.close"
+msgstr "Đóng"
+
+# ── Project List ──────────────────────────────────────────────────────────
+
+msgid "projectList.title"
+msgstr "Dự án"
+
+msgid "projectList.loading"
+msgstr "Đang tải dự án..."
+
+msgid "projectList.empty"
+msgstr "Không tìm thấy dự án."
+
+msgid "projectList.emptyHint"
+msgstr "Nhấp vào <b>Dự án</b> &gt; <b>Dự án mới</b> để bắt đầu."
+
+msgid "projectList.failedToLoad"
+msgstr "Không thể tải dự án."
+
+msgid "projectList.checkEnv"
+msgstr "Kiểm tra môi trường"
+
+msgid "projectList.listView"
+msgstr "Dạng danh sách"
+
+msgid "projectList.gridView"
+msgstr "Dạng lưới"
+
+msgid "projectList.colName"
+msgstr "Tên"
+
+msgid "projectList.colStatus"
+msgstr "Trạng thái"
+
+msgid "projectList.colType"
+msgstr "Loại"
+
+msgid "projectList.colUrl"
+msgstr "URL"
+
+msgid "projectList.colActions"
+msgstr "Thao tác"
+
+msgid "projectList.start"
+msgstr "Khởi động"
+
+msgid "projectList.stop"
+msgstr "Dừng"
+
+msgid "projectList.restart"
+msgstr "Khởi động lại"
+
+msgid "projectList.starting"
+msgstr "Đang khởi động"
+
+msgid "projectList.stopping"
+msgstr "Đang dừng"
+
+msgid "projectList.restarting"
+msgstr "Đang khởi động lại"
+
+msgid "projectList.openFolder"
+msgstr "Mở thư mục"
+
+msgid "projectList.openCli"
+msgstr "Mở CLI"
+
+# ── Project Detail ────────────────────────────────────────────────────────
+
+msgid "detail.back"
+msgstr "Quay lại"
+
+msgid "detail.openSite"
+msgstr "Mở trang web"
+
+msgid "detail.openSiteAdmin"
+msgstr "Mở trang web (Quản trị)"
+
+msgid "detail.start"
+msgstr "Khởi động"
+
+msgid "detail.stop"
+msgstr "Dừng"
+
+msgid "detail.restart"
+msgstr "Khởi động lại"
+
+msgid "detail.openCli"
+msgstr "Mở CLI"
+
+msgid "detail.initSite"
+msgstr "Khởi tạo site"
+
+msgid "detail.initializing"
+msgstr "Đang khởi tạo…"
+
+msgid "detail.tabOverview"
+msgstr "Tổng quan"
+
+msgid "detail.tabFiles"
+msgstr "Tệp tin"
+
+msgid "detail.tabAddons"
+msgstr "Tiện ích"
+
+msgid "detail.tabSnapshots"
+msgstr "Ảnh chụp"
+
+msgid "detail.tabTerminal"
+msgstr "Terminal"
+
+msgid "detail.tabLogs"
+msgstr "Nhật ký"
+
+msgid "detail.overview.title"
+msgstr "Tổng quan"
+
+msgid "detail.overview.name"
+msgstr "Tên"
+
+msgid "detail.overview.status"
+msgstr "Trạng thái"
+
+msgid "detail.overview.type"
+msgstr "Loại"
+
+msgid "detail.overview.docroot"
+msgstr "Docroot"
+
+msgid "detail.overview.location"
+msgstr "Vị trí"
+
+msgid "detail.overview.router"
+msgstr "Router"
+
+msgid "detail.overview.nodejs"
+msgstr "Node.js"
+
+msgid "detail.overview.phpVersion"
+msgstr "Phiên bản PHP"
+
+msgid "detail.overview.modify"
+msgstr "Sửa đổi"
+
+msgid "detail.modify.title"
+msgstr "Sửa đổi dự án"
+
+msgid "detail.modify.apply"
+msgstr "Áp dụng"
+
+msgid "detail.services.title"
+msgstr "Dịch vụ"
+
+msgid "detail.services.none"
+msgstr "Không tìm thấy dịch vụ"
+
+msgid "detail.services.ports"
+msgstr "cổng"
+
+msgid "detail.services.config"
+msgstr "Cấu hình"
+
+msgid "detail.services.configTitle"
+msgstr "Cấu hình dịch vụ"
+
+msgid "detail.services.webPort"
+msgstr "Cổng container web"
+
+msgid "detail.services.dbPort"
+msgstr "Cổng container db"
+
+msgid "detail.services.xdebug"
+msgstr "Bật Xdebug"
+
+msgid "detail.services.xhprof"
+msgstr "Bật XHProf"
+
+msgid "detail.services.xhgui"
+msgstr "Bật XHGui"
+
+msgid "detail.services.xhguiHint"
+msgstr "XHGui yêu cầu XHProf và sẽ tự bật XHProf."
+
+msgid "detail.services.invalidPort"
+msgstr "Cổng phải là số từ 1 đến 65535"
+
+msgid "detail.services.configSaved"
+msgstr "Đã lưu cấu hình dịch vụ"
+
+msgid "detail.services.configSaveFailed"
+msgstr "Lưu cấu hình dịch vụ thất bại"
+
+msgid "detail.addons.title"
+msgstr "Tiện ích"
+
+msgid "detail.addons.none"
+msgstr "Chưa cài tiện ích nào"
+
+msgid "detail.addons.colName"
+msgstr "Tên"
+
+msgid "detail.addons.colVersion"
+msgstr "Phiên bản"
+
+msgid "detail.addons.colRepo"
+msgstr "Kho lưu trữ"
+
+msgid "detail.addons.colInstalled"
+msgstr "Ngày cài"
+
+msgid "detail.addons.searchPlaceholder"
+msgstr "Tìm kiếm tiện ích…"
+
+msgid "detail.addons.loadingAvailable"
+msgstr "Đang tải tiện ích khả dụng…"
+
+msgid "detail.addons.noAvailable"
+msgstr "Không có tiện ích nào."
+
+msgid "detail.addons.noMatching"
+msgstr "Không tìm thấy tiện ích phù hợp."
+
+msgid "detail.addons.installTitle"
+msgstr "Cài đặt tiện ích"
+
+msgid "detail.addons.colDescription"
+msgstr "Mô tả"
+
+msgid "detail.snapshots.title"
+msgstr "Ảnh chụp"
+
+msgid "detail.snapshots.none"
+msgstr "Không tìm thấy ảnh chụp"
+
+msgid "detail.snapshots.create"
+msgstr "Tạo"
+
+msgid "detail.snapshots.restore"
+msgstr "Khôi phục"
+
+msgid "detail.snapshots.createTitle"
+msgstr "Tạo snapshot"
+
+msgid "detail.snapshots.delete"
+msgstr "Xóa"
+
+msgid "detail.snapshots.namePrompt"
+msgstr "Tên ảnh chụp (để trống để tự động đặt tên):"
+
+msgid "detail.snapshots.restoreConfirm"
+msgstr "Khôi phục ảnh chụp \"{snap}\"?\n\nThao tác này sẽ THAY THẾ cơ sở dữ liệu hiện tại."
+
+msgid "detail.snapshots.nameHelp"
+msgstr "Để trống để dùng tên được tạo tự động."
+
+msgid "detail.snapshots.deleteConfirm"
+msgstr "Xóa ảnh chụp \"{snap}\"?"
+
+msgid "detail.logs.title"
+msgstr "Nhật ký dự án"
+
+msgid "detail.logs.refresh"
+msgstr "Làm mới"
+
+msgid "detail.logs.empty"
+msgstr "Không có nhật ký"
+
+msgid "detail.logs.loadError"
+msgstr "Không thể tải nhật ký."
+
+msgid "detail.drupal.label"
+msgstr "Drupal"
+
+msgid "detail.drupal.exportDb"
+msgstr "Xuất DB"
+
+msgid "detail.drupal.importDb"
+msgstr "Nhập DB"
+
+msgid "detail.drupal.masquerade"
+msgstr "Mạo danh"
+
+msgid "detail.drupal.clearCache"
+msgstr "Xóa bộ nhớ đệm"
+
+msgid "detail.drupal.notAvailableSsh"
+msgstr "Không hỗ trợ với backend SSH"
+
+msgid "detail.drupal.mustBeRunning"
+msgstr "Dự án phải đang chạy"
+
+msgid "detail.drupal.masqTitle"
+msgstr "Mạo danh"
+
+msgid "detail.drupal.masqSelectUser"
+msgstr "Chọn người dùng"
+
+msgid "detail.drupal.masqLoadingUsers"
+msgstr "Đang tải người dùng…"
+
+msgid "detail.drupal.masqNoUsers"
+msgstr "Không tìm thấy người dùng"
+
+msgid "detail.drupal.masqColUid"
+msgstr "UID"
+
+msgid "detail.drupal.masqColName"
+msgstr "Tên"
+
+msgid "detail.drupal.masqColEmail"
+msgstr "Email"
+
+msgid "detail.drupal.masqEnterUid"
+msgstr "Hoặc nhập ID người dùng thủ công"
+
+msgid "detail.drupal.masqUidPlaceholder"
+msgstr "ID người dùng (vd: 1)"
+
+msgid "detail.more.label"
+msgstr "Thêm"
+
+msgid "detail.more.openFolder"
+msgstr "Mở thư mục"
+
+msgid "detail.more.openEditor"
+msgstr "Mở trong trình soạn thảo"
+
+msgid "detail.more.reinitSite"
+msgstr "Khởi tạo lại site"
+
+msgid "detail.more.delete"
+msgstr "Xóa"
+
+msgid "detail.delete.confirm"
+msgstr "Xóa dự án \"{name}\"?\n\nDự án sẽ bị xóa khỏi DDEV. Các tệp mã nguồn của bạn được giữ nguyên."
+
+msgid "detail.importDb.confirm"
+msgstr "Nhập \"{file}\" vào \"{project}\"?\n\nThao tác này sẽ THAY THẾ cơ sở dữ liệu hiện tại."
+
+# ── New Project Form ──────────────────────────────────────────────────────
+
+msgid "newProject.title"
+msgstr "Dự án mới"
+
+msgid "newProject.create"
+msgstr "Tạo dự án"
+
+msgid "newProject.creating"
+msgstr "Đang tạo…"
+
+msgid "newProject.fieldName"
+msgstr "Tên dự án"
+
+msgid "newProject.fieldGitRepo"
+msgstr "URL kho Git"
+
+msgid "newProject.optional"
+msgstr "(tùy chọn)"
+
+msgid "newProject.fieldType"
+msgstr "Loại dự án"
+
+msgid "newProject.fieldDocroot"
+msgstr "Docroot"
+
+msgid "newProject.docrootDefault"
+msgstr "(mặc định: \"{val}\")"
+
+msgid "newProject.docrootPlaceholder"
+msgstr "(thư mục gốc dự án)"
+
+msgid "newProject.fieldPhp"
+msgstr "Phiên bản PHP"
+
+msgid "newProject.nameRequired"
+msgstr "Tên dự án là bắt buộc."
+
+# ── Settings Modal ────────────────────────────────────────────────────────
+
+msgid "settings.title"
+msgstr "Cài đặt"
+
+msgid "settings.language"
+msgstr "Ngôn ngữ"
+
+msgid "settings.languageDesc"
+msgstr "Ngôn ngữ hiển thị của giao diện."
+
+msgid "settings.openInBrowser"
+msgstr "Mở liên kết dự án trong trình duyệt hệ thống"
+
+msgid "settings.openInBrowserDesc"
+msgstr "Khi tắt, liên kết sẽ mở trong cửa sổ nhúng bên trong ứng dụng."
+
+msgid "settings.preferredEditor"
+msgstr "Trình soạn thảo ưu tiên"
+
+msgid "settings.preferredEditorDesc"
+msgstr "Được dùng cho thao tác Mở trong trình soạn thảo của dự án."
+
+msgid "settings.theme"
+msgstr "Giao diện"
+
+msgid "settings.themeDesc"
+msgstr "Thay đổi hiệu ứng nền cần khởi động lại ứng dụng."
+
+msgid "settings.backend"
+msgstr "Backend"
+
+msgid "settings.backendDesc"
+msgstr "Cách thực thi lệnh DDEV. WSL chạy trong bản phân phối Linux trên Windows, SSH kết nối tới máy chủ từ xa."
+
+msgid "settings.wslDistro"
+msgstr "Bản phân phối WSL"
+
+msgid "settings.wslDistroDesc"
+msgstr "Bản phân phối WSL để chạy lệnh."
+
+msgid "settings.sshHost"
+msgstr "Máy chủ SSH"
+
+msgid "settings.sshPort"
+msgstr "Cổng SSH"
+
+msgid "settings.sshUser"
+msgstr "Người dùng SSH"
+
+msgid "settings.sshKey"
+msgstr "Đường dẫn khóa SSH"
+
+msgid "settings.sshKeyDesc"
+msgstr "Đường dẫn tệp khóa riêng tư. Để trống để dùng ssh-agent hoặc khóa mặc định."
+
+msgid "settings.saved"
+msgstr "Đã lưu cài đặt."
+
+msgid "settings.savedToast"
+msgstr "Đã lưu cài đặt"
+
+msgid "settings.saveFailed"
+msgstr "Lưu cài đặt thất bại"
+
+# ── About Modal ───────────────────────────────────────────────────────────
+
+msgid "about.title"
+msgstr "Giới thiệu"
+
+msgid "about.tagline"
+msgstr "Ứng dụng desktop để quản lý dự án DDEV"
+
+msgid "about.appVersion"
+msgstr "Phiên bản ứng dụng"
+
+msgid "about.ddevVersion"
+msgstr "Phiên bản DDEV"
+
+msgid "about.builtWith"
+msgstr "Xây dựng bằng"
+
+# ── Environment Info Modal ────────────────────────────────────────────────
+
+msgid "env.title"
+msgstr "Thông tin môi trường"
+
+msgid "env.ddevVersion"
+msgstr "Phiên bản DDEV"
+
+msgid "env.notInstalled"
+msgstr "(chưa cài đặt)"
+
+msgid "env.ddevMissing"
+msgstr "Không tìm thấy DDEV. Nhấn nút bên dưới để cài đặt."
+
+msgid "env.installing"
+msgstr "Đang cài đặt…"
+
+msgid "env.installDdev"
+msgstr "Cài đặt DDEV"
+
+msgid "env.openSettings"
+msgstr "Mở cài đặt"
+
+msgid "env.telemetryOptIn"
+msgstr "Tham gia telemetry của DDEV"
+
+msgid "env.telemetryOptInDesc"
+msgstr "Chia sẻ dữ liệu sử dụng & lỗi với DDEV."
+
+msgid "env.developerMode"
+msgstr "Chế độ nhà phát triển"
+
+msgid "env.developerModeDesc"
+msgstr "Bật các tính năng chưa hoàn thiện và thử nghiệm."
+
+# ── Log Panel ─────────────────────────────────────────────────────────────
+
+msgid "log.title"
+msgstr "Nhật ký"
+
+msgid "log.clear"
+msgstr "Xóa"

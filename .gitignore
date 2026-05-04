@@ -1,0 +1,45 @@
+# Wails build artifacts
+build/*
+!build/appicon.png
+build/bin/
+dist/
+wails.log
+
+# Wails JS bindings (generated)
+frontend/wailsjs/
+
+# Go build outputs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Node/Yarn/PNPM
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editors / IDEs
+.idea/
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Archives / releases
+*.zip
+*.tar.gz
+
+# Env / misc
+.env
+coverage/
+tmp/
+*.log
+backend_coverage.html

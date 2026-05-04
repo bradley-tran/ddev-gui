@@ -1,0 +1,84 @@
+/* =============================================================
+   global.css - Entry point
+   All styles are split across partial files (prefixed with _).
+   Import order matters: tokens first, then base/reset, then
+   layout/components/features, utilities last.
+   ============================================================= */
+
+/* 1. Design tokens (CSS custom properties) */
+@import './_tokens.css';
+
+/* 2. Reset, base elements, theme variants */
+@import './_base.css';
+
+/* 2a. Acrylic theme (Light) overrides */
+@import './_theme-acrylic.css';
+
+/* 3. Titlebar and window controls */
+@import './_titlebar.css';
+
+/* 4. App-level layout containers */
+@import './_layout.css';
+
+/* 5. Detail sidebar navigation */
+@import './_sidebar.css';
+
+/* 6. Fluent cards and content toolbar */
+@import './_cards.css';
+
+/* 7. Fluent buttons */
+@import './_buttons.css';
+
+/* 8. Fluent data tables */
+@import './_tables.css';
+
+/* 9. Status badges */
+@import './_badges.css';
+
+/* 10. Form controls, checkboxes, validation */
+@import './_forms.css';
+
+/* 11. Toggle switch and spinner */
+@import './_toggle.css';
+
+/* 12. Project detail sections, URL pills, toolbar */
+@import './_detail.css';
+
+/* 13. Modal overlays and containers */
+@import './_modals.css';
+
+/* 14. File explorer, code/image/markdown viewers */
+@import './_file-explorer.css';
+
+/* 15. Log panel and scrollbar */
+@import './_log-panel.css';
+
+/* 16. Embedded browser overlay */
+@import './_embedded-browser.css';
+
+/* 17. Add-on picker table */
+@import './_addon-picker.css';
+
+/* 18. View toggle (list/grid) */
+@import './_view-toggle.css';
+
+/* 19. Project icon grid view */
+@import './_project-grid.css';
+
+/* 20. Toast notifications */
+@import './_toasts.css';
+
+/* 21. Horizontal menu bar */
+@import './_menubar.css';
+
+/* 22. Toolbar overflow dropdown */
+@import './_toolbar-dropdown.css';
+
+/* 23. Custom select component */
+@import './_custom-select.css';
+
+/* 24. Embedded terminal */
+@import './_terminal.css';
+
+/* 25. Utility classes, empty/loading states */
+@import './_utilities.css';

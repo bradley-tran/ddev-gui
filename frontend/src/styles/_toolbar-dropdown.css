@@ -1,0 +1,55 @@
+/* Toolbar dropdown (More button) */
+.toolbar-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.toolbar-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  /* Use padding-top instead of margin-top so there is no gap/dead-zone
+     between the trigger button and the menu panel. The padding is invisible
+     but keeps the hover area connected. */
+  padding-top: 4px;
+  background: transparent;
+  /* wrapper is transparent; inner div carries the visual style */
+  z-index: 200;
+}
+
+.toolbar-dropdown-menu-inner {
+  background: var(--bg-smoke);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-elevated);
+  min-width: 180px;
+  overflow: hidden;
+}
+
+.toolbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+
+.toolbar-dropdown-item:hover {
+  background: var(--bg-card-hover);
+}
+
+.toolbar-dropdown-item-danger {
+  color: var(--danger);
+}
+
+.toolbar-dropdown-item-danger:hover {
+  background: var(--danger-bg);
+}

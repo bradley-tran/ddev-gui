@@ -1,0 +1,106 @@
+/* ===== Modal ===== */
+.flu-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-smoke);
+  /* backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px); */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.flu-modal-overlay.show {
+  display: flex;
+  opacity: 1;
+}
+
+.flu-modal {
+  width: min(460px, 92vw);
+  background: rgba(28, 28, 50, 0.7);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-elevated);
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  animation: flu-modal-in 200ms ease forwards;
+}
+
+@keyframes flu-modal-in {
+  from {
+    transform: translateY(12px) scale(0.98);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Wide variant for content-heavy modals (add-on picker, etc.) */
+.flu-modal-wide {
+  width: min(680px, 92vw);
+}
+
+.flu-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.flu-modal-header h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.flu-modal-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 18px;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.flu-modal-close:hover {
+  background: var(--danger-bg);
+  color: var(--text-primary);
+}
+
+.flu-modal-body {
+  padding: var(--space-xl);
+  flex: 1;
+  overflow: auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Info-style modals (environment info, etc.) use pre-wrap */
+.flu-modal-body.info-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.flu-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-subtle);
+}

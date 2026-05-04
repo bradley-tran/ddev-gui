@@ -1,0 +1,64 @@
+/* ===== Status Badge ===== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 11px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.6;
+  border: 1px solid transparent;
+}
+
+.status-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+.status-badge.running {
+  background: var(--status-running-bg);
+  color: var(--status-running);
+  border-color: rgba(52, 211, 153, 0.55);
+}
+
+.status-badge.running::before {
+  background: var(--status-running);
+}
+
+.status-badge.stopped {
+  background: var(--status-stopped-bg);
+  color: var(--status-stopped);
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.status-badge.stopped::before {
+  background: var(--status-stopped);
+  animation: none;
+}
+
+.status-badge.paused {
+  background: var(--status-paused-bg);
+  color: var(--status-paused);
+  border-color: rgba(251, 191, 36, 0.55);
+}
+
+.status-badge.paused::before {
+  background: var(--status-paused);
+}
+
+@keyframes status-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}

@@ -1,0 +1,194 @@
+/* ===== Form Controls ===== */
+.flu-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--space-lg);
+}
+
+.flu-field:last-child {
+  margin-bottom: 0;
+}
+
+.flu-field-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.flu-field-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: -2px;
+}
+
+.flu-input,
+.flu-select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-layer-1);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  border-bottom: 2px solid var(--border-strong);
+}
+
+.flu-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.flu-input:hover,
+.flu-select:hover {
+  border-color: var(--text-tertiary);
+  background-color: var(--bg-layer-2);
+}
+
+.flu-input:focus,
+.flu-select:focus {
+  border-bottom-color: var(--accent);
+  background-color: var(--bg-layer-2);
+  box-shadow: 0 1px 0 0 var(--accent);
+}
+
+.flu-select {
+  max-width: 100%;
+  cursor: pointer;
+}
+
+.flu-select option {
+  background: var(--bg-layer-2);
+  color: var(--text-primary);
+  padding: 8px;
+}
+
+/* Legacy form-row support (kept for compatibility) */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.form-row label {
+  min-width: 120px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.form-row .flu-input,
+.form-row .flu-select {
+  flex: 1;
+  border-bottom-width: 1px;
+}
+
+/* ===== Fluent Checkbox ===== */
+.flu-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 0;
+  user-select: none;
+}
+
+.flu-checkbox-row input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--text-tertiary);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.flu-checkbox-row input[type="checkbox"]:hover {
+  border-color: var(--text-secondary);
+}
+
+.flu-checkbox-row input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.flu-checkbox-row input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 5px;
+  height: 9px;
+  border: solid var(--text-on-accent);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.flu-checkbox-row input[type="checkbox"]:focus-visible {
+  box-shadow: 0 0 0 2px var(--bg-solid), 0 0 0 4px var(--accent);
+}
+
+/* Form layout used by NewProjectForm */
+.flu-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.flu-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.flu-form-group label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+}
+
+.form-error {
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  color: var(--danger);
+  padding: var(--space-sm) var(--space-md);
+  font-size: 12px;
+}
+
+/* ===== Form Message / Validation ===== */
+.flu-form-msg {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  min-height: 20px;
+  transition: all var(--transition-fast);
+}
+
+.flu-form-msg:not(:empty) {
+  margin-top: var(--space-sm);
+}
+
+.flu-form-msg.msg-error {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.flu-form-msg.msg-success {
+  color: var(--status-running);
+  background: var(--status-running-bg);
+}

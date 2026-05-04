@@ -1,0 +1,91 @@
+/* ===== Log Panel ===== */
+.log-card {
+  flex-shrink: 0;
+  background: var(--bg-log);
+  border: 1px solid var(--border-default);
+  margin: 0 var(--space-xl) var(--space-xl);
+}
+
+.log-area {
+  max-height: 180px;
+  overflow-y: auto;
+  padding: var(--space-sm) var(--space-md);
+  font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+
+.log-area:empty::after {
+  content: 'No log entries yet.';
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.log-entry {
+  padding: 2px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  gap: var(--space-sm);
+  align-items: baseline;
+  animation: log-fade-in 200ms ease;
+}
+
+@keyframes log-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+.log-time {
+  color: var(--text-tertiary);
+  font-size: 10px;
+  flex-shrink: 0;
+  min-width: 58px;
+}
+
+.log-msg {
+  flex: 1;
+  word-break: break-word;
+}
+
+.log-entry.log-error .log-msg {
+  color: var(--status-stopped);
+}
+
+.log-entry.log-success .log-msg {
+  color: var(--status-running);
+}
+
+.log-entry.log-info .log-msg {
+  color: var(--accent);
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}

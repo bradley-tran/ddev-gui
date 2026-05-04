@@ -1,0 +1,636 @@
+# Simplified Chinese translations for DDEV GUI
+#
+msgid ""
+msgstr ""
+"Language: zh\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# ── General ──────────────────────────────────────────────────────────────
+
+msgid "general.loading"
+msgstr "加载中…"
+
+msgid "general.cancel"
+msgstr "取消"
+
+msgid "general.close"
+msgstr "关闭"
+
+msgid "general.save"
+msgstr "保存"
+
+msgid "general.saving"
+msgstr "保存中…"
+
+msgid "general.retry"
+msgstr "重试"
+
+msgid "general.delete"
+msgstr "删除"
+
+msgid "general.remove"
+msgstr "移除"
+
+msgid "general.restore"
+msgstr "还原"
+
+msgid "general.create"
+msgstr "创建"
+
+msgid "general.install"
+msgstr "安装"
+
+msgid "general.installing"
+msgstr "安装中…"
+
+msgid "general.add"
+msgstr "添加"
+
+msgid "general.go"
+msgstr "确定"
+
+msgid "general.login"
+msgstr "登录"
+
+msgid "general.home"
+msgstr "主页"
+
+msgid "general.name"
+msgstr "名称"
+
+msgid "general.status"
+msgstr "状态"
+
+msgid "general.type"
+msgstr "类型"
+
+msgid "general.version"
+msgstr "版本"
+
+msgid "general.repository"
+msgstr "仓库"
+
+msgid "general.description"
+msgstr "描述"
+
+msgid "general.noResults"
+msgstr "未找到结果。"
+
+# ── Titlebar / Menubar ────────────────────────────────────────────────────
+
+msgid "menu.projects"
+msgstr "项目"
+
+msgid "menu.newProject"
+msgstr "新建项目"
+
+msgid "menu.refresh"
+msgstr "刷新"
+
+msgid "menu.stopAll"
+msgstr "停止全部"
+
+msgid "menu.view"
+msgstr "视图"
+
+msgid "menu.toggleLog"
+msgstr "切换日志"
+
+msgid "menu.settings"
+msgstr "设置"
+
+msgid "menu.help"
+msgstr "帮助"
+
+msgid "menu.about"
+msgstr "关于"
+
+msgid "menu.checkEnvironment"
+msgstr "检查环境"
+
+msgid "titlebar.backToList"
+msgstr "返回项目列表"
+
+msgid "titlebar.useBrowser"
+msgstr "使用系统浏览器"
+
+msgid "titlebar.useEmbedded"
+msgstr "使用内嵌浏览器"
+
+msgid "titlebar.hideLog"
+msgstr "隐藏日志"
+
+msgid "titlebar.showLog"
+msgstr "显示日志"
+
+msgid "titlebar.minimize"
+msgstr "最小化"
+
+msgid "titlebar.maximize"
+msgstr "最大化"
+
+msgid "titlebar.restore"
+msgstr "还原"
+
+msgid "titlebar.close"
+msgstr "关闭"
+
+# ── Project List ──────────────────────────────────────────────────────────
+
+msgid "projectList.title"
+msgstr "项目"
+
+msgid "projectList.loading"
+msgstr "正在加载项目..."
+
+msgid "projectList.empty"
+msgstr "未找到项目。"
+
+msgid "projectList.emptyHint"
+msgstr "点击 <b>项目</b> &gt; <b>新建项目</b> 开始。"
+
+msgid "projectList.failedToLoad"
+msgstr "加载项目失败。"
+
+msgid "projectList.checkEnv"
+msgstr "检查环境"
+
+msgid "projectList.listView"
+msgstr "列表视图"
+
+msgid "projectList.gridView"
+msgstr "网格视图"
+
+msgid "projectList.colName"
+msgstr "名称"
+
+msgid "projectList.colStatus"
+msgstr "状态"
+
+msgid "projectList.colType"
+msgstr "类型"
+
+msgid "projectList.colUrl"
+msgstr "网址"
+
+msgid "projectList.colActions"
+msgstr "操作"
+
+msgid "projectList.start"
+msgstr "启动"
+
+msgid "projectList.stop"
+msgstr "停止"
+
+msgid "projectList.restart"
+msgstr "重启"
+
+msgid "projectList.starting"
+msgstr "启动中…"
+
+msgid "projectList.stopping"
+msgstr "停止中…"
+
+msgid "projectList.restarting"
+msgstr "重启中…"
+
+msgid "projectList.openFolder"
+msgstr "打开文件夹"
+
+msgid "projectList.openCli"
+msgstr "打开命令行"
+
+# ── Project Detail ────────────────────────────────────────────────────────
+
+msgid "detail.back"
+msgstr "返回"
+
+msgid "detail.openSite"
+msgstr "打开网站"
+
+msgid "detail.openSiteAdmin"
+msgstr "打开网站（管理员）"
+
+msgid "detail.start"
+msgstr "启动"
+
+msgid "detail.stop"
+msgstr "停止"
+
+msgid "detail.restart"
+msgstr "重启"
+
+msgid "detail.openCli"
+msgstr "打开命令行"
+
+msgid "detail.initSite"
+msgstr "初始化站点"
+
+msgid "detail.initializing"
+msgstr "初始化中…"
+
+msgid "detail.tabOverview"
+msgstr "概览"
+
+msgid "detail.tabFiles"
+msgstr "文件"
+
+msgid "detail.tabAddons"
+msgstr "插件"
+
+msgid "detail.tabSnapshots"
+msgstr "快照"
+
+msgid "detail.tabTerminal"
+msgstr "终端"
+
+msgid "detail.tabLogs"
+msgstr "日志"
+
+msgid "detail.overview.title"
+msgstr "概览"
+
+msgid "detail.overview.name"
+msgstr "名称"
+
+msgid "detail.overview.status"
+msgstr "状态"
+
+msgid "detail.overview.type"
+msgstr "类型"
+
+msgid "detail.overview.docroot"
+msgstr "文档根目录"
+
+msgid "detail.overview.location"
+msgstr "位置"
+
+msgid "detail.overview.router"
+msgstr "路由"
+
+msgid "detail.overview.nodejs"
+msgstr "Node.js"
+
+msgid "detail.overview.phpVersion"
+msgstr "PHP 版本"
+
+msgid "detail.overview.modify"
+msgstr "修改"
+
+msgid "detail.modify.title"
+msgstr "修改项目"
+
+msgid "detail.modify.apply"
+msgstr "应用"
+
+msgid "detail.services.title"
+msgstr "服务"
+
+msgid "detail.services.none"
+msgstr "未找到服务"
+
+msgid "detail.services.ports"
+msgstr "端口"
+
+msgid "detail.services.config"
+msgstr "配置"
+
+msgid "detail.services.configTitle"
+msgstr "服务配置"
+
+msgid "detail.services.webPort"
+msgstr "Web 容器端口"
+
+msgid "detail.services.dbPort"
+msgstr "DB 容器端口"
+
+msgid "detail.services.xdebug"
+msgstr "启用 Xdebug"
+
+msgid "detail.services.xhprof"
+msgstr "启用 XHProf"
+
+msgid "detail.services.xhgui"
+msgstr "启用 XHGui"
+
+msgid "detail.services.xhguiHint"
+msgstr "XHGui 依赖 XHProf，启用时会自动开启 XHProf。"
+
+msgid "detail.services.invalidPort"
+msgstr "端口必须是 1 到 65535 之间的数字"
+
+msgid "detail.services.configSaved"
+msgstr "服务配置已保存"
+
+msgid "detail.services.configSaveFailed"
+msgstr "服务配置保存失败"
+
+msgid "detail.addons.title"
+msgstr "插件"
+
+msgid "detail.addons.none"
+msgstr "未安装插件"
+
+msgid "detail.addons.colName"
+msgstr "名称"
+
+msgid "detail.addons.colVersion"
+msgstr "版本"
+
+msgid "detail.addons.colRepo"
+msgstr "仓库"
+
+msgid "detail.addons.colInstalled"
+msgstr "安装日期"
+
+msgid "detail.addons.searchPlaceholder"
+msgstr "搜索插件…"
+
+msgid "detail.addons.loadingAvailable"
+msgstr "正在加载可用插件…"
+
+msgid "detail.addons.noAvailable"
+msgstr "没有可用插件。"
+
+msgid "detail.addons.noMatching"
+msgstr "没有匹配的插件。"
+
+msgid "detail.addons.installTitle"
+msgstr "安装插件"
+
+msgid "detail.addons.colDescription"
+msgstr "描述"
+
+msgid "detail.snapshots.title"
+msgstr "快照"
+
+msgid "detail.snapshots.none"
+msgstr "未找到快照"
+
+msgid "detail.snapshots.create"
+msgstr "创建"
+
+msgid "detail.snapshots.createTitle"
+msgstr "创建快照"
+
+msgid "detail.snapshots.restore"
+msgstr "还原"
+
+msgid "detail.snapshots.delete"
+msgstr "删除"
+
+msgid "detail.snapshots.namePrompt"
+msgstr "快照名称（留空则自动生成）："
+
+msgid "detail.snapshots.nameHelp"
+msgstr "留空以使用自动生成的名称。"
+
+msgid "detail.snapshots.restoreConfirm"
+msgstr "还原快照 \"{snap}\"？\n\n这将**替换**当前数据库。"
+
+msgid "detail.snapshots.deleteConfirm"
+msgstr "删除快照 \"{snap}\"？"
+
+msgid "detail.logs.title"
+msgstr "DDEV 日志"
+
+msgid "detail.logs.refresh"
+msgstr "刷新"
+
+msgid "detail.logs.empty"
+msgstr "暂无日志"
+
+msgid "detail.logs.loadError"
+msgstr "加载日志失败。"
+
+msgid "detail.drupal.label"
+msgstr "Drupal"
+
+msgid "detail.drupal.exportDb"
+msgstr "导出数据库"
+
+msgid "detail.drupal.importDb"
+msgstr "导入数据库"
+
+msgid "detail.drupal.masquerade"
+msgstr "伪装登录"
+
+msgid "detail.drupal.clearCache"
+msgstr "清除缓存"
+
+msgid "detail.drupal.notAvailableSsh"
+msgstr "SSH 后端不支持此功能"
+
+msgid "detail.drupal.mustBeRunning"
+msgstr "项目必须处于运行状态"
+
+msgid "detail.drupal.masqTitle"
+msgstr "伪装登录"
+
+msgid "detail.drupal.masqSelectUser"
+msgstr "选择用户"
+
+msgid "detail.drupal.masqLoadingUsers"
+msgstr "正在加载用户…"
+
+msgid "detail.drupal.masqNoUsers"
+msgstr "未找到用户"
+
+msgid "detail.drupal.masqColUid"
+msgstr "UID"
+
+msgid "detail.drupal.masqColName"
+msgstr "姓名"
+
+msgid "detail.drupal.masqColEmail"
+msgstr "邮箱"
+
+msgid "detail.drupal.masqEnterUid"
+msgstr "或手动输入用户 ID"
+
+msgid "detail.drupal.masqUidPlaceholder"
+msgstr "用户 ID（例如 1）"
+
+msgid "detail.more.label"
+msgstr "更多"
+
+msgid "detail.more.openFolder"
+msgstr "打开文件夹"
+
+msgid "detail.more.openEditor"
+msgstr "在编辑器中打开"
+
+msgid "detail.more.reinitSite"
+msgstr "重新初始化站点"
+
+msgid "detail.more.delete"
+msgstr "删除"
+
+msgid "detail.delete.confirm"
+msgstr "删除项目 \"{name}\"？\n\n这将从 DDEV 中移除该项目，您的代码文件将被保留。"
+
+msgid "detail.importDb.confirm"
+msgstr "将 \"{file}\" 导入 \"{project}\"？\n\n这将**替换**当前数据库。"
+
+# ── New Project Form ──────────────────────────────────────────────────────
+
+msgid "newProject.title"
+msgstr "新建项目"
+
+msgid "newProject.create"
+msgstr "创建项目"
+
+msgid "newProject.creating"
+msgstr "创建中…"
+
+msgid "newProject.fieldName"
+msgstr "项目名称"
+
+msgid "newProject.fieldGitRepo"
+msgstr "Git 仓库地址"
+
+msgid "newProject.optional"
+msgstr "（可选）"
+
+msgid "newProject.fieldType"
+msgstr "项目类型"
+
+msgid "newProject.fieldDocroot"
+msgstr "文档根目录"
+
+msgid "newProject.docrootDefault"
+msgstr "（默认：\"{val}\"）"
+
+msgid "newProject.docrootPlaceholder"
+msgstr "（项目根目录）"
+
+msgid "newProject.fieldPhp"
+msgstr "PHP 版本"
+
+msgid "newProject.nameRequired"
+msgstr "项目名称不能为空。"
+
+# ── Settings Modal ────────────────────────────────────────────────────────
+
+msgid "settings.title"
+msgstr "设置"
+
+msgid "settings.language"
+msgstr "语言"
+
+msgid "settings.languageDesc"
+msgstr "用户界面的显示语言。"
+
+msgid "settings.openInBrowser"
+msgstr "在系统浏览器中打开项目链接"
+
+msgid "settings.openInBrowserDesc"
+msgstr "禁用后，链接将在应用内嵌窗口中打开。"
+
+msgid "settings.preferredEditor"
+msgstr "首选编辑器"
+
+msgid "settings.preferredEditorDesc"
+msgstr "项目的“在编辑器中打开”操作会使用它。"
+
+msgid "settings.theme"
+msgstr "主题"
+
+msgid "settings.themeDesc"
+msgstr "更改背景效果需要重启应用。"
+
+msgid "settings.backend"
+msgstr "后端"
+
+msgid "settings.backendDesc"
+msgstr "DDEV 命令的执行方式。WSL 在本地 Windows 子系统中运行，SSH 连接到远程主机。"
+
+msgid "settings.wslDistro"
+msgstr "WSL 发行版"
+
+msgid "settings.wslDistroDesc"
+msgstr "用于执行命令的 WSL 发行版。"
+
+msgid "settings.sshHost"
+msgstr "SSH 主机"
+
+msgid "settings.sshPort"
+msgstr "SSH 端口"
+
+msgid "settings.sshUser"
+msgstr "SSH 用户"
+
+msgid "settings.sshKey"
+msgstr "SSH 密钥路径"
+
+msgid "settings.sshKeyDesc"
+msgstr "私钥文件路径。留空则使用 ssh-agent 或默认密钥。"
+
+msgid "settings.saved"
+msgstr "设置已保存。"
+
+msgid "settings.savedToast"
+msgstr "设置已保存"
+
+msgid "settings.saveFailed"
+msgstr "保存设置失败"
+
+# ── About Modal ───────────────────────────────────────────────────────────
+
+msgid "about.title"
+msgstr "关于"
+
+msgid "about.tagline"
+msgstr "用于管理 DDEV 项目的桌面应用"
+
+msgid "about.appVersion"
+msgstr "应用版本"
+
+msgid "about.ddevVersion"
+msgstr "DDEV 版本"
+
+msgid "about.builtWith"
+msgstr "构建工具"
+
+# ── Environment Info Modal ────────────────────────────────────────────────
+
+msgid "env.title"
+msgstr "环境信息"
+
+msgid "env.ddevVersion"
+msgstr "DDEV 版本"
+
+msgid "env.notInstalled"
+msgstr "（未安装）"
+
+msgid "env.ddevMissing"
+msgstr "未找到 DDEV，请点击下方按钮安装。"
+
+msgid "env.installing"
+msgstr "安装中…"
+
+msgid "env.installDdev"
+msgstr "安装 DDEV"
+
+msgid "env.openSettings"
+msgstr "打开设置"
+
+msgid "env.telemetryOptIn"
+msgstr "加入 DDEV 遥测"
+
+msgid "env.telemetryOptInDesc"
+msgstr "与 DDEV 共享匿名使用数据，以帮助改进该项目。"
+
+msgid "env.developerMode"
+msgstr "开发者模式"
+
+msgid "env.developerModeDesc"
+msgstr "启用未完成的实验性功能。"
+
+# ── Log Panel ─────────────────────────────────────────────────────────────
+
+msgid "log.title"
+msgstr "日志"
+
+msgid "log.clear"
+msgstr "清除"

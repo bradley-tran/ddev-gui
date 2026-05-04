@@ -1,0 +1,99 @@
+/* ===== Titlebar ===== */
+.titlebar {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  padding: 0 0 0 var(--space-xl);
+  background: rgba(16, 16, 30, 0.72);
+  backdrop-filter: blur(30px) saturate(1.2);
+  -webkit-backdrop-filter: blur(30px) saturate(1.2);
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+  --wails-draggable: drag;
+  user-select: none;
+  position: relative;
+  z-index: 100;
+}
+
+.titlebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.titlebar-brand svg {
+  width: 20px;
+  height: 20px;
+  color: var(--accent);
+}
+
+.titlebar-brand h1 {
+  margin: 0;
+  line-height: 1;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  --wails-draggable: no-drag;
+}
+
+.titlebar-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  pointer-events: none;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.titlebar-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  --wails-draggable: no-drag;
+}
+
+/* ===== Frameless Window Controls ===== */
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px 0;
+  --wails-draggable: no-drag;
+}
+
+.window-controls {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-left: auto;
+  align-self: stretch;
+  --wails-draggable: no-drag;
+}
+
+.win-ctrl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  border-radius: 0;
+}
+
+.win-ctrl:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+}
+
+.win-ctrl.win-close:hover {
+  background: #e81123;
+  color: #fff;
+}

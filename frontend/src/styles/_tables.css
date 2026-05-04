@@ -1,0 +1,80 @@
+/* ===== Fluent Table ===== */
+.flu-table-wrap {
+  max-height: 520px;
+  overflow: auto;
+  border-radius: var(--radius-md);
+}
+
+table.flu-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.flu-table th {
+  position: sticky;
+  top: 0;
+  padding: var(--space-sm) var(--space-md);
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  background: var(--bg-subtle);
+  border-bottom: 1px solid var(--border-strong);
+  z-index: 1;
+}
+
+.flu-table td {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+  color: var(--text-primary);
+}
+
+.flu-table tbody tr {
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+  border-left: 2px solid transparent;
+}
+
+.flu-table tbody tr:hover {
+  background: var(--bg-card-hover);
+  border-left-color: var(--accent);
+}
+
+.flu-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+.flu-table tr .proj-link {
+  color: rgba(0, 0, 255, 1);
+  text-decoration: none;
+}
+
+.flu-table tr .proj-link:hover {
+  text-decoration: underline;
+}
+
+.flu-table tr.stopped td {
+  color: var(--text-tertiary);
+}
+
+.flu-table tr.stopped:hover {
+  border-left-color: var(--text-tertiary);
+}
+
+.flu-table tr.stopped .proj-link {
+  color: var(--status-stopped);
+}
+
+.flu-table tr.stopped .proj-link:hover {
+  color: var(--danger);
+  text-decoration: underline;
+}
+
+.flu-table th:last-child,
+.flu-table td:last-child {
+  text-align: right;
+}

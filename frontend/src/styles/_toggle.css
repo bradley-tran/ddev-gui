@@ -1,0 +1,76 @@
+/* ===== Toggle ===== */
+
+/* Toggle label row */
+.flu-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Native-checkbox-backed toggle (React version) */
+.flu-toggle {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: var(--border-strong);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+  border: none;
+  outline: none;
+}
+
+.flu-toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: transform var(--transition-normal), background var(--transition-normal);
+}
+
+.flu-toggle:checked {
+  background: var(--accent);
+}
+
+.flu-toggle:checked::after {
+  transform: translateX(16px);
+  background: var(--text-on-accent);
+}
+
+/* Legacy sibling-selector toggle (non-React version) */
+input:checked + .flu-toggle {
+  background: var(--accent);
+}
+
+input:checked + .flu-toggle::after {
+  transform: translateX(16px);
+  background: var(--text-on-accent);
+}
+
+/* ===== Spinner ===== */
+.flu-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: flu-spin 0.7s linear infinite;
+  vertical-align: text-bottom;
+  margin-left: var(--space-xs);
+}
+
+@keyframes flu-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

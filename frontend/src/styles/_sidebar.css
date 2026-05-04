@@ -1,0 +1,55 @@
+/* ===== Detail Sidebar Navigation ===== */
+.detail-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  border-right: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  width: 52px;
+  align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.detail-sidebar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 48px;
+  height: 48px;
+  padding: 8px 0 5px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  position: relative;
+  font-family: inherit;
+}
+
+.detail-sidebar-btn:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.detail-sidebar-btn.active {
+  background: var(--bg-subtle);
+  background-origin: content-box;
+}
+
+.detail-sidebar-btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.detail-sidebar-btn span {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-transform: capitalize;
+}

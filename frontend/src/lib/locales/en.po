@@ -1,0 +1,637 @@
+# English translations for DDEV GUI
+# This is the source / reference locale.
+#
+msgid ""
+msgstr ""
+"Language: en\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+
+# ── General ──────────────────────────────────────────────────────────────
+
+msgid "general.loading"
+msgstr "Loading…"
+
+msgid "general.cancel"
+msgstr "Cancel"
+
+msgid "general.close"
+msgstr "Close"
+
+msgid "general.save"
+msgstr "Save"
+
+msgid "general.saving"
+msgstr "Saving…"
+
+msgid "general.retry"
+msgstr "Retry"
+
+msgid "general.delete"
+msgstr "Delete"
+
+msgid "general.remove"
+msgstr "Remove"
+
+msgid "general.restore"
+msgstr "Restore"
+
+msgid "general.create"
+msgstr "Create"
+
+msgid "general.install"
+msgstr "Install"
+
+msgid "general.installing"
+msgstr "Installing…"
+
+msgid "general.add"
+msgstr "Add"
+
+msgid "general.go"
+msgstr "Go"
+
+msgid "general.login"
+msgstr "Login"
+
+msgid "general.home"
+msgstr "Home"
+
+msgid "general.name"
+msgstr "Name"
+
+msgid "general.status"
+msgstr "Status"
+
+msgid "general.type"
+msgstr "Type"
+
+msgid "general.version"
+msgstr "Version"
+
+msgid "general.repository"
+msgstr "Repository"
+
+msgid "general.description"
+msgstr "Description"
+
+msgid "general.noResults"
+msgstr "No results found."
+
+# ── Titlebar / Menubar ────────────────────────────────────────────────────
+
+msgid "menu.projects"
+msgstr "Projects"
+
+msgid "menu.newProject"
+msgstr "New Project"
+
+msgid "menu.refresh"
+msgstr "Refresh"
+
+msgid "menu.stopAll"
+msgstr "Stop All"
+
+msgid "menu.view"
+msgstr "View"
+
+msgid "menu.toggleLog"
+msgstr "Toggle Log"
+
+msgid "menu.settings"
+msgstr "Settings"
+
+msgid "menu.help"
+msgstr "Help"
+
+msgid "menu.about"
+msgstr "About"
+
+msgid "menu.checkEnvironment"
+msgstr "Check Environment"
+
+msgid "titlebar.backToList"
+msgstr "Back to project list"
+
+msgid "titlebar.useBrowser"
+msgstr "Use system browser"
+
+msgid "titlebar.useEmbedded"
+msgstr "Use embedded browser"
+
+msgid "titlebar.hideLog"
+msgstr "Hide Log"
+
+msgid "titlebar.showLog"
+msgstr "Show Log"
+
+msgid "titlebar.minimize"
+msgstr "Minimize"
+
+msgid "titlebar.maximize"
+msgstr "Maximize"
+
+msgid "titlebar.restore"
+msgstr "Restore"
+
+msgid "titlebar.close"
+msgstr "Close"
+
+# ── Project List ──────────────────────────────────────────────────────────
+
+msgid "projectList.title"
+msgstr "Projects"
+
+msgid "projectList.loading"
+msgstr "Loading projects..."
+
+msgid "projectList.empty"
+msgstr "No projects found."
+
+msgid "projectList.emptyHint"
+msgstr "Click <b>Projects</b> &gt; <b>New Project</b> to get started."
+
+msgid "projectList.failedToLoad"
+msgstr "Failed to load projects."
+
+msgid "projectList.checkEnv"
+msgstr "Check Environment"
+
+msgid "projectList.listView"
+msgstr "List view"
+
+msgid "projectList.gridView"
+msgstr "Grid view"
+
+msgid "projectList.colName"
+msgstr "Name"
+
+msgid "projectList.colStatus"
+msgstr "Status"
+
+msgid "projectList.colType"
+msgstr "Type"
+
+msgid "projectList.colUrl"
+msgstr "URL"
+
+msgid "projectList.colActions"
+msgstr "Actions"
+
+msgid "projectList.start"
+msgstr "Start"
+
+msgid "projectList.stop"
+msgstr "Stop"
+
+msgid "projectList.restart"
+msgstr "Restart"
+
+msgid "projectList.starting"
+msgstr "Starting"
+
+msgid "projectList.stopping"
+msgstr "Stoping"
+
+msgid "projectList.restarting"
+msgstr "Restarting"
+
+msgid "projectList.openFolder"
+msgstr "Open Folder"
+
+msgid "projectList.openCli"
+msgstr "Open CLI"
+
+# ── Project Detail ────────────────────────────────────────────────────────
+
+msgid "detail.back"
+msgstr "Back"
+
+msgid "detail.openSite"
+msgstr "Open Site"
+
+msgid "detail.openSiteAdmin"
+msgstr "Open Site (Admin)"
+
+msgid "detail.start"
+msgstr "Start"
+
+msgid "detail.stop"
+msgstr "Stop"
+
+msgid "detail.restart"
+msgstr "Restart"
+
+msgid "detail.openCli"
+msgstr "Open CLI"
+
+msgid "detail.initSite"
+msgstr "Init Site"
+
+msgid "detail.initializing"
+msgstr "Initializing…"
+
+msgid "detail.tabOverview"
+msgstr "Overview"
+
+msgid "detail.tabFiles"
+msgstr "Files"
+
+msgid "detail.tabAddons"
+msgstr "Add-on"
+
+msgid "detail.tabSnapshots"
+msgstr "Snapshots"
+
+msgid "detail.tabTerminal"
+msgstr "Terminal"
+
+msgid "detail.tabLogs"
+msgstr "Logs"
+
+msgid "detail.overview.title"
+msgstr "Overview"
+
+msgid "detail.overview.name"
+msgstr "Name"
+
+msgid "detail.overview.status"
+msgstr "Status"
+
+msgid "detail.overview.type"
+msgstr "Type"
+
+msgid "detail.overview.docroot"
+msgstr "Docroot"
+
+msgid "detail.overview.location"
+msgstr "Location"
+
+msgid "detail.overview.router"
+msgstr "Router"
+
+msgid "detail.overview.nodejs"
+msgstr "Node.js"
+
+msgid "detail.overview.phpVersion"
+msgstr "PHP Version"
+
+msgid "detail.overview.modify"
+msgstr "Modify"
+
+msgid "detail.modify.title"
+msgstr "Modify Project"
+
+msgid "detail.modify.apply"
+msgstr "Apply"
+
+msgid "detail.services.title"
+msgstr "Services"
+
+msgid "detail.services.none"
+msgstr "No services found"
+
+msgid "detail.services.ports"
+msgstr "ports"
+
+msgid "detail.services.config"
+msgstr "Config"
+
+msgid "detail.services.configTitle"
+msgstr "Configure Services"
+
+msgid "detail.services.webPort"
+msgstr "Web container port"
+
+msgid "detail.services.dbPort"
+msgstr "DB container port"
+
+msgid "detail.services.xdebug"
+msgstr "Enable Xdebug"
+
+msgid "detail.services.xhprof"
+msgstr "Enable XHProf"
+
+msgid "detail.services.xhgui"
+msgstr "Enable XHGui"
+
+msgid "detail.services.xhguiHint"
+msgstr "XHGui requires XHProf and enables it automatically."
+
+msgid "detail.services.invalidPort"
+msgstr "Ports must be numbers between 1 and 65535"
+
+msgid "detail.services.configSaved"
+msgstr "Service configuration saved"
+
+msgid "detail.services.configSaveFailed"
+msgstr "Failed to save service configuration"
+
+msgid "detail.addons.title"
+msgstr "Add-ons"
+
+msgid "detail.addons.none"
+msgstr "No add-ons installed"
+
+msgid "detail.addons.colName"
+msgstr "Name"
+
+msgid "detail.addons.colVersion"
+msgstr "Version"
+
+msgid "detail.addons.colRepo"
+msgstr "Repository"
+
+msgid "detail.addons.colInstalled"
+msgstr "Installed"
+
+msgid "detail.addons.searchPlaceholder"
+msgstr "Search add-ons…"
+
+msgid "detail.addons.loadingAvailable"
+msgstr "Loading available add-ons…"
+
+msgid "detail.addons.noAvailable"
+msgstr "No add-ons available."
+
+msgid "detail.addons.noMatching"
+msgstr "No matching add-ons."
+
+msgid "detail.addons.installTitle"
+msgstr "Install Add-on"
+
+msgid "detail.addons.colDescription"
+msgstr "Description"
+
+msgid "detail.snapshots.title"
+msgstr "Snapshots"
+
+msgid "detail.snapshots.none"
+msgstr "No snapshots found"
+
+msgid "detail.snapshots.create"
+msgstr "Create"
+
+msgid "detail.snapshots.createTitle"
+msgstr "Create Snapshot"
+
+msgid "detail.snapshots.restore"
+msgstr "Restore"
+
+msgid "detail.snapshots.delete"
+msgstr "Delete"
+
+msgid "detail.snapshots.namePrompt"
+msgstr "Snapshot name (leave empty for auto-generated name):"
+
+msgid "detail.snapshots.nameHelp"
+msgstr "Leave empty to use an auto-generated name."
+
+msgid "detail.snapshots.restoreConfirm"
+msgstr "Restore snapshot \"{snap}\"?\n\nThis will REPLACE the current database with this snapshot."
+
+msgid "detail.snapshots.deleteConfirm"
+msgstr "Delete snapshot \"{snap}\"?"
+
+msgid "detail.logs.title"
+msgstr "Project Logs"
+
+msgid "detail.logs.refresh"
+msgstr "Refresh"
+
+msgid "detail.logs.empty"
+msgstr "No logs available"
+
+msgid "detail.logs.loadError"
+msgstr "Failed to load logs."
+
+msgid "detail.drupal.label"
+msgstr "Drupal"
+
+msgid "detail.drupal.exportDb"
+msgstr "Export DB"
+
+msgid "detail.drupal.importDb"
+msgstr "Import DB"
+
+msgid "detail.drupal.masquerade"
+msgstr "Masquerade"
+
+msgid "detail.drupal.clearCache"
+msgstr "Clear Cache"
+
+msgid "detail.drupal.notAvailableSsh"
+msgstr "Not available with SSH backend"
+
+msgid "detail.drupal.mustBeRunning"
+msgstr "Project must be running"
+
+msgid "detail.drupal.masqTitle"
+msgstr "Masquerade"
+
+msgid "detail.drupal.masqSelectUser"
+msgstr "Select a user"
+
+msgid "detail.drupal.masqLoadingUsers"
+msgstr "Loading users…"
+
+msgid "detail.drupal.masqNoUsers"
+msgstr "No users found"
+
+msgid "detail.drupal.masqColUid"
+msgstr "UID"
+
+msgid "detail.drupal.masqColName"
+msgstr "Name"
+
+msgid "detail.drupal.masqColEmail"
+msgstr "Email"
+
+msgid "detail.drupal.masqEnterUid"
+msgstr "Or enter a user ID manually"
+
+msgid "detail.drupal.masqUidPlaceholder"
+msgstr "User ID (e.g. 1)"
+
+msgid "detail.more.label"
+msgstr "More"
+
+msgid "detail.more.openFolder"
+msgstr "Open Folder"
+
+msgid "detail.more.openEditor"
+msgstr "Open in Editor"
+
+msgid "detail.more.reinitSite"
+msgstr "Re-init Site"
+
+msgid "detail.more.delete"
+msgstr "Delete"
+
+msgid "detail.delete.confirm"
+msgstr "Delete project \"{name}\"?\n\nThis removes the project from DDEV. Your code files are preserved."
+
+msgid "detail.importDb.confirm"
+msgstr "Import \"{file}\" into \"{project}\"?\n\nThis will REPLACE the current database."
+
+# ── New Project Form ──────────────────────────────────────────────────────
+
+msgid "newProject.title"
+msgstr "New Project"
+
+msgid "newProject.create"
+msgstr "Create Project"
+
+msgid "newProject.creating"
+msgstr "Creating…"
+
+msgid "newProject.fieldName"
+msgstr "Project Name"
+
+msgid "newProject.fieldGitRepo"
+msgstr "Git Repo URL"
+
+msgid "newProject.optional"
+msgstr "(optional)"
+
+msgid "newProject.fieldType"
+msgstr "Project Type"
+
+msgid "newProject.fieldDocroot"
+msgstr "Docroot"
+
+msgid "newProject.docrootDefault"
+msgstr "(default: \"{val}\")"
+
+msgid "newProject.docrootPlaceholder"
+msgstr "(project root)"
+
+msgid "newProject.fieldPhp"
+msgstr "PHP Version"
+
+msgid "newProject.nameRequired"
+msgstr "Project name is required."
+
+# ── Settings Modal ────────────────────────────────────────────────────────
+
+msgid "settings.title"
+msgstr "Settings"
+
+msgid "settings.language"
+msgstr "Language"
+
+msgid "settings.languageDesc"
+msgstr "The display language for the user interface."
+
+msgid "settings.openInBrowser"
+msgstr "Open project links in system browser"
+
+msgid "settings.openInBrowserDesc"
+msgstr "When disabled, links open in an embedded window inside the app."
+
+msgid "settings.preferredEditor"
+msgstr "Preferred editor"
+
+msgid "settings.preferredEditorDesc"
+msgstr "Used by the project \"Open in Editor\" action."
+
+msgid "settings.theme"
+msgstr "Theme"
+
+msgid "settings.themeDesc"
+msgstr "Changing the backdrop effect requires restarting the app."
+
+msgid "settings.backend"
+msgstr "Backend"
+
+msgid "settings.backendDesc"
+msgstr "How DDEV commands are executed. WSL runs inside a local Windows Subsystem for Linux distro. SSH connects to a remote host."
+
+msgid "settings.wslDistro"
+msgstr "WSL Distribution"
+
+msgid "settings.wslDistroDesc"
+msgstr "The WSL distro to run commands in."
+
+msgid "settings.sshHost"
+msgstr "SSH Host"
+
+msgid "settings.sshPort"
+msgstr "SSH Port"
+
+msgid "settings.sshUser"
+msgstr "SSH User"
+
+msgid "settings.sshKey"
+msgstr "SSH Key Path"
+
+msgid "settings.sshKeyDesc"
+msgstr "Path to your private key file. Leave empty to use ssh-agent or the default key."
+
+msgid "settings.saved"
+msgstr "Settings saved."
+
+msgid "settings.savedToast"
+msgstr "Settings saved"
+
+msgid "settings.saveFailed"
+msgstr "Failed to save settings"
+
+# ── About Modal ───────────────────────────────────────────────────────────
+
+msgid "about.title"
+msgstr "About"
+
+msgid "about.tagline"
+msgstr "A desktop app for managing DDEV projects"
+
+msgid "about.appVersion"
+msgstr "App Version"
+
+msgid "about.ddevVersion"
+msgstr "DDEV Version"
+
+msgid "about.builtWith"
+msgstr "Built with"
+
+# ── Environment Info Modal ────────────────────────────────────────────────
+
+msgid "env.title"
+msgstr "Environment Info"
+
+msgid "env.ddevVersion"
+msgstr "DDEV Version"
+
+msgid "env.notInstalled"
+msgstr "(not installed)"
+
+msgid "env.ddevMissing"
+msgstr "DDEV was not found. Use the button below to install it."
+
+msgid "env.installing"
+msgstr "Installing…"
+
+msgid "env.installDdev"
+msgstr "Install DDEV"
+
+msgid "env.openSettings"
+msgstr "Open Settings"
+
+msgid "env.telemetryOptIn"
+msgstr "DDEV Telemetry Opt-In"
+
+msgid "env.telemetryOptInDesc"
+msgstr "Send usage and error information to DDEV’s developers."
+
+msgid "env.developerMode"
+msgstr "Developer Mode"
+
+msgid "env.developerModeDesc"
+msgstr "Enable unfinished and experimental features."
+
+# ── Log Panel ─────────────────────────────────────────────────────────────
+
+msgid "log.title"
+msgstr "Log"
+
+msgid "log.clear"
+msgstr "Clear"

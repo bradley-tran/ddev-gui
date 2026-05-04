@@ -1,0 +1,84 @@
+/* ===== Embedded Browser ===== */
+.embedded-browser-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  background: #0d0d1a;
+  animation: flu-modal-in 180ms ease forwards;
+}
+
+.embedded-browser-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 6px var(--space-sm);
+  background: rgba(16, 16, 30, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+  --wails-draggable: drag;
+}
+
+.eb-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  flex-shrink: 0;
+  --wails-draggable: no-drag;
+}
+
+.eb-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.eb-btn-close:hover {
+  background: rgba(248, 113, 113, 0.2);
+  color: var(--danger);
+}
+
+.eb-url-input {
+  flex: 1;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-layer-1);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  --wails-draggable: no-drag;
+  transition: border-color var(--transition-fast);
+}
+
+.eb-url-input:focus {
+  border-color: var(--accent);
+}
+
+.eb-loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  animation: status-pulse 1s ease-in-out infinite;
+}
+
+.embedded-browser-frame {
+  flex: 1;
+  border: none;
+  width: 100%;
+  background: #fff;
+}

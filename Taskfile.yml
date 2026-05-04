@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+  dev:
+    desc: Start the development server
+    cmds:
+      - wails dev
+
+  build:
+    desc: Build the application
+    cmds:
+      - wails build
+
+  test-backend:
+    desc: Run backend tests
+    cmds:
+      - go test ./backend
+
+  test-frontend:
+    desc: Run frontend tests
+    cmds:
+      - cd frontend && npm test
+
+  test:
+    desc: Run all tests
+    cmds:
+      - task test-backend
+      - task test-frontend
