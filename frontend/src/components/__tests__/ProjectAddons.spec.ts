@@ -70,4 +70,48 @@ describe('ProjectAddons', () => {
     expect(wrapper.text()).toContain('ddev/ddev-redis')
     expect(wrapper.text()).not.toContain('ddev/ddev-solr')
   })
+
+  it('confirms before removing an installed add-on', async () => {
+    if (!window.go?.backend) {
+      throw new Error('Wails backend mock is not available')
+    }
+
+    const ddevService = window.go.backend.DdevService as unknown as {
+      AddonsJSON: Mock
+      AddonRemove: Mock
+    }
+
+    ddevService.AddonsJSON.mockResolvedValue(
+      JSON.stringify({
+        installed: [
+          {
+            Name: 'Redis',
+            Repository: 'ddev/ddev-redis',
+          },
+        ],
+      }),
+    )
+
+    const wrapper = mount(ProjectAddons, {
+      props: {
+        projectName: 'demo',
+      },
+      global: {
+        plugins: [createPinia(), i18nPlugin],
+      },
+    })
+
+    await flushPromises()
+
+    await wrapper.get('.flu-btn-danger').trigger('click')
+    await flushPromises()
+
+    expect(ddevService.AddonRemove).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Remove add-on "ddev/ddev-redis"?')
+
+    await wrapper.get('.confirm-delete-modal-confirm').trigger('click')
+    await flushPromises()
+
+    expect(ddevService.AddonRemove).toHaveBeenCalledWith('demo', 'ddev/ddev-redis')
+  })
 })

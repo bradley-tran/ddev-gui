@@ -361,6 +361,9 @@ msgstr "安装插件"
 msgid "detail.addons.colDescription"
 msgstr "描述"
 
+msgid "detail.addons.removeConfirm"
+msgstr "移除插件 \"{repo}\"？"
+
 msgid "detail.snapshots.title"
 msgstr "快照"
 

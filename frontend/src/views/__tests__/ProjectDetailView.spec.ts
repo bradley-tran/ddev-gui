@@ -205,4 +205,122 @@ describe('ProjectDetailView', () => {
     expect(wrapper.text()).toContain('web | [notice] ready')
     expect(appStore.terminalActive).toBe(true)
   })
+
+  it('confirms before deleting a snapshot', async () => {
+    if (!window.go?.backend) {
+      throw new Error('Wails backend mock is not available')
+    }
+
+    const ddevService = window.go.backend.DdevService as unknown as {
+      DescribeJSON: Mock
+      SnapshotDelete: Mock
+      SnapshotListJSON: Mock
+    }
+    const pinia = createPinia()
+    const appStore = useAppStore(pinia)
+
+    appStore.setProjectsJSON(
+      JSON.stringify([
+        {
+          name: 'demo',
+          type: 'drupal10',
+          status_desc: 'running',
+        },
+      ]),
+    )
+    appStore.isProjectsLoaded = true
+
+    ddevService.DescribeJSON.mockResolvedValue(JSON.stringify({ raw: { name: 'demo', type: 'drupal10' } }))
+    ddevService.SnapshotListJSON.mockResolvedValue(JSON.stringify([{ name: 'pre-deploy' }]))
+
+    await router.push('/projects/demo')
+    await router.isReady()
+
+    const wrapper = mount(ProjectDetailView, {
+      global: {
+        plugins: [pinia, router, i18nPlugin],
+      },
+    })
+
+    await flushPromises()
+
+    const snapshotTab = wrapper.findAll('.detail-sidebar-btn').find((tab) => tab.attributes('title') === 'Snapshots')
+    expect(snapshotTab).toBeDefined()
+    if (!snapshotTab) {
+      throw new Error('Snapshot tab was not rendered')
+    }
+
+    await snapshotTab.trigger('click')
+    await flushPromises()
+
+    await wrapper.get('.snapshot-delete-btn').trigger('click')
+    await flushPromises()
+
+    expect(ddevService.SnapshotDelete).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Delete snapshot "pre-deploy"?')
+
+    await wrapper.get('.confirm-delete-modal-confirm').trigger('click')
+    await flushPromises()
+
+    expect(ddevService.SnapshotDelete).toHaveBeenCalledWith('demo', 'pre-deploy')
+  })
+
+  it('confirms before deleting a project', async () => {
+    if (!window.go?.backend) {
+      throw new Error('Wails backend mock is not available')
+    }
+
+    const ddevService = window.go.backend.DdevService as unknown as {
+      DeleteProject: Mock
+      DescribeJSON: Mock
+      SnapshotListJSON: Mock
+    }
+    const pinia = createPinia()
+    const appStore = useAppStore(pinia)
+
+    appStore.setProjectsJSON(
+      JSON.stringify([
+        {
+          name: 'demo',
+          type: 'drupal10',
+          status_desc: 'running',
+        },
+      ]),
+    )
+    appStore.isProjectsLoaded = true
+
+    ddevService.DescribeJSON.mockResolvedValue(JSON.stringify({ raw: { name: 'demo', type: 'drupal10' } }))
+    ddevService.SnapshotListJSON.mockResolvedValue('[]')
+
+    await router.push('/projects/demo')
+    await router.isReady()
+
+    const wrapper = mount(ProjectDetailView, {
+      global: {
+        plugins: [pinia, router, i18nPlugin],
+      },
+    })
+
+    await flushPromises()
+
+    const moreToggle = wrapper.findAll('.toolbar-dropdown-toggle')[1]
+    expect(moreToggle).toBeDefined()
+    if (!moreToggle) {
+      throw new Error('More dropdown toggle was not rendered')
+    }
+
+    await moreToggle.trigger('click')
+    await flushPromises()
+
+    await wrapper.get('.toolbar-dropdown-item-danger').trigger('click')
+    await flushPromises()
+
+    expect(ddevService.DeleteProject).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Delete project "demo"?')
+
+    await wrapper.get('.confirm-delete-modal-confirm').trigger('click')
+    await flushPromises()
+
+    expect(ddevService.DeleteProject).toHaveBeenCalledWith('demo')
+  })
 })

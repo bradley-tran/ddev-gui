@@ -2,6 +2,7 @@
 import { LayersPlusIcon } from '@lucide/vue'
 import { computed, ref, watch } from 'vue'
 import Modal from '@/components/Modal.vue'
+import ConfirmDeleteModal from '@/modals/ConfirmDeleteModal.vue'
 import Spinner from '@/components/Spinner.vue'
 import { filterAddons } from '@/lib/addonFilter'
 import { useTranslation } from '@/lib/i18n'
@@ -36,6 +37,8 @@ const loadingAvailable = ref(false)
 const showPicker = ref(false)
 const search = ref('')
 const installing = ref('')
+const removeCandidate = ref<string | null>(null)
+const removing = ref(false)
 
 const normalizedAddons = computed<NormalizedAddon[]>(() =>
   addons.value
@@ -56,6 +59,10 @@ const filteredAvailable = computed<AvailableAddon[]>(() =>
   filterAddons(available.value, search.value)
     .map((item) => normalizeAvailableAddon(item))
     .filter((item): item is AvailableAddon => Boolean(item)),
+)
+
+const removeMessage = computed(() =>
+  removeCandidate.value ? t('detail.addons.removeConfirm', { repo: removeCandidate.value }) : '',
 )
 
 watch(
@@ -170,7 +177,19 @@ async function handleInstall(repo: string) {
 }
 
 async function handleRemove(repo: string) {
-  if (!window.confirm(`Remove add-on ${repo}?`)) return
+  removeCandidate.value = repo
+}
+
+function closeRemoveModal() {
+  if (removing.value) return
+  removeCandidate.value = null
+}
+
+async function handleRemoveConfirm() {
+  const repo = removeCandidate.value
+  if (!repo || removing.value) return
+
+  removing.value = true
 
   appStore.appLog(`Removing add-on ${repo} from ${props.projectName}...`, 'info')
 
@@ -179,10 +198,13 @@ async function handleRemove(repo: string) {
     appStore.appLog(`Add-on ${repo} removed`, 'success')
     appStore.showToast(`Add-on ${repo} removed`, 'success')
     await loadAddons()
+    removeCandidate.value = null
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     appStore.appLog(`Failed to remove ${repo}: ${message}`, 'error')
     appStore.showToast(`Failed to remove ${repo}`, 'error')
+  } finally {
+    removing.value = false
   }
 }
 </script>
@@ -308,6 +330,16 @@ async function handleRemove(repo: string) {
       </button>
     </template>
   </Modal>
+
+  <ConfirmDeleteModal
+    v-if="removeCandidate"
+    :title="t('general.remove')"
+    :message="removeMessage"
+    :confirm-text="t('general.remove')"
+    :pending="removing"
+    @close="closeRemoveModal"
+    @confirm="handleRemoveConfirm"
+  />
 </template>
 
 <style scoped>

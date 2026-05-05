@@ -362,6 +362,9 @@ msgstr "Install Add-on"
 msgid "detail.addons.colDescription"
 msgstr "Description"
 
+msgid "detail.addons.removeConfirm"
+msgstr "Remove add-on \"{repo}\"?"
+
 msgid "detail.snapshots.title"
 msgstr "Snapshots"
 

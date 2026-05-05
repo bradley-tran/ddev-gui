@@ -361,6 +361,9 @@ msgstr "Cài đặt tiện ích"
 msgid "detail.addons.colDescription"
 msgstr "Mô tả"
 
+msgid "detail.addons.removeConfirm"
+msgstr "Gỡ tiện ích \"{repo}\"?"
+
 msgid "detail.snapshots.title"
 msgstr "Ảnh chụp"
 

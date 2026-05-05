@@ -257,7 +257,6 @@ onBeforeUnmount(() => {
 
 .project-logs-service-menu-inner {
   min-width: 6.5rem;
-  background: inherit;
   backdrop-filter: blur(5px);
 }
 

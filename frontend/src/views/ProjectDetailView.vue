@@ -33,6 +33,7 @@ import ProjectSnapshots from '@/components/ProjectSnapshots.vue'
 import ProjectTypeLogo from '@/components/ProjectTypeLogo.vue'
 import ProjectAddons from '@/components/ProjectAddons.vue'
 import ConfigServiceModal from '@/modals/ConfigServiceModal.vue'
+import ConfirmDeleteModal from '@/modals/ConfirmDeleteModal.vue'
 import CreateSnapshotModal from '@/modals/CreateSnapshotModal.vue'
 import MasqueradeModal from '@/modals/MasqueradeModal.vue'
 import ModifyProjectModal from '@/modals/ModifyProjectModal.vue'
@@ -53,6 +54,10 @@ import { useAppStore } from '@/stores/app'
 
 type DetailTab = 'overview' | 'files' | 'addons' | 'snapshots' |'logs' | 'terminal'
 type ToolbarMenu = 'drupal' | 'more' | null
+
+type DeleteTarget =
+  | { kind: 'project' }
+  | { kind: 'snapshot', snapshotName: string }
 
 interface OverviewItem {
   label: string
@@ -76,6 +81,8 @@ const showMasquerade = ref(false)
 const showModify = ref(false)
 const showSnapshotCreate = ref(false)
 const showServiceConfig = ref(false)
+const deleteTarget = ref<DeleteTarget | null>(null)
+const deleteRunning = ref(false)
 
 const routeProjectName = computed(() => String(route.params.name ?? ''))
 const cachedProject = computed(
@@ -127,6 +134,15 @@ const logServiceNames = computed(() => services.value.map(([serviceName]) => ser
 const normalizedSnapshots = computed(() =>
   snapshots.value.map(normalizeSnapshotName).filter((name): name is string => Boolean(name)),
 )
+const deleteMessage = computed(() => {
+  if (!deleteTarget.value) return ''
+
+  if (deleteTarget.value.kind === 'project') {
+    return t('detail.delete.confirm', { name: routeProjectName.value })
+  }
+
+  return t('detail.snapshots.deleteConfirm', { snap: deleteTarget.value.snapshotName })
+})
 
 watch(
   routeProjectName,
@@ -277,9 +293,16 @@ async function runAction(action: 'start' | 'stop' | 'restart') {
   }
 }
 
-async function handleDelete() {
-  if (!window.confirm(t('detail.delete.confirm', { name: routeProjectName.value }))) return
+function openProjectDeleteModal() {
+  deleteTarget.value = { kind: 'project' }
+}
 
+function closeDeleteModal() {
+  if (deleteRunning.value) return
+  deleteTarget.value = null
+}
+
+async function deleteProject() {
   appStore.appLog(`Deleting project ${routeProjectName.value}...`, 'info')
   try {
     await DdevApi.deleteProject(routeProjectName.value)
@@ -294,10 +317,12 @@ async function handleDelete() {
     appStore.showToast(`Project ${routeProjectName.value} deleted`, 'success')
     await appStore.refreshProjects()
     await router.push({ name: 'project-list' })
+    return true
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     appStore.appLog(`Error deleting ${routeProjectName.value}: ${message}`, 'error')
     appStore.showToast(`Error deleting ${routeProjectName.value}`, 'error')
+    return false
   }
 }
 
@@ -458,19 +483,41 @@ async function handleSnapshotRestore(snapshotName: string) {
   }
 }
 
-async function handleSnapshotDelete(snapshotName: string) {
-  if (!window.confirm(t('detail.snapshots.deleteConfirm', { snap: snapshotName }))) return
+function handleSnapshotDelete(snapshotName: string) {
+  deleteTarget.value = { kind: 'snapshot', snapshotName }
+}
 
+async function deleteSnapshot(snapshotName: string) {
   appStore.appLog(`Deleting snapshot ${snapshotName} from ${routeProjectName.value}...`, 'info')
   try {
     await DdevApi.snapshotDelete(routeProjectName.value, snapshotName)
     appStore.appLog(`Snapshot ${snapshotName} deleted`, 'success')
     appStore.showToast('Snapshot deleted', 'success')
     await loadSnapshots()
+    return true
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     appStore.appLog(`Snapshot delete failed: ${message}`, 'error')
     appStore.showToast('Snapshot delete failed', 'error')
+    return false
+  }
+}
+
+async function handleDeleteConfirm() {
+  if (!deleteTarget.value || deleteRunning.value) return
+
+  deleteRunning.value = true
+
+  try {
+    const success = deleteTarget.value.kind === 'project'
+      ? await deleteProject()
+      : await deleteSnapshot(deleteTarget.value.snapshotName)
+
+    if (success) {
+      deleteTarget.value = null
+    }
+  } finally {
+    deleteRunning.value = false
   }
 }
 </script>
@@ -631,7 +678,7 @@ async function handleSnapshotDelete(snapshotName: string) {
                   <button
                     type="button"
                     class="toolbar-dropdown-item proj-action toolbar-dropdown-item-danger"
-                    @click="setToolbarMenu(null); handleDelete()"
+                    @click="setToolbarMenu(null); openProjectDeleteModal()"
                   >
                     <Trash2Icon :size="12" :stroke-width="2" />
                     {{ t('detail.more.delete') }}
@@ -820,6 +867,16 @@ async function handleSnapshotDelete(snapshotName: string) {
       :project-name="routeProjectName"
       @close="showSnapshotCreate = false"
       @created="handleSnapshotCreated"
+    />
+
+    <ConfirmDeleteModal
+      v-if="deleteTarget"
+      :title="t('general.delete')"
+      :message="deleteMessage"
+      :confirm-text="t('general.delete')"
+      :pending="deleteRunning"
+      @close="closeDeleteModal"
+      @confirm="handleDeleteConfirm"
     />
   </section>
 </template>
