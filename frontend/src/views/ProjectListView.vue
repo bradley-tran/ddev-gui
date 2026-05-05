@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import {
+  FileBracesCornerIcon,
   FolderOpenIcon,
   LayoutGridIcon,
   ListIcon,
+  PlayIcon,
+  RotateCwIcon,
+  SquareIcon,
   TerminalIcon,
 } from '@lucide/vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
@@ -11,7 +15,7 @@ import ProjectTypeLogo from '@/components/ProjectTypeLogo.vue'
 import Spinner from '@/components/Spinner.vue'
 import { useTranslation } from '@/lib/i18n'
 import type { DdevProject, ViewMode } from '@/lib/types'
-import { getMailpitUrl, getPrimaryUrl, getProjectName, getProjectStatus, getProjectType, isProjectStopped, openUrl } from '@/lib/utils'
+import { getPrimaryUrl, getProjectName, getProjectStatus, getProjectType, isProjectStopped, openUrl } from '@/lib/utils'
 import { DdevService, Runtime } from '@/lib/wails'
 import { useAppStore } from '@/stores/app'
 
@@ -99,6 +103,10 @@ function openProjectFolder(project: DdevProject) {
 
 function openProjectCli(project: DdevProject) {
   Runtime.emit('open:terminal', { location: project.approot || project.shortroot || getProjectName(project) })
+}
+
+function openProjectEditor(project: DdevProject) {
+  Runtime.emit('open:editor', { location: project.approot || project.shortroot || getProjectName(project) })
 }
 
 function statusClass(status: string): string {
@@ -204,7 +212,8 @@ function statusClass(status: string): string {
                 :title="isProjectStopped(project) ? t('projectList.start') : t('projectList.stop')"
                 @click="runProjectAction(getProjectName(project), isProjectStopped(project) ? 'start' : 'stop')"
               >
-                {{ isProjectStopped(project) ? t('projectList.start') : t('projectList.stop') }}
+                <PlayIcon v-if="isProjectStopped(project)" :size="14" :stroke-width="2" />
+                <SquareIcon v-else :size="14" :stroke-width="2" />
               </button>
               <button
                 type="button"
@@ -212,7 +221,15 @@ function statusClass(status: string): string {
                 :title="t('projectList.restart')"
                 @click="runProjectAction(getProjectName(project), 'restart')"
               >
-                {{ t('projectList.restart') }}
+                <RotateCwIcon :size="14" :stroke-width="2" />
+              </button>
+              <button
+                type="button"
+                class="flu-btn flu-btn-sm flu-btn-ghost proj-action"
+                :title="t('detail.more.openEditor')"
+                @click="openProjectEditor(project)"
+              >
+                <FileBracesCornerIcon :size="14" :stroke-width="2" />
               </button>
               <button
                 type="button"
@@ -293,12 +310,12 @@ function statusClass(status: string): string {
                       {{ t('projectList.restart') }}
                     </button>
                     <button
-                      v-if="getMailpitUrl(project)"
                       type="button"
                       class="flu-btn flu-btn-sm flu-btn-ghost proj-action"
-                      @click="openProjectUrl(getMailpitUrl(project))"
+                      :title="t('detail.more.openEditor')"
+                      @click="openProjectEditor(project)"
                     >
-                      Mailpit
+                      <FileBracesCornerIcon :size="14" :stroke-width="2" />
                     </button>
                     <button
                       type="button"
