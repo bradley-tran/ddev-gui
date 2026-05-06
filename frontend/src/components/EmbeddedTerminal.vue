@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { EraserIcon, SendIcon, TerminalIcon } from '@lucide/vue'
 import { nextTick, ref, watch } from 'vue'
-import { ansiToHtml, escapeHtml } from '@/lib/ansi'
+import { ansiToHtml, escapeHtml, linkifyHtmlUrls } from '@/lib/ansi'
 import { useTranslation } from '@/lib/i18n'
+import { openUrl } from '@/lib/utils'
 import { DdevService, Runtime } from '@/lib/wails'
 
 interface TerminalLine {
@@ -163,15 +164,32 @@ function handleClear() {
   inputRef.value?.focus()
 }
 
+function handleContainerClick(event: MouseEvent) {
+  if (!(event.target instanceof Element)) return
+  if (event.target.closest('.terminal-output')) return
+  inputRef.value?.focus()
+}
+
+function handleOutputClick(event: MouseEvent) {
+  if (!(event.target instanceof Element)) return
+
+  const link = event.target.closest('a[data-terminal-url]')
+  if (!(link instanceof HTMLAnchorElement)) return
+
+  event.preventDefault()
+  event.stopPropagation()
+  openUrl(link.dataset.terminalUrl ?? link.getAttribute('href') ?? '')
+}
+
 function lineHtml(line: TerminalLine): string {
-  if (line.type === 'output') return ansiToHtml(line.text)
+  if (line.type === 'output') return linkifyHtmlUrls(ansiToHtml(line.text))
   if (line.type === 'input') return `<span class="terminal-prompt">${escapeHtml(line.text)}</span>`
   return escapeHtml(line.text)
 }
 </script>
 
 <template>
-  <div class="embedded-terminal" data-testid="embedded-terminal" @click="inputRef?.focus()">
+  <div class="embedded-terminal" data-testid="embedded-terminal" @click="handleContainerClick">
     <div class="terminal-toolbar">
       <span class="terminal-title">
         <TerminalIcon :size="14" :stroke-width="2" />
@@ -189,7 +207,7 @@ function lineHtml(line: TerminalLine): string {
       </button>
     </div>
 
-    <div ref="outputRef" class="terminal-output" @scroll="handleScroll">
+    <div ref="outputRef" class="terminal-output" @scroll="handleScroll" @click="handleOutputClick">
       <div
         v-for="line in lines"
         :key="line.id"

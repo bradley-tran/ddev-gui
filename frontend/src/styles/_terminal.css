@@ -50,6 +50,9 @@
   overflow-x: hidden;
   padding: 8px 12px;
   min-height: 0;
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
 }
 
 .terminal-line {
@@ -57,6 +60,8 @@
   word-break: break-all;
   color: #c9d1d9;
   min-height: 1.5em;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .terminal-line-input {
@@ -71,6 +76,17 @@
 .terminal-prompt {
   color: #58a6ff;
   font-weight: 600;
+}
+
+.terminal-link {
+  color: #79c0ff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.terminal-link:hover {
+  color: #a5d6ff;
 }
 
 .terminal-line-error {

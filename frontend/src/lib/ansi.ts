@@ -17,6 +17,48 @@ const COLORS: Record<string, string> = {
   '97': '#ffffff',
 }
 
+function splitTrailingPunctuation(rawUrl: string): [string, string] {
+  let end = rawUrl.length
+
+  while (end > 0) {
+    const lastChar = rawUrl[end - 1]
+    const isTrailingPunctuation = lastChar === ')' || lastChar === ',' || lastChar === '.' || lastChar === ';' || lastChar === '!' || lastChar === '?'
+    if (!isTrailingPunctuation) break
+
+    if (lastChar === ')') {
+      const candidate = rawUrl.slice(0, end)
+      const opens = (candidate.match(/\(/g) ?? []).length
+      const closes = (candidate.match(/\)/g) ?? []).length
+      if (closes <= opens) break
+    }
+
+    end--
+  }
+
+  return [rawUrl.slice(0, end), rawUrl.slice(end)]
+}
+
+function linkifyTextSegment(segment: string): string {
+  return segment.replace(/\bhttps?:\/\/[^\s<>"']+/gi, (rawUrl) => {
+    const [url, trailing] = splitTrailingPunctuation(rawUrl)
+    if (!url) return rawUrl
+
+    return `<a href="${url}" class="terminal-link" data-terminal-url="${url}" target="_blank" rel="noopener noreferrer">${url}</a>${trailing}`
+  })
+}
+
+export function linkifyHtmlUrls(html: string): string {
+  if (!html) return ''
+
+  return html
+    .split(/(<[^>]+>)/g)
+    .map((segment) => {
+      if (segment.startsWith('<') && segment.endsWith('>')) return segment
+      return linkifyTextSegment(segment)
+    })
+    .join('')
+}
+
 export function ansiToHtml(str: string): string {
   let html = ''
   let openCount = 0

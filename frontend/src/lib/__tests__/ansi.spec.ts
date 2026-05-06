@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ansiToHtml, escapeHtml } from '../ansi'
+import { ansiToHtml, escapeHtml, linkifyHtmlUrls } from '../ansi'
 
 describe('ansi', () => {
   describe('escapeHtml', () => {
@@ -90,6 +90,28 @@ describe('ansi', () => {
 
     it('should escape HTML characters even when inside a span', () => {
       expect(ansiToHtml('\x1b[31m<script>\x1b[0m')).toBe('<span style="color:#e06c75">&lt;script&gt;</span>')
+    })
+  })
+
+  describe('linkifyHtmlUrls', () => {
+    it('should wrap plain URLs in terminal links', () => {
+      expect(linkifyHtmlUrls('Visit https://example.com/docs')).toBe(
+        'Visit <a href="https://example.com/docs" class="terminal-link" data-terminal-url="https://example.com/docs" target="_blank" rel="noopener noreferrer">https://example.com/docs</a>',
+      )
+    })
+
+    it('should preserve ANSI-generated spans while linkifying URLs', () => {
+      const colored = ansiToHtml('\x1b[32mhttps://example.com\x1b[0m')
+
+      expect(linkifyHtmlUrls(colored)).toBe(
+        '<span style="color:#98c379"><a href="https://example.com" class="terminal-link" data-terminal-url="https://example.com" target="_blank" rel="noopener noreferrer">https://example.com</a></span>',
+      )
+    })
+
+    it('should keep trailing punctuation outside links', () => {
+      expect(linkifyHtmlUrls('See https://example.com/test.')).toBe(
+        'See <a href="https://example.com/test" class="terminal-link" data-terminal-url="https://example.com/test" target="_blank" rel="noopener noreferrer">https://example.com/test</a>.',
+      )
     })
   })
 })

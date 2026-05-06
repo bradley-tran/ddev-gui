@@ -64,4 +64,51 @@ describe('EmbeddedTerminal', () => {
 
     wrapper.unmount()
   })
+
+  it('opens URLs from output and keeps output clicks from stealing input focus', async () => {
+    if (!window.runtime) {
+      throw new Error('Wails mocks are not available')
+    }
+
+    const runtime = window.runtime as unknown as {
+      EventsOn: Mock
+      EventsOff: Mock
+      EventsEmit: Mock
+    }
+
+    const listeners = new Map<string, (...args: unknown[]) => void>()
+    runtime.EventsOn.mockImplementation((event: string, callback: (...args: unknown[]) => void) => {
+      listeners.set(event, callback)
+    })
+
+    const wrapper = mount(EmbeddedTerminal, {
+      props: {
+        projectName: 'demo',
+      },
+      global: {
+        plugins: [i18nPlugin],
+      },
+      attachTo: document.body,
+    })
+
+    await flushPromises()
+
+    listeners.get('terminal:output:demo')?.('Read https://example.com/docs.')
+    await flushPromises()
+
+    const input = wrapper.get('[data-testid="embedded-terminal-input"]').element as HTMLInputElement
+    input.focus()
+    input.blur()
+
+    await wrapper.get('.terminal-line-output').trigger('click')
+    expect(document.activeElement).not.toBe(input)
+
+    const link = wrapper.get('.terminal-line-output a.terminal-link')
+    expect(link.text()).toBe('https://example.com/docs')
+
+    await link.trigger('click')
+    expect(runtime.EventsEmit).toHaveBeenCalledWith('open:url', { url: 'https://example.com/docs' })
+
+    wrapper.unmount()
+  })
 })
