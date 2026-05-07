@@ -51,6 +51,7 @@ const mockDdevService = {
   SnapshotDelete: vi.fn().mockResolvedValue(''),
   ProjectLogs: vi.fn().mockResolvedValue(''),
   ActiveBackend: vi.fn().mockResolvedValue('wsl'),
+  WSLExists: vi.fn().mockResolvedValue(true),
   ListWSLDistros: vi.fn().mockResolvedValue([]),
   ReloadBackend: vi.fn().mockResolvedValue(undefined),
   AppVersion: vi.fn().mockResolvedValue({ version: 'test', commitHash: 'abc1234' }),

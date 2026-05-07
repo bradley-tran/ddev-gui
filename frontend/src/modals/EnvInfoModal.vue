@@ -6,6 +6,8 @@ import { useTranslation } from '@/lib/i18n'
 import { ConfigService, DdevService, Runtime } from '@/lib/wails'
 import { useAppStore } from '@/stores/app'
 
+const WSL_MISSING_SENTINEL = '__WSL_MISSING__'
+
 const emit = defineEmits<{
   close: []
   openSettings: []
@@ -21,7 +23,9 @@ const installing = ref(false)
 const installProgress = ref('')
 const telemetryOptIn = ref(appStore.config.ddevTelemetryOptIn ?? true)
 const devMode = computed(() => appStore.config.devMode ?? false)
-const isWslError = computed(() => Boolean(error.value) && /wslshell|wsl\.exe|wsl\b|pipe|distro/i.test(error.value))
+const isWslError = computed(() =>
+  Boolean(error.value) && error.value !== WSL_MISSING_SENTINEL && /wslshell|wsl\.exe|wsl\b|pipe|distro/i.test(error.value),
+)
 
 const installProgressHandler = (...args: unknown[]) => {
   const message = typeof args[0] === 'string' ? args[0] : String(args[0])
@@ -29,8 +33,23 @@ const installProgressHandler = (...args: unknown[]) => {
   appStore.appLog(message, 'info')
 }
 
+async function isWslMissingForCurrentBackend(): Promise<boolean> {
+  try {
+    return !(await DdevService.wslExists())
+  } catch (caughtError) {
+    const message = caughtError instanceof Error ? caughtError.message : String(caughtError)
+    appStore.appLog(`Failed to verify WSL availability: ${message}`, 'error')
+    return false
+  }
+}
+
 onMounted(async () => {
   try {
+    if (await isWslMissingForCurrentBackend()) {
+      error.value = WSL_MISSING_SENTINEL
+      return
+    }
+
     versionText.value = await DdevService.ddevInstalledVersion()
   } catch (caughtError) {
     const message = caughtError instanceof Error ? caughtError.message : String(caughtError)

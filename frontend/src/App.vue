@@ -7,6 +7,7 @@ import ToastContainer from '@/components/ToastContainer.vue'
 import { useRuntimeEvents } from '@/composables/useRuntimeEvents'
 import { useTranslation } from '@/lib/i18n'
 import type { AppModal } from '@/lib/types'
+import { DdevService } from '@/lib/wails'
 import { useAppStore } from '@/stores/app'
 import AboutModal from '@/modals/AboutModal.vue'
 import EnvInfoModal from '@/modals/EnvInfoModal.vue'
@@ -28,6 +29,16 @@ function closeModal(modal: AppModal) {
 function openSettingsFromEnvInfo() {
   appStore.closeModal('envInfo')
   appStore.openModal('settings')
+}
+
+async function shouldShowEnvInfoForMissingWsl(): Promise<boolean> {
+  try {
+    return !(await DdevService.wslExists())
+  } catch (caughtError) {
+    const message = caughtError instanceof Error ? caughtError.message : String(caughtError)
+    appStore.appLog(`Failed to verify WSL availability: ${message}`, 'error')
+    return false
+  }
 }
 
 watch(
@@ -64,7 +75,9 @@ onMounted(async () => {
   const refreshProjectsPromise = Promise.allSettled([appStore.refreshProjects()])
 
   await appStore.loadConfig()
-  if (typeof appStore.config.ddevTelemetryOptIn === 'undefined') {
+  const missingWsl = await shouldShowEnvInfoForMissingWsl()
+
+  if (typeof appStore.config.ddevTelemetryOptIn === 'undefined' || missingWsl) {
     appStore.openModal('envInfo')
   }
 

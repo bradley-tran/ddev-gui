@@ -149,6 +149,21 @@ func (d *DdevService) ListWSLDistros() []string {
 	return distros
 }
 
+// WSLExists returns whether WSL is available for the current runtime backend.
+// To simplify, the actual check only happens for WSL backend on Windows.
+// TODO: create a more robust backend check and allows user to select when auto-detection fails (e.g. WSL installed but not working correctly).
+func (d *DdevService) WSLExists() bool {
+	if stdruntime.GOOS != "windows" {
+		return true
+	}
+
+	if d.activeBackend() != "wsl" {
+		return true
+	}
+
+	return len(d.ListWSLDistros()) > 0
+}
+
 // ActiveBackend returns the current backend type as a string for the frontend.
 func (d *DdevService) ActiveBackend() string {
 	return d.activeBackend()
