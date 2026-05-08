@@ -41,6 +41,27 @@ async function shouldShowEnvInfoForMissingWsl(): Promise<boolean> {
   }
 }
 
+function isDdevMissingMessage(message: string): boolean {
+  return /ddev.*(not found|not installed)|command not found|executable file not found|no such file|not recognized as an internal or external command|exit status\s+(127|9009)/i.test(
+    message,
+  )
+}
+
+async function shouldShowEnvInfoForMissingDdev(): Promise<boolean> {
+  try {
+    await DdevService.ddevInstalledVersion()
+    return false
+  } catch (caughtError) {
+    const message = caughtError instanceof Error ? caughtError.message : String(caughtError)
+    if (isDdevMissingMessage(message)) {
+      return true
+    }
+
+    appStore.appLog(`Failed to verify DDEV availability: ${message}`, 'error')
+    return false
+  }
+}
+
 watch(
   () => route.params.name,
   () => {
@@ -76,8 +97,9 @@ onMounted(async () => {
 
   await appStore.loadConfig()
   const missingWsl = await shouldShowEnvInfoForMissingWsl()
+  const missingDdev = missingWsl ? false : await shouldShowEnvInfoForMissingDdev()
 
-  if (typeof appStore.config.ddevTelemetryOptIn === 'undefined' || missingWsl) {
+  if (typeof appStore.config.ddevTelemetryOptIn === 'undefined' || missingWsl || missingDdev) {
     appStore.openModal('envInfo')
   }
 
