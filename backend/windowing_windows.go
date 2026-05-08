@@ -3,10 +3,38 @@
 package backend
 
 import (
+	"errors"
+	"fmt"
 	"os/exec"
 	"strings"
 	"syscall"
+
+	"golang.org/x/sys/windows"
 )
+
+var shellExecute = windows.ShellExecute
+
+// launchWindowsElevated starts an executable via the Windows ShellExecute API
+// with the "runas" verb, which triggers a native UAC elevation prompt.
+// This is less likely to be flagged as malware than using PowerShell.
+func launchWindowsElevated(path string) error {
+	verb := "runas"
+	// Use windows.StringToUTF16Ptr for safe interop with Windows API
+	verbPtr, _ := windows.UTF16PtrFromString(verb)
+	pathPtr, _ := windows.UTF16PtrFromString(path)
+	cwdPtr, _ := windows.UTF16PtrFromString("")
+	argsPtr, _ := windows.UTF16PtrFromString("")
+
+	// ERROR_ACCESS_DENIED (5) is returned if the user cancels the UAC prompt.
+	err := shellExecute(0, verbPtr, pathPtr, argsPtr, cwdPtr, windows.SW_SHOWNORMAL)
+	if err != nil {
+		if errors.Is(err, windows.ERROR_ACCESS_DENIED) {
+			return errUserCancelled
+		}
+		return fmt.Errorf("ShellExecute failed: %w", err)
+	}
+	return nil
+}
 
 // HideWindow sets SysProcAttr on the command to prevent a visible console
 // window from flashing when running CLI tools from a GUI app on Windows.
