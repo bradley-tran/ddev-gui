@@ -17,11 +17,13 @@ describe('EnvInfoModal.vue', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+    getDdevService().WSLExists.mockResolvedValue(true)
   })
 
   const getDdevService = () => window.go!.backend!.DdevService as unknown as {
     DdevInstalledVersion: Mock
     InstallDdev: Mock
+    WSLExists: Mock
   }
 
   const getConfigService = () => window.go!.backend!.ConfigService as unknown as {
@@ -77,10 +79,28 @@ describe('EnvInfoModal.vue', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('DDEV was not found')
+    expect(wrapper.text()).toContain('ddev not found')
     expect(wrapper.find('button.flu-btn-accent').text()).toBe('Install DDEV')
   })
 
+  it('surfaces WSL availability check errors in the modal', async () => {
+    getDdevService().WSLExists.mockRejectedValue(new Error('wsl check failed'))
+
+    const wrapper = mount(EnvInfoModal, {
+      global: {
+        plugins: [i18nPlugin],
+      },
+    })
+
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('wsl check failed')
+    expect(wrapper.find('button.flu-btn-accent').text()).toBe('Open Settings')
+    expect(getDdevService().DdevInstalledVersion).not.toHaveBeenCalled()
+  })
+
   it('displays WSL error and open settings button when WSL error occurs', async () => {
+    getDdevService().WSLExists.mockResolvedValue(true)
     getDdevService().DdevInstalledVersion.mockRejectedValue(new Error('wsl.exe not found'))
 
     const wrapper = mount(EnvInfoModal, {
@@ -93,6 +113,25 @@ describe('EnvInfoModal.vue', () => {
 
     expect(wrapper.text()).toContain('wsl.exe not found')
     expect(wrapper.find('button.flu-btn-accent').text()).toBe('Open Settings')
+  })
+
+  it('displays the WSL install guide when WSL is missing', async () => {
+    getDdevService().WSLExists.mockResolvedValue(false)
+
+    const wrapper = mount(EnvInfoModal, {
+      global: {
+        plugins: [i18nPlugin],
+      },
+    })
+
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('WSL was not found.')
+    expect(wrapper.text()).toContain('wsl --install')
+    expect(wrapper.text()).toContain('wsl --update')
+    expect(wrapper.text()).toContain('wsl --install Ubuntu --name DDEV')
+    expect(wrapper.find('button.flu-btn-accent').exists()).toBe(false)
+    expect(getDdevService().DdevInstalledVersion).not.toHaveBeenCalled()
   })
 
   it('toggles developer mode', async () => {
@@ -200,6 +239,25 @@ describe('EnvInfoModal.vue', () => {
     expect(wrapper.text()).not.toContain('Downloading…')
   })
 
+  it('surfaces DDEV installation errors in the modal', async () => {
+    getDdevService().DdevInstalledVersion.mockRejectedValue(new Error('ddev not found'))
+    getDdevService().InstallDdev.mockRejectedValue(new Error('download failed'))
+
+    const wrapper = mount(EnvInfoModal, {
+      global: {
+        plugins: [i18nPlugin],
+      },
+    })
+
+    await flushPromises()
+
+    const installBtn = wrapper.find('button.flu-btn-accent')
+    await installBtn.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('download failed')
+  })
+
   it('emits close event when close button is clicked', async () => {
     getDdevService().DdevInstalledVersion.mockResolvedValue('v1.23.0')
     const appStore = useAppStore()
@@ -219,6 +277,7 @@ describe('EnvInfoModal.vue', () => {
   })
 
   it('emits openSettings event when Open Settings button is clicked', async () => {
+    getDdevService().WSLExists.mockResolvedValue(true)
     getDdevService().DdevInstalledVersion.mockRejectedValue(new Error('wsl.exe not found'))
 
     const wrapper = mount(EnvInfoModal, {

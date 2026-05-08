@@ -18,6 +18,11 @@ const getConfigService = () => window.go!.backend!.ConfigService as unknown as {
   GetAll: Mock
 }
 
+const getDdevService = () => window.go!.backend!.DdevService as unknown as {
+  WSLExists: Mock
+  DdevInstalledVersion: Mock
+}
+
 describe('App', () => {
   it('mounts the ported Vue shell', async () => {
     getConfigService().GetAll.mockResolvedValueOnce(JSON.stringify({ ddevTelemetryOptIn: true }))
@@ -76,5 +81,67 @@ describe('App', () => {
     await flushPromises()
 
     expect(useAppStore().modals.envInfo).toBe(false)
+  })
+
+  it('opens EnvInfoModal on startup when WSL is missing', async () => {
+    getConfigService().GetAll.mockResolvedValueOnce(JSON.stringify({ ddevTelemetryOptIn: false }))
+    getDdevService().WSLExists.mockResolvedValueOnce(false)
+
+    await router.push('/')
+    const pinia = createPinia()
+    setActivePinia(pinia)
+
+    mount(App, {
+      global: {
+        plugins: [pinia, router, i18nPlugin],
+      },
+    })
+
+    await router.isReady()
+    await flushPromises()
+
+    expect(useAppStore().modals.envInfo).toBe(true)
+  })
+
+  it('opens EnvInfoModal on startup when DDEV is missing', async () => {
+    getConfigService().GetAll.mockResolvedValueOnce(JSON.stringify({ ddevTelemetryOptIn: false }))
+    getDdevService().WSLExists.mockResolvedValueOnce(true)
+    getDdevService().DdevInstalledVersion.mockRejectedValueOnce(new Error('ddev not found'))
+
+    await router.push('/')
+    const pinia = createPinia()
+    setActivePinia(pinia)
+
+    mount(App, {
+      global: {
+        plugins: [pinia, router, i18nPlugin],
+      },
+    })
+
+    await router.isReady()
+    await flushPromises()
+
+    expect(useAppStore().modals.envInfo).toBe(true)
+  })
+
+  it('opens EnvInfoModal on startup when DDEV missing returns exit status 127', async () => {
+    getConfigService().GetAll.mockResolvedValueOnce(JSON.stringify({ ddevTelemetryOptIn: false }))
+    getDdevService().WSLExists.mockResolvedValueOnce(true)
+    getDdevService().DdevInstalledVersion.mockRejectedValueOnce(new Error('exit status 127'))
+
+    await router.push('/')
+    const pinia = createPinia()
+    setActivePinia(pinia)
+
+    mount(App, {
+      global: {
+        plugins: [pinia, router, i18nPlugin],
+      },
+    })
+
+    await router.isReady()
+    await flushPromises()
+
+    expect(useAppStore().modals.envInfo).toBe(true)
   })
 })

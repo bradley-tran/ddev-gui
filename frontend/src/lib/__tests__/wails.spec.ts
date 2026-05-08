@@ -186,6 +186,11 @@ describe('wails bridge', () => {
       expect(getMockDdevService().ActiveBackend).toHaveBeenCalled()
     })
 
+    it('should call WSLExists', async () => {
+      await DdevService.wslExists()
+      expect(getMockDdevService().WSLExists).toHaveBeenCalled()
+    })
+
     it('should call ListWSLDistros', async () => {
       await DdevService.listWSLDistros()
       expect(getMockDdevService().ListWSLDistros).toHaveBeenCalled()

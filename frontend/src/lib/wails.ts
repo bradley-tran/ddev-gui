@@ -56,6 +56,7 @@ interface WailsDdevService {
   SnapshotDelete(name: string, snapName: string): Promise<string>
   ProjectLogs(name: string, service?: string): Promise<string>
   ActiveBackend(): Promise<string>
+  WSLExists(): Promise<boolean>
   ListWSLDistros(): Promise<string[]>
   ReloadBackend(): Promise<void>
   AppVersion(): Promise<{ version: string; commitHash: string }>
@@ -161,6 +162,7 @@ export const DdevService = {
   snapshotDelete: (name: string, snapName: string) => getDdevService().SnapshotDelete(name, snapName),
   ProjectLogs: (name: string, service = 'web') => getDdevService().ProjectLogs(name, service),
   activeBackend: () => getDdevService().ActiveBackend(),
+  wslExists: () => getDdevService().WSLExists(),
   listWSLDistros: () => getDdevService().ListWSLDistros(),
   reloadBackend: () => getDdevService().ReloadBackend(),
   appVersion: () => getDdevService().AppVersion(),

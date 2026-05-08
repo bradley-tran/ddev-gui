@@ -609,6 +609,9 @@ msgstr "(chưa cài đặt)"
 msgid "env.ddevMissing"
 msgstr "Không tìm thấy DDEV. Nhấn nút bên dưới để cài đặt."
 
+msgid "env.wslMissing"
+msgstr "Không tìm thấy WSL. Hãy cài đặt WSL trước, sau đó cài đặt DDEV."
+
 msgid "env.installing"
 msgstr "Đang cài đặt…"
 

@@ -610,6 +610,9 @@ msgstr "(not installed)"
 msgid "env.ddevMissing"
 msgstr "DDEV was not found. Use the button below to install it."
 
+msgid "env.wslMissing"
+msgstr "WSL was not found.  Please install WSL first, then install DDEV."
+
 msgid "env.installing"
 msgstr "Installing…"
 
