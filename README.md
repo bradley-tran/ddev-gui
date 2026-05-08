@@ -2,6 +2,14 @@
 
 A native desktop application for managing [DDEV](https://github.com/ddev/ddev) projects through an intuitive graphical interface. Built with [Wails v2](https://github.com/wailsapp/wails) (Go + Vue 3 + TypeScript) and styled with a **Fluent UI** design system for a modern Windows 11 look and feel.
 
+## Screenshots
+### Project List
+![Project List](screenshots/project-list.png)
+### Project Detail
+![Project Detail](screenshots/project-detail.png)
+### Terminal
+![Terminal](screenshots/terminal.png)
+
 ## Features
 
 ### Project Management
@@ -31,7 +39,7 @@ A native desktop application for managing [DDEV](https://github.com/ddev/ddev) p
 ## Prerequisites
 
 - **Go 1.23+**
-- **Node.js 20+** and **npm** (or **bun**)
+- **Node.js 22+** and **npm**
 - **Wails CLI** installed and prerequisites met:
   ```
   go install github.com/wailsapp/wails/v2/cmd/wails@latest
