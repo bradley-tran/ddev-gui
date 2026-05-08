@@ -17,6 +17,7 @@ describe('EnvInfoModal.vue', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+    getDdevService().WSLExists.mockResolvedValue(true)
   })
 
   const getDdevService = () => window.go!.backend!.DdevService as unknown as {
@@ -114,7 +115,7 @@ describe('EnvInfoModal.vue', () => {
     expect(wrapper.find('button.flu-btn-accent').text()).toBe('Open Settings')
   })
 
-  it('displays install button when WSL is missing', async () => {
+  it('displays the WSL install guide when WSL is missing', async () => {
     getDdevService().WSLExists.mockResolvedValue(false)
 
     const wrapper = mount(EnvInfoModal, {
@@ -125,8 +126,11 @@ describe('EnvInfoModal.vue', () => {
 
     await flushPromises()
 
-    expect(wrapper.text()).toContain('DDEV was not found')
-    expect(wrapper.find('button.flu-btn-accent').text()).toBe('Install DDEV')
+    expect(wrapper.text()).toContain('WSL was not found.')
+    expect(wrapper.text()).toContain('wsl --install')
+    expect(wrapper.text()).toContain('wsl --update')
+    expect(wrapper.text()).toContain('wsl --install Ubuntu --name DDEV')
+    expect(wrapper.find('button.flu-btn-accent').exists()).toBe(false)
     expect(getDdevService().DdevInstalledVersion).not.toHaveBeenCalled()
   })
 

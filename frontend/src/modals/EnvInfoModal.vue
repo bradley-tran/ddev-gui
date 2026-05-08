@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import Modal from '@/components/Modal.vue'
+import MarkdownViewer from '@/components/MarkdownViewer.vue'
 import Spinner from '@/components/Spinner.vue'
 import { useTranslation } from '@/lib/i18n'
 import { ConfigService, DdevService, Runtime } from '@/lib/wails'
@@ -24,6 +25,20 @@ const installProgress = ref('')
 const installError = ref('')
 const telemetryOptIn = ref(appStore.config.ddevTelemetryOptIn ?? true)
 const devMode = computed(() => appStore.config.devMode ?? false)
+const wslInstallGuide = [
+  '# Install WSL2 with Ubuntu',
+  'Run the following in PowerShell terminal:',
+  '`wsl --install`',
+  '',
+  "You'll probably need to reboot.",
+  '',
+  'If you had previously installed WSL, update it:',
+  '`wsl --update`',
+  '',
+  'Then, install an Ubuntu distro named "DDEV":',
+  '`wsl --install Ubuntu --name DDEV`',
+].join('\n')
+const isWslMissing = computed(() => error.value === WSL_MISSING_SENTINEL)
 const isWslError = computed(() =>
   Boolean(error.value) && error.value !== WSL_MISSING_SENTINEL && /wslshell|wsl\.exe|wsl\b|pipe|distro/i.test(error.value),
 )
@@ -133,7 +148,7 @@ function openSettings() {
         {{ t('env.openSettings') }}
       </button>
       <button
-        v-else-if="error && !isWslError"
+        v-else-if="error && !isWslError && !isWslMissing"
         class="flu-btn flu-btn-accent"
         type="button"
         :disabled="installing"
@@ -148,26 +163,32 @@ function openSettings() {
       <Spinner /> {{ t('general.loading') }}
     </div>
     <template v-else-if="error">
-      <div class="form-error">{{ error === WSL_MISSING_SENTINEL ? t('env.ddevMissing') : (isWslError ? error : t('env.ddevMissing')) }}</div>
-      <div
-        v-if="error !== WSL_MISSING_SENTINEL && error && !isWslError"
-        style="margin-top: 0.5rem; font-size: 0.85em; color: var(--text-secondary); white-space: pre-wrap"
-      >
-        {{ error }}
-      </div>
-      <div
-        v-if="installError"
-        class="form-error"
-        style="margin-top: 0.75rem"
-      >
-        {{ installError }}
-      </div>
-      <div
-        v-if="installing && installProgress"
-        style="margin-top: 0.75rem; font-size: 0.85em; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem"
-      >
-        <Spinner /><span>{{ installProgress }}</span>
-      </div>
+      <template v-if="isWslMissing">
+        <div class="form-error">{{ t('env.wslMissing') }}</div>
+        <MarkdownViewer :content="wslInstallGuide" class-name="env-wsl-guide" />
+      </template>
+      <template v-else>
+        <div class="form-error">{{ isWslError ? error : t('env.ddevMissing') }}</div>
+        <div
+          v-if="error && !isWslError"
+          style="margin-top: 0.5rem; font-size: 0.85em; color: var(--text-secondary); white-space: pre-wrap"
+        >
+          {{ error }}
+        </div>
+        <div
+          v-if="installError"
+          class="form-error"
+          style="margin-top: 0.75rem"
+        >
+          {{ installError }}
+        </div>
+        <div
+          v-if="installing && installProgress"
+          style="margin-top: 0.75rem; font-size: 0.85em; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem"
+        >
+          <Spinner /><span>{{ installProgress }}</span>
+        </div>
+      </template>
     </template>
     <template v-else>
       <div class="detail-kv">
@@ -223,5 +244,12 @@ function openSettings() {
 <style scoped>
 .flu-form-group {
   margin-bottom: var(--space-md);
+}
+
+.env-wsl-guide {
+  margin-top: 0.75rem;
+  max-height: 16rem;
+  overflow: auto;
+  padding-right: 0.25rem;
 }
 </style>

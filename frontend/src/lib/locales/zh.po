@@ -609,6 +609,9 @@ msgstr "（未安装）"
 msgid "env.ddevMissing"
 msgstr "未找到 DDEV，请点击下方按钮安装。"
 
+msgid "env.wslMissing"
+msgstr "未找到 WSL。请先安装 WSL，然后再安装 DDEV。"
+
 msgid "env.installing"
 msgstr "安装中…"
 
