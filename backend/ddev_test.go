@@ -8,10 +8,46 @@ import (
 	"os"
 	"path/filepath"
 	stdruntime "runtime"
+	"strings"
 	"testing"
 )
 
 func TestGetLatestDdevRelease(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		payload := `{
+			"tag_name": "v1.23.4",
+			"assets": [
+				{"name": "ddev_windows_amd64_installer.v1.23.4.exe", "browser_download_url": "http://example.com/ddev-amd64.exe"},
+				{"name": "ddev_windows_arm64_installer.v1.23.4.exe", "browser_download_url": "http://example.com/ddev-arm64.exe"},
+				{"name": "checksums.txt", "browser_download_url": "http://example.com/checksums.txt"}
+			]
+		}`
+		fmt.Fprintln(w, payload)
+	}))
+	defer ts.Close()
+
+	client := ts.Client()
+	rel, err := getLatestDdevReleaseFromURL(client, ts.URL)
+	if err != nil {
+		t.Fatalf("getLatestDdevReleaseFromURL failed: %v", err)
+	}
+
+	if rel.TagName != "v1.23.4" {
+		t.Errorf("expected tag v1.23.4, got %s", rel.TagName)
+	}
+	wantURL := "http://example.com/ddev-amd64.exe"
+	if stdruntime.GOARCH == "arm64" {
+		wantURL = "http://example.com/ddev-arm64.exe"
+	}
+	if rel.URL != wantURL {
+		t.Errorf("expected URL %s, got %s", wantURL, rel.URL)
+	}
+	if rel.ChecksumURL != "http://example.com/checksums.txt" {
+		t.Errorf("expected checksum URL http://example.com/checksums.txt, got %s", rel.ChecksumURL)
+	}
+}
+
+func TestGetLatestDdevReleaseFallbackToGenericInstaller(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		payload := `{
 			"tag_name": "v1.23.4",
@@ -30,14 +66,35 @@ func TestGetLatestDdevRelease(t *testing.T) {
 		t.Fatalf("getLatestDdevReleaseFromURL failed: %v", err)
 	}
 
-	if rel.TagName != "v1.23.4" {
-		t.Errorf("expected tag v1.23.4, got %s", rel.TagName)
-	}
 	if rel.URL != "http://example.com/ddev.exe" {
-		t.Errorf("expected URL http://example.com/ddev.exe, got %s", rel.URL)
+		t.Errorf("expected fallback URL http://example.com/ddev.exe, got %s", rel.URL)
 	}
-	if rel.ChecksumURL != "http://example.com/checksums.txt" {
-		t.Errorf("expected checksum URL http://example.com/checksums.txt, got %s", rel.ChecksumURL)
+}
+
+func TestGetLatestDdevReleaseRejectsWrongArchWithoutFallback(t *testing.T) {
+	onlyArch := "arm64"
+	if stdruntime.GOARCH == "arm64" {
+		onlyArch = "amd64"
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		payload := fmt.Sprintf(`{
+			"tag_name": "v1.23.4",
+			"assets": [
+				{"name": "ddev_windows_%s_installer.v1.23.4.exe", "browser_download_url": "http://example.com/ddev.exe"}
+			]
+		}`, onlyArch)
+		fmt.Fprintln(w, payload)
+	}))
+	defer ts.Close()
+
+	client := ts.Client()
+	_, err := getLatestDdevReleaseFromURL(client, ts.URL)
+	if err == nil {
+		t.Fatal("expected an error when only non-matching architecture installers are available")
+	}
+	if !strings.Contains(err.Error(), "could not find Windows") {
+		t.Fatalf("expected architecture filtering error, got: %v", err)
 	}
 }
 

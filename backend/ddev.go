@@ -1485,6 +1485,30 @@ type ddevRelease struct {
 	ChecksumURL string
 }
 
+func preferredWindowsInstallerArch() string {
+	if stdruntime.GOARCH == "arm64" {
+		return "arm64"
+	}
+	return "amd64"
+}
+
+func windowsInstallerArchFromName(name string) string {
+	if strings.Contains(name, "arm64") {
+		return "arm64"
+	}
+	if strings.Contains(name, "amd64") || strings.Contains(name, "x86_64") {
+		return "amd64"
+	}
+	return ""
+}
+
+func isWindowsInstallerAsset(name string) bool {
+	return strings.HasSuffix(name, ".exe") &&
+		strings.Contains(name, "windows") &&
+		strings.Contains(name, "installer") &&
+		strings.Contains(name, "ddev")
+}
+
 // getLatestDdevRelease queries the GitHub API for the latest DDEV release
 // and selects the appropriate Windows installer asset.
 func getLatestDdevRelease(client *http.Client) (*ddevRelease, error) {
@@ -1521,16 +1545,21 @@ func getLatestDdevReleaseFromURL(client *http.Client, url string) (*ddevRelease,
 
 	var rel ddevRelease
 	rel.TagName = payload.TagName
+	preferredArch := preferredWindowsInstallerArch()
+	var fallbackURL string
+	var fallbackAssetName string
 
 	for _, a := range payload.Assets {
 		name := strings.ToLower(a.Name)
-		if strings.Contains(name, "windows") && strings.Contains(name, "installer") && strings.HasSuffix(name, ".exe") {
-			rel.URL = a.BrowserDownloadURL
-			rel.AssetName = a.Name
-		} else if strings.HasSuffix(name, ".exe") && strings.Contains(name, "windows") && strings.Contains(name, "ddev") {
-			if rel.URL == "" {
+		if isWindowsInstallerAsset(name) {
+			assetArch := windowsInstallerArchFromName(name)
+			if assetArch == preferredArch && rel.URL == "" {
 				rel.URL = a.BrowserDownloadURL
 				rel.AssetName = a.Name
+			}
+			if assetArch == "" && fallbackURL == "" {
+				fallbackURL = a.BrowserDownloadURL
+				fallbackAssetName = a.Name
 			}
 		}
 		if (strings.Contains(name, "checksums") || strings.Contains(name, "checksum")) && strings.HasSuffix(name, ".txt") {
@@ -1538,8 +1567,13 @@ func getLatestDdevReleaseFromURL(client *http.Client, url string) (*ddevRelease,
 		}
 	}
 
+	if rel.URL == "" && fallbackURL != "" {
+		rel.URL = fallbackURL
+		rel.AssetName = fallbackAssetName
+	}
+
 	if rel.URL == "" {
-		return nil, errors.New("could not find Windows installer asset in latest release")
+		return nil, fmt.Errorf("could not find Windows %s installer asset in latest release", preferredArch)
 	}
 
 	return &rel, nil

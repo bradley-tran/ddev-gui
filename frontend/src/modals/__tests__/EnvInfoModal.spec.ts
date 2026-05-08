@@ -78,7 +78,24 @@ describe('EnvInfoModal.vue', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('DDEV was not found')
+    expect(wrapper.text()).toContain('ddev not found')
     expect(wrapper.find('button.flu-btn-accent').text()).toBe('Install DDEV')
+  })
+
+  it('surfaces WSL availability check errors in the modal', async () => {
+    getDdevService().WSLExists.mockRejectedValue(new Error('wsl check failed'))
+
+    const wrapper = mount(EnvInfoModal, {
+      global: {
+        plugins: [i18nPlugin],
+      },
+    })
+
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('wsl check failed')
+    expect(wrapper.find('button.flu-btn-accent').text()).toBe('Open Settings')
+    expect(getDdevService().DdevInstalledVersion).not.toHaveBeenCalled()
   })
 
   it('displays WSL error and open settings button when WSL error occurs', async () => {
@@ -216,6 +233,25 @@ describe('EnvInfoModal.vue', () => {
     resolveInstall!('ok')
     await flushPromises()
     expect(wrapper.text()).not.toContain('Downloading…')
+  })
+
+  it('surfaces DDEV installation errors in the modal', async () => {
+    getDdevService().DdevInstalledVersion.mockRejectedValue(new Error('ddev not found'))
+    getDdevService().InstallDdev.mockRejectedValue(new Error('download failed'))
+
+    const wrapper = mount(EnvInfoModal, {
+      global: {
+        plugins: [i18nPlugin],
+      },
+    })
+
+    await flushPromises()
+
+    const installBtn = wrapper.find('button.flu-btn-accent')
+    await installBtn.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('download failed')
   })
 
   it('emits close event when close button is clicked', async () => {

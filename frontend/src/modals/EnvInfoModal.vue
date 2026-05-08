@@ -21,6 +21,7 @@ const loading = ref(true)
 const error = ref('')
 const installing = ref(false)
 const installProgress = ref('')
+const installError = ref('')
 const telemetryOptIn = ref(appStore.config.ddevTelemetryOptIn ?? true)
 const devMode = computed(() => appStore.config.devMode ?? false)
 const isWslError = computed(() =>
@@ -34,13 +35,7 @@ const installProgressHandler = (...args: unknown[]) => {
 }
 
 async function isWslMissingForCurrentBackend(): Promise<boolean> {
-  try {
-    return !(await DdevService.wslExists())
-  } catch (caughtError) {
-    const message = caughtError instanceof Error ? caughtError.message : String(caughtError)
-    appStore.appLog(`Failed to verify WSL availability: ${message}`, 'error')
-    return false
-  }
+  return !(await DdevService.wslExists())
 }
 
 onMounted(async () => {
@@ -67,6 +62,7 @@ onBeforeUnmount(() => {
 async function handleInstall() {
   installing.value = true
   installProgress.value = 'Connecting to GitHub…'
+  installError.value = ''
   appStore.appLog('Installing/updating DDEV...', 'info')
   Runtime.off('ddev:output', installProgressHandler)
   Runtime.on('ddev:output', installProgressHandler)
@@ -77,6 +73,7 @@ async function handleInstall() {
     window.setTimeout(() => Runtime.quit(), 2000)
   } catch (caughtError) {
     const message = caughtError instanceof Error ? caughtError.message : String(caughtError)
+    installError.value = message
     appStore.appLog(`DDEV install failed: ${message}`, 'error')
   } finally {
     Runtime.off('ddev:output', installProgressHandler)
@@ -151,7 +148,20 @@ function openSettings() {
       <Spinner /> {{ t('general.loading') }}
     </div>
     <template v-else-if="error">
-      <div class="form-error">{{ isWslError ? error : t('env.ddevMissing') }}</div>
+      <div class="form-error">{{ error === WSL_MISSING_SENTINEL ? t('env.ddevMissing') : (isWslError ? error : t('env.ddevMissing')) }}</div>
+      <div
+        v-if="error !== WSL_MISSING_SENTINEL && error && !isWslError"
+        style="margin-top: 0.5rem; font-size: 0.85em; color: var(--text-secondary); white-space: pre-wrap"
+      >
+        {{ error }}
+      </div>
+      <div
+        v-if="installError"
+        class="form-error"
+        style="margin-top: 0.75rem"
+      >
+        {{ installError }}
+      </div>
       <div
         v-if="installing && installProgress"
         style="margin-top: 0.75rem; font-size: 0.85em; color: var(--text-secondary); display: flex; align-items: center; gap: 0.5rem"
