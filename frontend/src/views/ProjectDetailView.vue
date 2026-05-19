@@ -49,6 +49,7 @@ import {
   getProjectType,
   isProjectStopped,
   openUrl,
+  pickProjectValue,
 } from '@/lib/utils'
 import { useAppStore } from '@/stores/app'
 
@@ -117,11 +118,11 @@ const overviewItems = computed<OverviewItem[]>(() => {
     { label: t('detail.overview.name'), value: project ? getProjectName(project) : routeProjectName.value },
     { label: t('detail.overview.status'), value: projectStatus.value || 'n/a', isStatus: true },
     { label: t('detail.overview.type'), value: projectType.value || 'n/a' },
-    { label: t('detail.overview.phpVersion'), value: pickProjectValue(project, ['php_version', 'phpversion']) || 'n/a' },
-    { label: t('detail.overview.docroot'), value: pickProjectValue(project, ['docroot']) || 'n/a' },
-    { label: t('detail.overview.location'), value: pickProjectValue(project, ['approot', 'shortroot']) || 'n/a' },
-    { label: t('detail.overview.router'), value: pickProjectValue(project, ['router']) || 'n/a' },
-    { label: t('detail.overview.nodejs'), value: pickProjectValue(project, ['nodejs_version']) || 'n/a' },
+    { label: t('detail.overview.phpVersion'), value: String(pickProjectValue(project, ['php_version', 'phpversion']) ?? '') || 'n/a' },
+    { label: t('detail.overview.docroot'), value: String(pickProjectValue(project, ['docroot']) ?? '') || 'n/a' },
+    { label: t('detail.overview.location'), value: String(pickProjectValue(project, ['approot', 'shortroot']) ?? '') || 'n/a' },
+    { label: t('detail.overview.router'), value: String(pickProjectValue(project, ['router']) ?? '') || 'n/a' },
+    { label: t('detail.overview.nodejs'), value: String(pickProjectValue(project, ['nodejs_version']) ?? '') || 'n/a' },
   ]
 })
 const services = computed(() => {
@@ -186,20 +187,6 @@ function toggleToolbarMenu(menu: Exclude<ToolbarMenu, null>) {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
-}
-
-function pickProjectValue(project: DdevProject | null, keys: string[]): string {
-  if (!project) return ''
-
-  const projectKeys = Object.keys(project)
-  for (const key of keys) {
-    const match = projectKeys.find((candidate) => candidate.toLowerCase() === key.toLowerCase())
-    if (match && project[match] != null) {
-      return String(project[match])
-    }
-  }
-
-  return ''
 }
 
 function normalizeSnapshotName(snapshot: DdevSnapshot | string): string | null {

@@ -4,6 +4,7 @@ import Modal from '@/components/Modal.vue'
 import Spinner from '@/components/Spinner.vue'
 import { useTranslation } from '@/lib/i18n'
 import type { DdevProject } from '@/lib/types'
+import { pickProjectValue } from '@/lib/utils'
 import { DdevService as DdevApi } from '@/lib/wails'
 import { useAppStore } from '@/stores/app'
 
@@ -49,20 +50,6 @@ watch(xhprofEnabled, (enabled) => {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
-}
-
-function pickProjectValue(project: DdevProject | null, keys: string[]): unknown {
-  if (!project) return undefined
-
-  const projectKeys = Object.keys(project)
-  for (const key of keys) {
-    const match = projectKeys.find((candidate) => candidate.toLowerCase() === key.toLowerCase())
-    if (match) {
-      return project[match]
-    }
-  }
-
-  return undefined
 }
 
 function normalizeBool(value: unknown): boolean {
