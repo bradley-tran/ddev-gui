@@ -39,7 +39,7 @@ export function matchesAddonSearch(item: AddonItem, search: string | ParsedSearc
   const repo = String(item.repo ?? item.Repository ?? item.repository ?? item.full_name ?? item.FullName ?? '').toLowerCase()
   const desc = String(item.description ?? item.Description ?? '').toLowerCase()
 
-  const repoSegments = repo.split(/[\/\-_\s]+/)
+  const repoSegments = repo.split(/[/\-_\s]+/)
 
   const repoMatches = tokens.every(
     (token) => repoSegments.some((segment) => segment.startsWith(token)) || repo.includes(token),
