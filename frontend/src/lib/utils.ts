@@ -9,8 +9,35 @@ export function getProjectStatus(project: DdevProject): string {
 }
 
 export function getProjectType(project: DdevProject): string {
-  const key = Object.keys(project).find((candidate) => /^(type|projecttype)$/i.test(candidate))
-  return key ? String(project[key] ?? '') : ''
+  return String(pickProjectValue(project, ['type', 'projecttype']) ?? '')
+}
+
+/**
+ * Picks a value from a project object based on a list of potential keys.
+ * Case-insensitive lookup is performed if an exact match is not found.
+ */
+export function pickProjectValue(project: DdevProject | null, keys: string[]): unknown {
+  if (!project) return undefined
+
+  for (const key of keys) {
+    // 1. Fast path: exact match
+    if (project[key] !== undefined && project[key] !== null) {
+      return project[key]
+    }
+
+    // 2. Slow path: case-insensitive match
+    const lowerKey = key.toLowerCase()
+    for (const projectKey in project) {
+      if (projectKey.toLowerCase() === lowerKey) {
+        const val = project[projectKey]
+        if (val !== undefined && val !== null) {
+          return val
+        }
+      }
+    }
+  }
+
+  return undefined
 }
 
 export function getPrimaryUrl(project: DdevProject): string {

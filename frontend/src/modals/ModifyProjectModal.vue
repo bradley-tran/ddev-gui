@@ -5,6 +5,7 @@ import Select from '@/components/Select.vue'
 import Spinner from '@/components/Spinner.vue'
 import { useTranslation } from '@/lib/i18n'
 import type { DdevProject } from '@/lib/types'
+import { pickProjectValue } from '@/lib/utils'
 import { DdevService as DdevApi } from '@/lib/wails'
 import { useAppStore } from '@/stores/app'
 
@@ -44,25 +45,11 @@ watch(
   { immediate: true },
 )
 
-function pickProjectValue(project: DdevProject | null, keys: string[]): string {
-  if (!project) return ''
-
-  const projectKeys = Object.keys(project)
-  for (const key of keys) {
-    const match = projectKeys.find((candidate) => candidate.toLowerCase() === key.toLowerCase())
-    if (match && project[match] != null) {
-      return String(project[match])
-    }
-  }
-
-  return ''
-}
-
 function syncForm(project: DdevProject | null) {
-  phpVersion.value = pickProjectValue(project, ['php_version', 'phpversion']) || '8.3'
-  nodejsVersion.value = pickProjectValue(project, ['nodejs_version']) || '20'
-  projectType.value = pickProjectValue(project, ['type', 'projecttype']) || 'php'
-  docroot.value = pickProjectValue(project, ['docroot']) || ''
+  phpVersion.value = String(pickProjectValue(project, ['php_version', 'phpversion']) ?? '') || '8.3'
+  nodejsVersion.value = String(pickProjectValue(project, ['nodejs_version']) ?? '') || '20'
+  projectType.value = String(pickProjectValue(project, ['type', 'projecttype']) ?? '') || 'php'
+  docroot.value = String(pickProjectValue(project, ['docroot']) ?? '')
 }
 
 async function handleSubmit() {
