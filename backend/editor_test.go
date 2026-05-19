@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 )
 
@@ -34,6 +35,64 @@ func mockExecCommandContext(ctx context.Context, command string, args ...string)
 	cmd := exec.CommandContext(ctx, os.Args[0], cs...)
 	cmd.Env = []string{"GO_WANT_HELPER_PROCESS=1"}
 	return cmd
+}
+
+func TestExpandProjectPath(t *testing.T) {
+	t.Setenv("HOME", "/mock/home")
+	t.Setenv("USERPROFILE", "C:\\mock\\home")
+
+	mockHome, _ := os.UserHomeDir()
+
+	tests := []struct {
+		name     string
+		location string
+		expected string
+	}{
+		{
+			name:     "Empty path",
+			location: "",
+			expected: "",
+		},
+		{
+			name:     "No tilde",
+			location: "/var/www/html",
+			expected: "/var/www/html",
+		},
+		{
+			name:     "Tilde prefix with slash",
+			location: "~/project",
+			expected: filepath.Join(mockHome, "project"),
+		},
+		{
+			name:     "Tilde prefix with backslash",
+			location: "~\\project",
+			expected: filepath.Join(mockHome, "project"),
+		},
+		{
+			name:     "Tilde in middle",
+			location: "/var/~/html",
+			expected: "/var/~/html",
+		},
+		{
+			name:     "Bare tilde",
+			location: "~",
+			expected: "~",
+		},
+		{
+			name:     "Only tilde slash",
+			location: "~/",
+			expected: filepath.Join(mockHome, ""),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := expandProjectPath(tt.location)
+			if actual != tt.expected {
+				t.Errorf("expandProjectPath(%q) = %q, expected %q", tt.location, actual, tt.expected)
+			}
+		})
+	}
 }
 
 func TestResolveWSLProjectLocation(t *testing.T) {

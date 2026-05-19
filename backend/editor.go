@@ -235,9 +235,12 @@ func startEditorCandidates(candidates ...editorLaunchCommand) bool {
 }
 
 func expandProjectPath(location string) string {
-	if strings.HasPrefix(location, "~/") {
-		home, _ := os.UserHomeDir()
-		return filepath.Join(home, location[2:])
+	// Expand ~ to user home dir if needed
+	if strings.HasPrefix(location, "~/") || strings.HasPrefix(location, "~\\") {
+		home, err := os.UserHomeDir()
+		if err == nil {
+			return filepath.Join(home, location[2:])
+		}
 	}
 	return location
 }
