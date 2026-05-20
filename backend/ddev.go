@@ -1250,10 +1250,14 @@ func (d *DdevService) ConfigureProject(dir, name, ptype, docroot, php string) (s
 	} else {
 		// On Windows, create directory via the persistent WSL shell (quick op).
 		if d.shell != nil {
-			_, _, _ = d.shell.Exec("", []string{"bash", "-c", "mkdir -p ~/ddev-projects/" + name}, nil, 15*time.Second, nil)
+			// Use $HOME instead of ~ to allow safe quoting of the project name.
+			cmd := "mkdir -p $HOME/ddev-projects/" + shellQuote(name)
+			_, _, _ = d.shell.Exec("", []string{"bash", "-c", cmd}, nil, 15*time.Second, nil)
 		} else {
 			c, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 			defer cancel()
+			// exec.Command handles arguments safely, so ddev-projects/name is fine here
+			// as long as it's not passed to a shell.
 			mkdir := exec.CommandContext(c, "wsl.exe", "-d", d.WSLDistro(), "--cd", "~", "-e", "mkdir", "-p", "ddev-projects/"+name)
 			HideWSLWindow(mkdir)
 			_ = mkdir.Run()
@@ -1307,7 +1311,9 @@ func (d *DdevService) CloneRepo(name, repoURL string) (string, error) {
 
 	// ── SSH backend ──
 	if d.activeBackend() == "ssh" && d.sshShell != nil {
-		cloneCmd := fmt.Sprintf("git clone %s %s", shellQuote(repoURL), targetDir)
+		// Use $HOME instead of ~ to allow safe quoting of the target directory.
+		quotedTargetDir := "$HOME/ddev-projects/" + shellQuote(name)
+		cloneCmd := fmt.Sprintf("git clone %s %s", shellQuote(repoURL), quotedTargetDir)
 		args := []string{"bash", "-c", cloneCmd}
 		var onLine func(string)
 		if d.ctx != nil {
@@ -1341,9 +1347,11 @@ func (d *DdevService) CloneRepo(name, repoURL string) (string, error) {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 
-		// Use bash -c so ~ expands properly inside WSL.
+		// Use bash -c so $HOME expands properly inside WSL.
 		// Merge stderr via 2>&1 inside bash to avoid pipe fd leaks that keep wsl.exe alive.
-		cloneCmd := fmt.Sprintf("mkdir -p ~/ddev-projects && git clone %s %s 2>&1", shellQuote(repoURL), targetDir)
+		// Use $HOME instead of ~ to allow safe quoting of the target directory.
+		quotedTargetDir := "$HOME/ddev-projects/" + shellQuote(name)
+		cloneCmd := fmt.Sprintf("mkdir -p $HOME/ddev-projects && git clone %s %s 2>&1", shellQuote(repoURL), quotedTargetDir)
 		wslArgs := []string{"-d", d.WSLDistro(), "-e", "bash", "-c", cloneCmd}
 		cmd := exec.CommandContext(ctx, "wsl.exe", wslArgs...)
 		HideWSLWindow(cmd)
