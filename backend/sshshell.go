@@ -320,11 +320,13 @@ func (s *SSHShell) buildCommand(dir string, args []string, envVars []string) str
 	var parts []string
 
 	if dir != "" {
-		expandedDir := dir
-		if strings.HasPrefix(expandedDir, "~/") {
-			expandedDir = "$HOME/" + expandedDir[2:]
-		} else if expandedDir == "~" {
+		var expandedDir string
+		if strings.HasPrefix(dir, "~/") {
+			expandedDir = "$HOME/" + shellQuote(dir[2:])
+		} else if dir == "~" {
 			expandedDir = "$HOME"
+		} else {
+			expandedDir = shellQuote(dir)
 		}
 		parts = append(parts, fmt.Sprintf("cd %s 2>/dev/null || true", expandedDir))
 	}
