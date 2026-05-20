@@ -586,9 +586,16 @@ func (d *DdevService) WpCoreInstall(name string) (string, error) {
 		}
 	}
 
-	// Step 2: Install WordPress with default admin
+	// Step 2: Install WordPress with a random admin password
+	password, err := GenerateRandomString(12)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate admin password: %w", err)
+	}
+
 	if d.ctx != nil {
 		wruntime.EventsEmit(d.ctx, "ddev:output", "Installing WordPress…")
+		wruntime.EventsEmit(d.ctx, "ddev:output", "WordPress Admin User: admin")
+		wruntime.EventsEmit(d.ctx, "ddev:output", "WordPress Admin Password: "+password)
 	}
 	siteURL := fmt.Sprintf("https://%s.ddev.site", name)
 	return d.runDirect(context.Background(), dirHint, nil,
@@ -596,7 +603,7 @@ func (d *DdevService) WpCoreInstall(name string) (string, error) {
 		"--url="+siteURL,
 		"--title="+name,
 		"--admin_user=admin",
-		"--admin_password=admin",
+		"--admin_password="+password,
 		"--admin_email=admin@"+name+".ddev.site",
 	)
 }

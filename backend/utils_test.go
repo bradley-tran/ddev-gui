@@ -70,6 +70,39 @@ func TestStripAnsi(t *testing.T) {
 	}
 }
 
+func TestGenerateRandomString(t *testing.T) {
+	t.Run("Length", func(t *testing.T) {
+		lengths := []int{8, 12, 16, 32}
+		for _, l := range lengths {
+			got, err := GenerateRandomString(l)
+			if err != nil {
+				t.Fatalf("GenerateRandomString(%d) error: %v", l, err)
+			}
+			if len(got) != l {
+				t.Errorf("GenerateRandomString(%d) length = %d, want %d", l, len(got), l)
+			}
+		}
+	})
+
+	t.Run("Uniqueness", func(t *testing.T) {
+		s1, _ := GenerateRandomString(16)
+		s2, _ := GenerateRandomString(16)
+		if s1 == s2 {
+			t.Errorf("GenerateRandomString(16) produced identical strings: %q", s1)
+		}
+	})
+
+	t.Run("HexCharacters", func(t *testing.T) {
+		got, _ := GenerateRandomString(32)
+		for _, r := range got {
+			isHex := (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f')
+			if !isHex {
+				t.Errorf("GenerateRandomString() produced non-hex character: %q", r)
+			}
+		}
+	})
+}
+
 func TestCleanForCreateProject(t *testing.T) {
 	// Create a temporary directory for testing
 	dirHint := t.TempDir()
