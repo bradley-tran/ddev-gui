@@ -174,8 +174,19 @@ func (d *DdevService) DrushSiteInstall(name string) (string, error) {
 	}
 	dirHint := d.resolveProjectDir(name)
 
+	password, pErr := GenerateRandomString(12)
+	if pErr != nil {
+		return "", fmt.Errorf("failed to generate admin password: %w", pErr)
+	}
+
+	if d.ctx != nil {
+		wruntime.EventsEmit(d.ctx, "ddev:output", "Running Drupal site install…")
+		wruntime.EventsEmit(d.ctx, "ddev:output", "Drupal Admin User: admin")
+		wruntime.EventsEmit(d.ctx, "ddev:output", "Drupal Admin Password: "+password)
+	}
+
 	// First try running drush si to see if drush is available
-	out, err := d.runDirect(context.Background(), dirHint, nil, "drush", "site:install", "--account-name=admin", "--account-pass=admin", "-y")
+	out, err := d.runDirect(context.Background(), dirHint, nil, "drush", "site:install", "--account-name=admin", "--account-pass="+password, "-y")
 
 	// Check if drush needs to be installed first
 	if err != nil && strings.Contains(strings.ToLower(err.Error()), "drush is not available") {
@@ -190,7 +201,7 @@ func (d *DdevService) DrushSiteInstall(name string) (string, error) {
 			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush installed. Running site install…")
 		}
 		// Retry after installing drush
-		out, err = d.runDirect(context.Background(), dirHint, nil, "drush", "site:install", "--account-name=admin", "--account-pass=admin", "-y")
+		out, err = d.runDirect(context.Background(), dirHint, nil, "drush", "site:install", "--account-name=admin", "--account-pass="+password, "-y")
 	}
 
 	return out, err

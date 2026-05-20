@@ -3,7 +3,9 @@ package backend
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -50,6 +52,15 @@ func shellEnvVars(ctx context.Context) []string {
 		}
 	}
 	return nil
+}
+
+// GenerateRandomString returns a cryptographically secure random hex string of length n.
+func GenerateRandomString(n int) (string, error) {
+	b := make([]byte, n/2+1)
+	if _, err := rand.Read(b); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(b)[:n], nil
 }
 
 // withShellEnv returns a new context carrying the given env vars for the WSL shell.
