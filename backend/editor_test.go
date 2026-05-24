@@ -102,11 +102,11 @@ func TestResolveWSLProjectLocation(t *testing.T) {
 	}()
 
 	tests := []struct {
-		name       string
-		location   string
-		distro     string
-		helperCmd  string
-		expected   string
+		name      string
+		location  string
+		distro    string
+		helperCmd string
+		expected  string
 	}{
 		{
 			name:     "Empty location",

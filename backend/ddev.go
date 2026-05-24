@@ -111,7 +111,13 @@ func distroExists(name string) bool {
 		return false
 	}
 	raw := strings.ReplaceAll(string(out), "\x00", "")
-	for _, line := range strings.Split(raw, "\n") {
+	for len(raw) > 0 {
+		var line string
+		if idx := strings.IndexByte(raw, '\n'); idx >= 0 {
+			line, raw = raw[:idx], raw[idx+1:]
+		} else {
+			line, raw = raw, ""
+		}
 		if strings.EqualFold(strings.TrimSpace(line), name) {
 			return true
 		}
