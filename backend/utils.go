@@ -20,11 +20,22 @@ import (
 
 // stripAnsi removes ANSI escape sequences from a string.
 func stripAnsi(s string) string {
-	var out []byte
+	var builder strings.Builder
+	builder.Grow(len(s))
+
 	i := 0
 	for i < len(s) {
-		if s[i] == '\x1b' && i+1 < len(s) && s[i+1] == '[' {
-			// Skip until we find the terminating letter
+		idx := strings.IndexByte(s[i:], '\x1b')
+		if idx == -1 {
+			builder.WriteString(s[i:])
+			break
+		}
+
+		// Write everything up to the escape character
+		builder.WriteString(s[i : i+idx])
+		i += idx
+
+		if i+1 < len(s) && s[i+1] == '[' {
 			j := i + 2
 			for j < len(s) && !((s[j] >= 'A' && s[j] <= 'Z') || (s[j] >= 'a' && s[j] <= 'z')) {
 				j++
@@ -34,11 +45,11 @@ func stripAnsi(s string) string {
 			}
 			i = j
 		} else {
-			out = append(out, s[i])
+			builder.WriteByte(s[i])
 			i++
 		}
 	}
-	return strings.TrimSpace(string(out))
+	return strings.TrimSpace(builder.String())
 }
 
 // shellEnvKey is the context key for extra env vars to export in the WSL shell.
