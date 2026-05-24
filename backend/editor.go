@@ -90,52 +90,52 @@ func launchVSCodeEditor(location, distro string) bool {
 }
 
 func launchPhpStormEditor(location, distro string) bool {
-	switch runtime2.GOOS {
-	case "windows":
-		path := resolveWindowsEditorPath(location, distro)
-		return startEditorCandidates(
-			editorLaunchCommand{command: "phpstorm", args: []string{path}, shell: true},
-			editorLaunchCommand{command: "phpstorm64.exe", args: []string{path}, shell: true},
-			editorLaunchCommand{command: "storm", args: []string{path}, shell: true},
-		)
-	case "darwin":
-		path := expandProjectPath(location)
-		return startEditorCandidates(
-			editorLaunchCommand{command: "phpstorm", args: []string{path}},
-			editorLaunchCommand{command: "open", args: []string{"-a", "PhpStorm", path}},
-		)
-	default:
-		path := expandProjectPath(location)
-		return startEditorCandidates(
-			editorLaunchCommand{command: "phpstorm", args: []string{path}},
-			editorLaunchCommand{command: "phpstorm.sh", args: []string{path}},
-			editorLaunchCommand{command: "storm", args: []string{path}},
-		)
-	}
+	return launchStandardEditor(location, distro,
+		func(path string) []editorLaunchCommand {
+			return []editorLaunchCommand{
+				{command: "phpstorm", args: []string{path}, shell: true},
+				{command: "phpstorm64.exe", args: []string{path}, shell: true},
+				{command: "storm", args: []string{path}, shell: true},
+			}
+		},
+		func(path string) []editorLaunchCommand {
+			return []editorLaunchCommand{
+				{command: "phpstorm", args: []string{path}},
+				{command: "open", args: []string{"-a", "PhpStorm", path}},
+			}
+		},
+		func(path string) []editorLaunchCommand {
+			return []editorLaunchCommand{
+				{command: "phpstorm", args: []string{path}},
+				{command: "phpstorm.sh", args: []string{path}},
+				{command: "storm", args: []string{path}},
+			}
+		},
+	)
 }
 
 func launchSublimeEditor(location, distro string) bool {
-	switch runtime2.GOOS {
-	case "windows":
-		path := resolveWindowsEditorPath(location, distro)
-		return startEditorCandidates(
-			editorLaunchCommand{command: "subl", args: []string{path}, shell: true},
-			editorLaunchCommand{command: "sublime_text", args: []string{path}, shell: true},
-			editorLaunchCommand{command: "sublime_text.exe", args: []string{path}, shell: true},
-		)
-	case "darwin":
-		path := expandProjectPath(location)
-		return startEditorCandidates(
-			editorLaunchCommand{command: "subl", args: []string{path}},
-			editorLaunchCommand{command: "open", args: []string{"-a", "Sublime Text", path}},
-		)
-	default:
-		path := expandProjectPath(location)
-		return startEditorCandidates(
-			editorLaunchCommand{command: "subl", args: []string{path}},
-			editorLaunchCommand{command: "sublime_text", args: []string{path}},
-		)
-	}
+	return launchStandardEditor(location, distro,
+		func(path string) []editorLaunchCommand {
+			return []editorLaunchCommand{
+				{command: "subl", args: []string{path}, shell: true},
+				{command: "sublime_text", args: []string{path}, shell: true},
+				{command: "sublime_text.exe", args: []string{path}, shell: true},
+			}
+		},
+		func(path string) []editorLaunchCommand {
+			return []editorLaunchCommand{
+				{command: "subl", args: []string{path}},
+				{command: "open", args: []string{"-a", "Sublime Text", path}},
+			}
+		},
+		func(path string) []editorLaunchCommand {
+			return []editorLaunchCommand{
+				{command: "subl", args: []string{path}},
+				{command: "sublime_text", args: []string{path}},
+			}
+		},
+	)
 }
 
 func launchNeovimEditor(location, distro string) bool {
@@ -213,6 +213,20 @@ func launchAntigravityEditor(location, distro string) bool {
 			editorLaunchCommand{command: "agy", args: []string{path}},
 			editorLaunchCommand{command: "antigravity", args: []string{path}},
 		)
+	}
+}
+
+func launchStandardEditor(location, distro string, makeWindows func(path string) []editorLaunchCommand, makeDarwin func(path string) []editorLaunchCommand, makeLinux func(path string) []editorLaunchCommand) bool {
+	switch runtime2.GOOS {
+	case "windows":
+		path := resolveWindowsEditorPath(location, distro)
+		return startEditorCandidates(makeWindows(path)...)
+	case "darwin":
+		path := expandProjectPath(location)
+		return startEditorCandidates(makeDarwin(path)...)
+	default:
+		path := expandProjectPath(location)
+		return startEditorCandidates(makeLinux(path)...)
 	}
 }
 
