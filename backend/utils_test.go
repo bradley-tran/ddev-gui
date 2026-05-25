@@ -52,6 +52,7 @@ func TestStripAnsi(t *testing.T) {
 		expected string
 	}{
 		{"Plain", "hello world", "hello world"},
+		{"PlainWithSpaces", "  hello world  ", "  hello world  "},
 		{"Red", "\x1b[31mhello\x1b[0m", "hello"},
 		{"Bold", "\x1b[1mhello\x1b[0m", "hello"},
 		{"Complex", "\x1b[38;5;208mhello\x1b[0m world", "hello world"},
