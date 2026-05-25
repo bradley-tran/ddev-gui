@@ -100,8 +100,7 @@ func (s *SSHShell) ensureConnected() error {
 
 	hostKeyCallback, err := s.buildHostKeyCallback()
 	if err != nil {
-		log.Printf("[sshshell] known_hosts not available, using InsecureIgnoreHostKey: %v", err)
-		hostKeyCallback = ssh.InsecureIgnoreHostKey()
+		return fmt.Errorf("sshshell: host key callback setup: %w", err)
 	}
 
 	config := &ssh.ClientConfig{
@@ -113,17 +112,7 @@ func (s *SSHShell) ensureConnected() error {
 
 	client, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
-		// If the error is a known_hosts key mismatch, retry without host key checking
-		if strings.Contains(err.Error(), "key mismatch") || strings.Contains(err.Error(), "knownhosts") {
-			log.Printf("[sshshell] host key mismatch for %s - retrying without host key verification (update your known_hosts to fix this)", addr)
-			config.HostKeyCallback = ssh.InsecureIgnoreHostKey()
-			client, err = ssh.Dial("tcp", addr, config)
-			if err != nil {
-				return fmt.Errorf("sshshell: dial %s: %w", addr, err)
-			}
-		} else {
-			return fmt.Errorf("sshshell: dial %s: %w", addr, err)
-		}
+		return fmt.Errorf("sshshell: dial %s: %w", addr, err)
 	}
 
 	s.client = client
