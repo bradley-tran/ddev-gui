@@ -707,7 +707,7 @@ func (d *DdevService) ExecCommand(project, command string) (string, error) {
 		// Fallback: spawn a fresh wsl.exe process
 		execCtx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
-		wslArgs := []string{"-d", d.WSLDistro(), "--cd", dirHint, "-e", "bash", "-c", "ddev exec -- bash -c " + shellQuote(command) + " 2>&1"}
+		wslArgs := []string{"-d", d.WSLDistro(), "--cd", dirHint, "-e", "bash", "-c", "ddev exec -- bash -c \"$1\" 2>&1", "--", command}
 		cmd := exec.CommandContext(execCtx, "wsl.exe", wslArgs...)
 		HideWSLWindow(cmd)
 		stdoutPipe, _ := cmd.StdoutPipe()
