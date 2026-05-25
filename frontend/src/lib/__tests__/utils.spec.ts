@@ -221,6 +221,16 @@ describe('utils', () => {
       expect(parseProjectsJSON('invalid')).toEqual([])
     })
 
+    it('should return empty array on JSON.parse error', () => {
+      const parseSpy = vi.spyOn(JSON, 'parse').mockImplementation(() => {
+        throw new Error('Test error')
+      })
+
+      expect(parseProjectsJSON('{"valid": "json"}')).toEqual([])
+
+      parseSpy.mockRestore()
+    })
+
     it('should return empty array if no expected keys found', () => {
       expect(parseProjectsJSON(JSON.stringify({ other: [] }))).toEqual([])
     })
