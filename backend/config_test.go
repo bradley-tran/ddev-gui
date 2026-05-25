@@ -167,6 +167,89 @@ func TestConfigService_GetAll(t *testing.T) {
 	}
 }
 
+func TestConfigService_GetProjectConfig(t *testing.T) {
+	tests := []struct {
+		name        string
+		setup       func(cs *ConfigService)
+		projectName string
+		key         string
+		want        any
+	}{
+		{
+			name:        "happy path string",
+			projectName: "valid-proj",
+			key:         "key1",
+			want:        "value1",
+		},
+		{
+			name:        "happy path int",
+			projectName: "valid-proj",
+			key:         "key2",
+			want:        42,
+		},
+		{
+			name:        "missing key",
+			projectName: "valid-proj",
+			key:         "missing",
+			want:        nil,
+		},
+		{
+			name:        "missing project",
+			projectName: "missing-proj",
+			key:         "key1",
+			want:        nil,
+		},
+		{
+			name:        "invalid project type",
+			projectName: "invalid-proj",
+			key:         "key1",
+			want:        nil,
+		},
+		{
+			name: "invalid projects type",
+			setup: func(cs *ConfigService) {
+				cs.data["projects"] = "not-a-map"
+			},
+			projectName: "valid-proj",
+			key:         "key1",
+			want:        nil,
+		},
+		{
+			name: "missing projects",
+			setup: func(cs *ConfigService) {
+				delete(cs.data, "projects")
+			},
+			projectName: "valid-proj",
+			key:         "key1",
+			want:        nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cs := &ConfigService{
+				data: map[string]any{
+					"projects": map[string]any{
+						"valid-proj": map[string]any{
+							"key1": "value1",
+							"key2": 42,
+						},
+						"invalid-proj": "not-a-map",
+					},
+					"invalid-projects": "not-a-map",
+				},
+			}
+			if tt.setup != nil {
+				tt.setup(cs)
+			}
+			got := cs.GetProjectConfig(tt.projectName, tt.key)
+			if got != tt.want {
+				t.Errorf("GetProjectConfig() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestConfigService_ProjectConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	configPath := filepath.Join(tmpDir, "config.json")
