@@ -1,6 +1,7 @@
 package backend
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/rand"
@@ -191,12 +192,10 @@ func fetchExpectedChecksum(client *http.Client, checksumURL, assetName string) (
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return "", fmt.Errorf("checksum fetch error: %s", resp.Status)
 	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
+	scanner := bufio.NewScanner(resp.Body)
 	// Parse lines: <sha256>  <filename>
-	for _, line := range strings.Split(string(body), "\n") {
+	for scanner.Scan() {
+		line := scanner.Text()
 		fields := strings.Fields(strings.TrimSpace(line))
 		if len(fields) >= 2 {
 			fileField := strings.TrimPrefix(fields[len(fields)-1], "*")
@@ -204,6 +203,9 @@ func fetchExpectedChecksum(client *http.Client, checksumURL, assetName string) (
 				return strings.ToLower(fields[0]), nil
 			}
 		}
+	}
+	if err := scanner.Err(); err != nil {
+		return "", err
 	}
 	return "", nil
 }
