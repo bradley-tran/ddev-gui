@@ -24,17 +24,21 @@ describe('filePreview', () => {
   })
 
   describe('isImageFile', () => {
-    it('should return true for image extensions', () => {
-      expect(isImageFile('test.png')).toBe(true)
-      expect(isImageFile('TEST.JPG')).toBe(true)
-      expect(isImageFile('logo.svg')).toBe(true)
-      expect(isImageFile('photo.webp')).toBe(true)
-    })
-
-    it('should return false for non-image extensions', () => {
-      expect(isImageFile('test.txt')).toBe(false)
-      expect(isImageFile('image.png.zip')).toBe(false)
-      expect(isImageFile('no-ext')).toBe(false)
+    it.each([
+      ['test.png', true],
+      ['TEST.JPG', true],
+      ['image.jpeg', true],
+      ['animation.gif', true],
+      ['logo.svg', true],
+      ['photo.webp', true],
+      ['favicon.ico', true],
+      ['image.bmp', true],
+      ['picture.avif', true],
+      ['test.txt', false],
+      ['image.png.zip', false],
+      ['no-ext', false],
+    ])('should evaluate %s to %s', (filename, expected) => {
+      expect(isImageFile(filename)).toBe(expected)
     })
   })
 
