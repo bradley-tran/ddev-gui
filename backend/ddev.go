@@ -16,7 +16,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	stdruntime "runtime"
+
 	"strings"
 	"sync"
 	"time"
@@ -40,7 +40,7 @@ func NewDdevService(cfg *ConfigService) *DdevService {
 	case "ssh":
 		svc.sshShell = SshShellFromConfig(cfg)
 	default:
-		if stdruntime.GOOS == "windows" {
+		if runtime.GOOS == "windows" {
 			distro := resolveWSLDistro(cfg)
 			svc.shell = NewWSLShell(distro)
 			svc.fileShell = NewWSLShell(distro)
@@ -56,7 +56,7 @@ func (d *DdevService) activeBackend() string {
 			return b
 		}
 	}
-	if stdruntime.GOOS == "windows" {
+	if runtime.GOOS == "windows" {
 		return "wsl"
 	}
 	return "local"
@@ -99,7 +99,7 @@ func resolveWSLDistro(cfg *ConfigService) string {
 
 // distroExists checks whether a named WSL distribution is installed.
 func distroExists(name string) bool {
-	if stdruntime.GOOS != "windows" {
+	if runtime.GOOS != "windows" {
 		return false
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -128,7 +128,7 @@ func distroExists(name string) bool {
 // ListWSLDistros returns the names of all installed WSL distributions.
 // On non-Windows systems it returns an empty slice.
 func (d *DdevService) ListWSLDistros() []string {
-	if stdruntime.GOOS != "windows" {
+	if runtime.GOOS != "windows" {
 		return nil
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -159,7 +159,7 @@ func (d *DdevService) ListWSLDistros() []string {
 // To simplify, the actual check only happens for WSL backend on Windows.
 // TODO: create a more robust backend check and allows user to select when auto-detection fails (e.g. WSL installed but not working correctly).
 func (d *DdevService) WSLExists() bool {
-	if stdruntime.GOOS != "windows" {
+	if runtime.GOOS != "windows" {
 		return true
 	}
 
@@ -203,7 +203,7 @@ func (d *DdevService) ReloadBackend() {
 	case "ssh":
 		d.sshShell = SshShellFromConfig(d.config)
 	case "wsl":
-		if stdruntime.GOOS == "windows" {
+		if runtime.GOOS == "windows" {
 			distro := d.WSLDistro()
 			d.shell = NewWSLShell(distro)
 			d.fileShell = NewWSLShell(distro)
@@ -289,7 +289,7 @@ func (d *DdevService) DescribeJSON(name string) (string, error) {
 // Falls back to ~/ddev-projects/<name> if the lookup fails.
 func (d *DdevService) resolveProjectDir(name string) string {
 	fallback := "~/ddev-projects/" + name
-	if stdruntime.GOOS != "windows" {
+	if runtime.GOOS != "windows" {
 		if home, err := os.UserHomeDir(); err == nil && strings.TrimSpace(home) != "" {
 			fallback = filepath.Join(home, "ddev-projects", name)
 		}
@@ -951,7 +951,7 @@ func (d *DdevService) runDirect(ctx context.Context, dir string, envVars []strin
 
 	// ── WSL backend (Windows): spawn a fresh wsl.exe ──
 	var cmd *exec.Cmd
-	if stdruntime.GOOS == "windows" && d.activeBackend() == "wsl" {
+	if runtime.GOOS == "windows" && d.activeBackend() == "wsl" {
 		wslArgs := []string{"-d", d.WSLDistro()}
 		if dir != "" {
 			wslArgs = append(wslArgs, "--cd", dir)
@@ -989,7 +989,7 @@ func (d *DdevService) runDirect(ctx context.Context, dir string, envVars []strin
 	stdoutPipe, _ := cmd.StdoutPipe()
 	// For local backend only: merge stderr into stdout at the Go pipe level.
 	// WSL backend already merges via 2>&1 inside bash to avoid pipe fd leaks.
-	if !(stdruntime.GOOS == "windows" && d.activeBackend() == "wsl") {
+	if !(runtime.GOOS == "windows" && d.activeBackend() == "wsl") {
 		cmd.Stderr = cmd.Stdout
 	}
 
@@ -1037,7 +1037,7 @@ func (d *DdevService) VersionInfo() (string, bool) {
 				strings.Contains(errText, "no such file or directory") {
 				ddevFound = false
 				ddevLines = append(ddevLines, "Status: not found ⚠️")
-				if stdruntime.GOOS != "windows" {
+				if runtime.GOOS != "windows" {
 					ddevLines = append(ddevLines, "Install: https://ddev.com/get-started/")
 				}
 			} else {
@@ -1060,7 +1060,7 @@ func (d *DdevService) VersionInfo() (string, bool) {
 	sections = append(sections, "DDEV\n"+strings.Join(ddevLines, "\n"))
 
 	// WSL section (Windows only)
-	if stdruntime.GOOS == "windows" {
+	if runtime.GOOS == "windows" {
 		var wslLines []string
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -1349,7 +1349,7 @@ func (d *DdevService) CloneRepo(name, repoURL string) (string, error) {
 	// ── WSL backend (Windows): spawn a fresh wsl.exe process ──
 	// This avoids the shared WSL shell mutex so the main shell stays
 	// free for start/stop/list during long-running clones.
-	if stdruntime.GOOS == "windows" && d.activeBackend() == "wsl" {
+	if runtime.GOOS == "windows" && d.activeBackend() == "wsl" {
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
 
@@ -1507,7 +1507,7 @@ type ddevRelease struct {
 }
 
 func preferredWindowsInstallerArch() string {
-	if stdruntime.GOARCH == "arm64" {
+	if runtime.GOARCH == "arm64" {
 		return "arm64"
 	}
 	return "amd64"
