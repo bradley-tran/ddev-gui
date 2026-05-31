@@ -19,7 +19,11 @@ describe('filePreview', () => {
     it('should return false for other extensions', () => {
       expect(isMarkdownFile('test.txt')).toBe(false)
       expect(isMarkdownFile('test.md.bak')).toBe(false)
+    })
+
+    it('should return false for files without extension but named as one', () => {
       expect(isMarkdownFile('md')).toBe(false)
+      expect(isMarkdownFile('markdown')).toBe(false)
     })
 
     it('should handle empty string', () => {
@@ -44,6 +48,11 @@ describe('filePreview', () => {
     it('should handle empty string', () => {
       expect(isImageFile('')).toBe(false)
     })
+
+    it('should return false for files without extension but named as one', () => {
+      expect(isImageFile('png')).toBe(false)
+      expect(isImageFile('jpg')).toBe(false)
+    })
   })
 
   describe('isBinaryFile', () => {
@@ -61,6 +70,11 @@ describe('filePreview', () => {
 
     it('should handle empty string', () => {
       expect(isBinaryFile('')).toBe(false)
+    })
+
+    it('should return false for files without extension but named as one', () => {
+      expect(isBinaryFile('zip')).toBe(false)
+      expect(isBinaryFile('exe')).toBe(false)
     })
   })
 
@@ -86,6 +100,11 @@ describe('filePreview', () => {
 
     it('should handle empty string', () => {
       expect(isCodeFile('')).toBe(false)
+    })
+
+    it('should return false for files without extension but named as one', () => {
+      expect(isCodeFile('js')).toBe(false)
+      expect(isCodeFile('ts')).toBe(false)
     })
   })
 
