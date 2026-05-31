@@ -78,7 +78,11 @@ const { t } = useTranslation()
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.5rem;
-  padding: 0.25rem 0;
+  padding: 0.25rem 0 0.5rem;
+}
+
+.detail-snapshot-item:not(:last-child) {
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .detail-snapshot-name {
