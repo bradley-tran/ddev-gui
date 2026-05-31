@@ -1,8 +1,33 @@
 package backend
 
 import (
+	"net"
 	"testing"
+
+	"golang.org/x/crypto/ssh"
 )
+
+type mockSSHConn struct {
+	closed bool
+}
+
+func (m *mockSSHConn) User() string          { return "" }
+func (m *mockSSHConn) SessionID() []byte     { return nil }
+func (m *mockSSHConn) ClientVersion() []byte { return nil }
+func (m *mockSSHConn) ServerVersion() []byte { return nil }
+func (m *mockSSHConn) RemoteAddr() net.Addr  { return &net.TCPAddr{} }
+func (m *mockSSHConn) LocalAddr() net.Addr   { return &net.TCPAddr{} }
+func (m *mockSSHConn) Close() error {
+	m.closed = true
+	return nil
+}
+func (m *mockSSHConn) SendRequest(name string, wantReply bool, payload []byte) (bool, []byte, error) {
+	return false, nil, nil
+}
+func (m *mockSSHConn) OpenChannel(name string, data []byte) (ssh.Channel, <-chan *ssh.Request, error) {
+	return nil, nil, nil
+}
+func (m *mockSSHConn) Wait() error { return nil }
 
 func TestNewSSHShell(t *testing.T) {
 	tests := []struct {
@@ -57,6 +82,31 @@ func TestNewSSHShell(t *testing.T) {
 				t.Errorf("NewSSHShell() expected User = %v, got %v", tt.expected.User, shell.cfg.User)
 			}
 		})
+	}
+}
+
+func TestUpdateConfig_ActiveConnection(t *testing.T) {
+	shell := NewSSHShell(SSHConfig{Host: "oldhost", Port: "22"})
+	mock := &mockSSHConn{}
+	shell.client = ssh.NewClient(mock, nil, nil)
+	shell.alive = true
+
+	shell.UpdateConfig(SSHConfig{Host: "newhost", Port: "2222"})
+
+	if shell.alive {
+		t.Error("Expected alive to be false")
+	}
+	if shell.client != nil {
+		t.Error("Expected client to be nil")
+	}
+	if !mock.closed {
+		t.Error("Expected underlying connection to be closed")
+	}
+	if shell.cfg.Host != "newhost" {
+		t.Errorf("Expected Host = newhost, got %s", shell.cfg.Host)
+	}
+	if shell.cfg.Port != "2222" {
+		t.Errorf("Expected Port = 2222, got %s", shell.cfg.Port)
 	}
 }
 
