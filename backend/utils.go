@@ -14,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -210,38 +209,3 @@ func fetchExpectedChecksum(client *http.Client, checksumURL, assetName string) (
 	return "", nil
 }
 
-var (
-	execCommand = exec.Command
-	runtimeGOOS = runtime.GOOS
-)
-
-// launchWindowsElevated starts an executable via PowerShell with -Verb RunAs so UAC can elevate it.
-// It waits for PowerShell to exit and maps a user-cancelled UAC prompt to errUserCancelled.
-func launchWindowsElevated(path string) error {
-	if runtimeGOOS != "windows" {
-		return fmt.Errorf("elevation only supported on Windows")
-	}
-	safe := strings.ReplaceAll(path, "'", "''")
-	// Use -ErrorAction Stop so cancellation produces a non-zero exit code.
-	// Exit 1223 (ERROR_CANCELLED) when user cancels UAC if detectable; otherwise inspect output.
-	ps := `$ErrorActionPreference='Stop'; try { Start-Process -FilePath '` + safe + `' -Verb RunAs; exit 0 } catch { if ($_.Exception -and ($_.Exception.NativeErrorCode -eq 1223 -or $_.Exception.HResult -eq -2147023675) ) { exit 1223 } else { Write-Output $_.Exception.Message; exit 1 } }`
-	cmd := execCommand("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps)
-	var outBuf, errBuf bytes.Buffer
-	cmd.Stdout = &outBuf
-	cmd.Stderr = &errBuf
-	if err := cmd.Run(); err != nil {
-		// Check for explicit cancel exit code
-		if ee, ok := err.(*exec.ExitError); ok {
-			if ee.ExitCode() == 1223 {
-				return errUserCancelled
-			}
-		}
-		// Fallback to string matching
-		out := strings.ToLower(outBuf.String() + " " + errBuf.String())
-		if strings.Contains(out, "canceled by the user") || strings.Contains(out, "cancelled by the user") {
-			return errUserCancelled
-		}
-		return err
-	}
-	return nil
-}

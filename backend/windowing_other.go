@@ -2,7 +2,15 @@
 
 package backend
 
-import "os/exec"
+import (
+	"fmt"
+	"os/exec"
+)
+
+// launchWindowsElevated is a no-op on non-Windows platforms.
+func launchWindowsElevated(path string) error {
+	return fmt.Errorf("elevation only supported on Windows")
+}
 
 // HideWindow is a no-op on non-Windows platforms.
 func HideWindow(cmd *exec.Cmd) {}
