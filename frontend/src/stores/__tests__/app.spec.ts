@@ -146,8 +146,8 @@ describe('app store', () => {
       }
 
       expect(store.logEntries.length).toBe(200)
-      expect(store.logEntries[0].id).toBe('2') // The first entry should be dropped
-      expect(store.logEntries[199].id).toBe('201')
+      expect(store.logEntries[0]?.id).toBe('2') // The first entry should be dropped
+      expect(store.logEntries[199]?.id).toBe('201')
     })
 
     it('addLog should ignore duplicate consecutive entries', () => {
@@ -180,7 +180,7 @@ describe('app store', () => {
     it('appLog should default to info level', () => {
       const store = useAppStore()
       store.appLog('test message')
-      expect(store.logEntries[0].level).toBe('info')
+      expect(store.logEntries[0]?.level).toBe('info')
     })
 
     it('clearLog should remove all log entries', () => {
@@ -287,8 +287,8 @@ describe('app store', () => {
         await expect(store.saveConfigValue('showLog', false)).rejects.toThrow('Save failed')
 
         expect(store.config.showLog).toBe(initialShowLog)
-        expect(store.logEntries[0].message).toContain('Failed to save showLog: Save failed')
-        expect(store.logEntries[0].level).toBe('error')
+        expect(store.logEntries[0]?.message).toContain('Failed to save showLog: Save failed')
+        expect(store.logEntries[0]?.level).toBe('error')
       })
     })
 
@@ -344,8 +344,8 @@ describe('app store', () => {
         await expect(store.refreshProjects()).rejects.toThrow('Refresh failed')
 
         expect(store.isLoadingProjects).toBe(false)
-        expect(store.logEntries[0].message).toContain('Failed to refresh projects: Refresh failed')
-        expect(store.logEntries[0].level).toBe('error')
+        expect(store.logEntries[0]?.message).toContain('Failed to refresh projects: Refresh failed')
+        expect(store.logEntries[0]?.level).toBe('error')
       })
     })
   })
