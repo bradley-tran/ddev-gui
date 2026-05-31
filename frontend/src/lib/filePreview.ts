@@ -89,6 +89,7 @@ const MIME_BY_EXT: Record<string, string> = {
 const CODE_EXTS = new Set(Object.keys(EXT_LANG))
 
 function extensionOf(name: string): string {
+  if (!name.includes('.')) return ''
   return name.toLowerCase().split('.').pop() || ''
 }
 
