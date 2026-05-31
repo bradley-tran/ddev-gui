@@ -19,6 +19,8 @@ export function getProjectType(project: DdevProject): string {
 export function pickProjectValue(project: DdevProject | null, keys: string[]): unknown {
   if (!project) return undefined
 
+  let lowerKeysMap: Record<string, unknown> | null = null
+
   for (const key of keys) {
     // 1. Fast path: exact match
     if (project[key] !== undefined && project[key] !== null) {
@@ -26,14 +28,22 @@ export function pickProjectValue(project: DdevProject | null, keys: string[]): u
     }
 
     // 2. Slow path: case-insensitive match
-    const lowerKey = key.toLowerCase()
-    for (const projectKey in project) {
-      if (projectKey.toLowerCase() === lowerKey) {
+    if (!lowerKeysMap) {
+      lowerKeysMap = Object.create(null) as Record<string, unknown>
+      for (const projectKey in project) {
         const val = project[projectKey]
         if (val !== undefined && val !== null) {
-          return val
+          const lowerProjectKey = projectKey.toLowerCase()
+          if (lowerKeysMap[lowerProjectKey] === undefined) {
+            lowerKeysMap[lowerProjectKey] = val
+          }
         }
       }
+    }
+
+    const lowerKey = key.toLowerCase()
+    if (lowerKeysMap[lowerKey] !== undefined) {
+      return lowerKeysMap[lowerKey]
     }
   }
 
