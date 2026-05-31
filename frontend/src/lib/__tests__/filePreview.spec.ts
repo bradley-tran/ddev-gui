@@ -21,6 +21,10 @@ describe('filePreview', () => {
       expect(isMarkdownFile('test.md.bak')).toBe(false)
       expect(isMarkdownFile('md')).toBe(false)
     })
+
+    it('should handle empty string', () => {
+      expect(isMarkdownFile('')).toBe(false)
+    })
   })
 
   describe('isImageFile', () => {
@@ -36,6 +40,10 @@ describe('filePreview', () => {
       expect(isImageFile('image.png.zip')).toBe(false)
       expect(isImageFile('no-ext')).toBe(false)
     })
+
+    it('should handle empty string', () => {
+      expect(isImageFile('')).toBe(false)
+    })
   })
 
   describe('isBinaryFile', () => {
@@ -49,6 +57,10 @@ describe('filePreview', () => {
     it('should return false for non-binary extensions', () => {
       expect(isBinaryFile('test.txt')).toBe(false)
       expect(isBinaryFile('script.sh')).toBe(false)
+    })
+
+    it('should handle empty string', () => {
+      expect(isBinaryFile('')).toBe(false)
     })
   })
 
@@ -71,6 +83,10 @@ describe('filePreview', () => {
       expect(isCodeFile('notes.txt')).toBe(false)
       expect(isCodeFile('README.md')).toBe(false)
     })
+
+    it('should handle empty string', () => {
+      expect(isCodeFile('')).toBe(false)
+    })
   })
 
   describe('detectLanguage', () => {
@@ -90,6 +106,10 @@ describe('filePreview', () => {
       expect(detectLanguage('unknown.xyz')).toBe('plaintext')
       expect(detectLanguage('no-extension')).toBe('plaintext')
     })
+
+    it('should handle empty string', () => {
+      expect(detectLanguage('')).toBe('plaintext')
+    })
   })
 
   describe('mimeFromExt', () => {
@@ -102,6 +122,10 @@ describe('filePreview', () => {
     it('should return default image/png for unknown or non-image extensions', () => {
       expect(mimeFromExt('test.txt')).toBe('image/png')
       expect(mimeFromExt('no-extension')).toBe('image/png')
+    })
+
+    it('should handle empty string', () => {
+      expect(mimeFromExt('')).toBe('image/png')
     })
   })
 })
