@@ -207,7 +207,7 @@ func main() {
 						{"alacritty", []string{"--working-directory", path}},
 						{"foot", []string{"--working-directory=" + path}},
 						{"wezterm", []string{"start", "--cwd", path}},
-						{"xterm", []string{"-e", "cd '" + strings.ReplaceAll(path, "'", "'\\'''") + "' && $SHELL"}},
+						{"xterm", []string{"-e", "cd '" + strings.ReplaceAll(path, "'", "'\\''") + "' && $SHELL"}},
 					}
 					for _, t := range terminals {
 						cmd := exec.Command(t.cmd, t.args...)
