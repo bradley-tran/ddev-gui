@@ -25,7 +25,14 @@ function parsePO(raw: string): Record<string, string> {
     section = ''
   }
 
-  for (const line of raw.split('\n')) {
+  let start = 0
+  const len = raw.length
+  while (start <= len) {
+    let end = raw.indexOf('\n', start)
+    if (end === -1) end = len
+    const line = raw.slice(start, end)
+    start = end + 1
+
     const trimmed = line.trim()
     if (!trimmed || trimmed.startsWith('#')) {
       flush()
