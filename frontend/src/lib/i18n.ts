@@ -114,8 +114,9 @@ export function createI18nState(initialLocale: Locale = 'en'): I18nState {
   function t(key: string, vars?: Record<string, string>): string {
     let value = messages.value[key] ?? en[key] ?? key
     if (vars) {
+      // Use split/join instead of replaceAll to avoid TS target library issues
       for (const [token, replacement] of Object.entries(vars)) {
-        value = value.replace(new RegExp(`\\{${token}\\}`, 'g'), replacement)
+        value = value.split(`{${token}}`).join(replacement)
       }
     }
     return value
