@@ -108,7 +108,7 @@ export function createI18nState(initialLocale: Locale = 'en'): I18nState {
     let value = messages.value[key] ?? en[key] ?? key
     if (vars) {
       for (const [token, replacement] of Object.entries(vars)) {
-        value = value.replace(new RegExp(`\\{${token}\\}`, 'g'), replacement)
+        value = value.replaceAll(`{${token}}`, replacement)
       }
     }
     return value
