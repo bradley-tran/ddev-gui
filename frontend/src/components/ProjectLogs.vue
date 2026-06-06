@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DOMPurify from 'dompurify'
 import { ChevronsUpDownIcon, RefreshCwIcon as RefreshIcon } from '@lucide/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import Spinner from '@/components/Spinner.vue'
@@ -22,7 +23,7 @@ const serviceMenuOpen = ref(false)
 const serviceMenuRef = ref<HTMLElement | null>(null)
 let requestId = 0
 
-const logsHtml = computed(() => ansiToHtml(logs.value))
+const logsHtml = computed(() => DOMPurify.sanitize(ansiToHtml(logs.value)))
 const serviceOptions = computed(() => {
   const orderedNames = [DEFAULT_LOG_SERVICE]
 
