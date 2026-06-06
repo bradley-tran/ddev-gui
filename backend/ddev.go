@@ -468,9 +468,9 @@ func (d *DdevService) ReadFile(project, relPath string) (string, error) {
 
 	// Pipe through base64 for safe transport through the persistent shell.
 	// Raw binary content can overflow the scanner's 1MB line buffer and kill the shell.
-	cmd := fmt.Sprintf("head -c 1048576 %s 2>/dev/null | base64", shellQuote(target))
+	script := "head -c 1048576 \"$1\" 2>/dev/null | base64"
 
-	out, err := d.execSpawnCmd(cmd, 30*time.Second)
+	out, err := d.execSpawnCmd(script, []string{target}, 30*time.Second)
 	if err != nil {
 		return "", err
 	}
@@ -504,9 +504,9 @@ func (d *DdevService) ReadFileBase64(project, relPath string) (string, error) {
 	target := dirHint + "/" + relPath
 
 	// Read up to 5MB and base64-encode it (default line wrapping).
-	cmd := fmt.Sprintf("head -c 5242880 %s 2>/dev/null | base64", shellQuote(target))
+	script := "head -c 5242880 \"$1\" 2>/dev/null | base64"
 
-	out, err := d.execSpawnCmd(cmd, 30*time.Second)
+	out, err := d.execSpawnCmd(script, []string{target}, 30*time.Second)
 	if err != nil {
 		return "", err
 	}
@@ -520,12 +520,13 @@ func (d *DdevService) ReadFileBase64(project, relPath string) (string, error) {
 // Unlike execShellCmd (which uses the main persistent shell), this uses
 // a separate persistent shell (fileShell) with its own mutex, so file
 // reads don't block directory listings and vice versa.
-func (d *DdevService) execSpawnCmd(cmd string, timeout time.Duration) (string, error) {
+func (d *DdevService) execSpawnCmd(script string, args []string, timeout time.Duration) (string, error) {
 	switch d.activeBackend() {
 	case "wsl":
 		// Use the dedicated file shell if available
 		if d.fileShell != nil {
-			output, exitCode, execErr := d.fileShell.Exec("", []string{"bash", "-c", cmd}, nil, timeout, nil)
+			execArgs := append([]string{"bash", "-c", script, "--"}, args...)
+			output, exitCode, execErr := d.fileShell.Exec("", execArgs, nil, timeout, nil)
 			if execErr != nil {
 				return "", execErr
 			}
@@ -537,7 +538,7 @@ func (d *DdevService) execSpawnCmd(cmd string, timeout time.Duration) (string, e
 		// Fallback: spawn a fresh process
 		execCtx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
-		wslArgs := []string{"-d", d.WSLDistro(), "-e", "bash", "-c", cmd}
+		wslArgs := append([]string{"-d", d.WSLDistro(), "-e", "bash", "-c", script, "--"}, args...)
 		c := exec.CommandContext(execCtx, "wsl.exe", wslArgs...)
 		HideWSLWindow(c)
 		raw, execErr := c.Output()
@@ -547,7 +548,8 @@ func (d *DdevService) execSpawnCmd(cmd string, timeout time.Duration) (string, e
 		return string(raw), nil
 	case "ssh":
 		if d.sshShell != nil {
-			output, exitCode, execErr := d.sshShell.Exec("", []string{"bash", "-c", cmd}, nil, timeout, nil)
+			execArgs := append([]string{"bash", "-c", script, "--"}, args...)
+			output, exitCode, execErr := d.sshShell.Exec("", execArgs, nil, timeout, nil)
 			if execErr != nil {
 				return "", execErr
 			}
@@ -560,7 +562,8 @@ func (d *DdevService) execSpawnCmd(cmd string, timeout time.Duration) (string, e
 	default:
 		execCtx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
-		c := exec.CommandContext(execCtx, "bash", "-c", cmd)
+		execArgs := append([]string{"-c", script, "--"}, args...)
+		c := exec.CommandContext(execCtx, "bash", execArgs...)
 		raw, execErr := c.Output()
 		if execErr != nil {
 			return "", execErr

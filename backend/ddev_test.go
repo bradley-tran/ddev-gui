@@ -233,3 +233,23 @@ func TestApplyTelemetryPreference(t *testing.T) {
 		}
 	}
 }
+
+func TestExecSpawnCmdSignature(t *testing.T) {
+	// Simple test to ensure the new signature is implemented correctly and runs a bash command
+	d := &DdevService{}
+
+	// Create a script that echoes its first parameter
+	script := "echo \"$1\""
+	expected := "hello security\n"
+
+	out, err := d.execSpawnCmd(script, []string{"hello security"}, 5 * 1000 * 1000 * 1000) // 5 seconds
+
+	// If bash is not installed or available, we might get an exec error, which is fine for this environment check
+	if err != nil {
+		t.Skipf("Skipping test, bash may not be available: %v", err)
+	}
+
+	if out != expected {
+		t.Errorf("execSpawnCmd() = %v, want %v", out, expected)
+	}
+}
