@@ -2,7 +2,6 @@ package backend
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,10 +16,10 @@ func TestHelperProcess(t *testing.T) {
 	cmd := os.Getenv("HELPER_CMD")
 	switch cmd {
 	case "whoami_root":
-		fmt.Print("root\n")
+		os.Stdout.Write([]byte("root\n"))
 		os.Exit(0)
 	case "whoami_jules":
-		fmt.Print("jules\n")
+		os.Stdout.Write([]byte("jules\n"))
 		os.Exit(0)
 	case "whoami_error":
 		os.Exit(1)
