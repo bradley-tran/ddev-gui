@@ -25,16 +25,21 @@ import (
 )
 
 type DdevService struct {
-	mu        sync.Mutex
-	ctx       context.Context
-	config    *ConfigService
-	shell     *WSLShell // persistent WSL shell for fast read-only queries (Windows only)
-	fileShell *WSLShell // dedicated shell for file reads (avoids blocking the main shell)
-	sshShell  *SSHShell // persistent SSH shell for remote execution
+	mu         sync.Mutex
+	ctx        context.Context
+	config     *ConfigService
+	shell      *WSLShell // persistent WSL shell for fast read-only queries (Windows only)
+	fileShell  *WSLShell // dedicated shell for file reads (avoids blocking the main shell)
+	sshShell   *SSHShell // persistent SSH shell for remote execution
+	dirCacheMu sync.RWMutex
+	dirCache   map[string]string
 }
 
 func NewDdevService(cfg *ConfigService) *DdevService {
-	svc := &DdevService{config: cfg}
+	svc := &DdevService{
+		config:   cfg,
+		dirCache: make(map[string]string),
+	}
 	backend, _ := cfg.Get("backend").(string)
 	switch backend {
 	case "ssh":
@@ -288,15 +293,35 @@ func (d *DdevService) DescribeJSON(name string) (string, error) {
 // On macOS/Linux it returns the native path.
 // Falls back to ~/ddev-projects/<name> if the lookup fails.
 func (d *DdevService) resolveProjectDir(name string) string {
+	d.dirCacheMu.RLock()
+	if d.dirCache != nil {
+		if cached, ok := d.dirCache[name]; ok {
+			d.dirCacheMu.RUnlock()
+			return cached
+		}
+	}
+	d.dirCacheMu.RUnlock()
+
 	fallback := "~/ddev-projects/" + name
 	if runtime.GOOS != "windows" {
 		if home, err := os.UserHomeDir(); err == nil && strings.TrimSpace(home) != "" {
 			fallback = filepath.Join(home, "ddev-projects", name)
 		}
 	}
+
+	cacheAndReturn := func(val string) string {
+		d.dirCacheMu.Lock()
+		if d.dirCache == nil {
+			d.dirCache = make(map[string]string)
+		}
+		d.dirCache[name] = val
+		d.dirCacheMu.Unlock()
+		return val
+	}
+
 	raw, err := d.DescribeJSON(name)
 	if err != nil {
-		return fallback
+		return cacheAndReturn(fallback)
 	}
 	// Parse the JSON to extract approot. The output may be wrapped in {"raw": {...}}.
 	var wrapper struct {
@@ -306,15 +331,15 @@ func (d *DdevService) resolveProjectDir(name string) string {
 		Approot string `json:"approot"`
 	}
 	if err := json.Unmarshal([]byte(raw), &wrapper); err != nil {
-		return fallback
+		return cacheAndReturn(fallback)
 	}
 	if wrapper.Raw.Approot != "" {
-		return wrapper.Raw.Approot
+		return cacheAndReturn(wrapper.Raw.Approot)
 	}
 	if wrapper.Approot != "" {
-		return wrapper.Approot
+		return cacheAndReturn(wrapper.Approot)
 	}
-	return fallback
+	return cacheAndReturn(fallback)
 }
 
 // FileEntry represents a single file or directory returned by ListDir.
