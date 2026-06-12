@@ -328,11 +328,12 @@ type FileEntry struct {
 // execShellCmd runs a bash command string using the most efficient available
 // transport: persistent WSL shell, SSH shell, or local exec.
 // This avoids spawning a fresh wsl.exe process for each call (~5-10x faster).
-func (d *DdevService) execShellCmd(cmd string) (string, error) {
+func (d *DdevService) execShellCmd(script string, args []string) (string, error) {
 	switch d.activeBackend() {
 	case "ssh":
 		if d.sshShell != nil {
-			output, exitCode, execErr := d.sshShell.Exec("", []string{"bash", "-c", cmd}, nil, 30*time.Second, nil)
+			execArgs := append([]string{"bash", "-c", script, "--"}, args...)
+			output, exitCode, execErr := d.sshShell.Exec("", execArgs, nil, 30*time.Second, nil)
 			if execErr != nil {
 				return "", execErr
 			}
@@ -345,7 +346,8 @@ func (d *DdevService) execShellCmd(cmd string) (string, error) {
 	case "wsl":
 		// Use the persistent WSL shell if available (avoids WSL startup latency)
 		if d.shell != nil {
-			output, exitCode, execErr := d.shell.Exec("", []string{"bash", "-c", cmd}, nil, 30*time.Second, nil)
+			execArgs := append([]string{"bash", "-c", script, "--"}, args...)
+			output, exitCode, execErr := d.shell.Exec("", execArgs, nil, 30*time.Second, nil)
 			if execErr != nil {
 				return "", execErr
 			}
@@ -357,7 +359,7 @@ func (d *DdevService) execShellCmd(cmd string) (string, error) {
 		// Fallback: spawn a fresh wsl.exe process
 		execCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-		wslArgs := []string{"-d", d.WSLDistro(), "-e", "bash", "-c", cmd}
+		wslArgs := append([]string{"-d", d.WSLDistro(), "-e", "bash", "-c", script, "--"}, args...)
 		c := exec.CommandContext(execCtx, "wsl.exe", wslArgs...)
 		HideWSLWindow(c)
 		raw, execErr := c.Output()
@@ -368,7 +370,8 @@ func (d *DdevService) execShellCmd(cmd string) (string, error) {
 	default:
 		execCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-		c := exec.CommandContext(execCtx, "bash", "-c", cmd)
+		execArgs := append([]string{"-c", script, "--"}, args...)
+		c := exec.CommandContext(execCtx, "bash", execArgs...)
 		raw, execErr := c.Output()
 		if execErr != nil {
 			return "", execErr
@@ -405,12 +408,9 @@ func (d *DdevService) ListDir(project, relPath string) (string, error) {
 	// Run ls -la with machine-readable timestamps and --group-directories-first
 	// Using find instead for more reliable cross-platform parsing
 	// Format: type|size|date|name
-	cmd := fmt.Sprintf(
-		"find %s -maxdepth 1 -mindepth 1 -printf '%%y|%%s|%%TY-%%Tm-%%Td %%TH:%%TM|%%f\\n' 2>/dev/null | sort -t'|' -k1,1r -k4,4",
-		shellQuote(target),
-	)
+	script := "find \"$1\" -maxdepth 1 -mindepth 1 -printf '%y|%s|%TY-%Tm-%Td %TH:%TM|%f\\n' 2>/dev/null | sort -t'|' -k1,1r -k4,4"
 
-	out, err := d.execShellCmd(cmd)
+	out, err := d.execShellCmd(script, []string{target})
 	if err != nil {
 		return "[]", err
 	}
