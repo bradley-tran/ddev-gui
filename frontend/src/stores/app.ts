@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { DEFAULT_APP_CONFIG, normalizeAppConfig } from '@/lib/config'
 import type { AppConfig, AppModal, AppModals, CurrentView, DdevProject, LogEntry, LogLevel, ToastEntry, ToastType, ViewMode } from '@/lib/types'
-import { parseProjectsJSON, uid } from '@/lib/utils'
+import { getProjectName, parseProjectsJSON, uid } from '@/lib/utils'
 import { ConfigService, DdevService } from '@/lib/wails'
 
 const MAX_LOG_ENTRIES = 200
@@ -46,6 +46,14 @@ export const useAppStore = defineStore('app', {
 
   getters: {
     projects: (state): DdevProject[] => parseProjectsJSON(state.projectsJSON),
+    projectsMap(state): Map<string, DdevProject> {
+      const map = new Map<string, DdevProject>()
+      const parsedProjects = parseProjectsJSON(state.projectsJSON)
+      for (const project of parsedProjects) {
+        map.set(getProjectName(project), project)
+      }
+      return map
+    },
   },
 
   actions: {

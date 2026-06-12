@@ -33,7 +33,7 @@ const projectName = computed(() =>
 
 const projectType = computed(() => {
   if (!projectName.value) return null
-  const match = appStore.projects.find((project) => getProjectName(project) === projectName.value)
+  const match = appStore.projectsMap.get(projectName.value)
   return match ? getProjectType(match) || null : null
 })
 

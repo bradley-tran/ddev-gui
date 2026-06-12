@@ -86,9 +86,7 @@ const deleteTarget = ref<DeleteTarget | null>(null)
 const deleteRunning = ref(false)
 
 const routeProjectName = computed(() => String(route.params.name ?? ''))
-const cachedProject = computed(
-  () => appStore.projects.find((candidate) => getProjectName(candidate) === routeProjectName.value) ?? null,
-)
+const cachedProject = computed(() => appStore.projectsMap.get(routeProjectName.value) ?? null)
 const displayProject = computed(() => describeData.value ?? cachedProject.value)
 const projectType = computed(() => (displayProject.value ? getProjectType(displayProject.value) : ''))
 const projectStatus = computed(() => (displayProject.value ? getProjectStatus(displayProject.value) : ''))
