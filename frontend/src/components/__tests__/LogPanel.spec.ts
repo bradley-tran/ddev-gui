@@ -1,5 +1,5 @@
 import type { App as VueApp } from 'vue'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { flushPromises, mount } from '@vue/test-utils'
 import { installI18n } from '@/lib/i18n'
