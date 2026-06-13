@@ -2,6 +2,7 @@ package backend
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -286,18 +287,23 @@ func scanLinesOrCR(data []byte, atEOF bool) (advance int, token []byte, err erro
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
 	}
-	for i, b := range data {
-		if b == '\n' {
-			return i + 1, data[:i], nil
-		}
-		if b == '\r' {
-			// \r\n counts as a single line break
-			if i+1 < len(data) && data[i+1] == '\n' {
-				return i + 2, data[:i], nil
+
+	if i := bytes.IndexByte(data, '\n'); i >= 0 {
+		// Look for an earlier \r before the \n
+		if r := bytes.IndexByte(data[:i], '\r'); r >= 0 {
+			if r+1 == i {
+				return i + 1, data[:r], nil // \r\n
 			}
-			return i + 1, data[:i], nil
+			return r + 1, data[:r], nil // bare \r earlier in string
 		}
+		return i + 1, data[:i], nil // \n without \r
 	}
+
+	// No \n found. Check for bare \r
+	if i := bytes.IndexByte(data, '\r'); i >= 0 {
+		return i + 1, data[:i], nil
+	}
+
 	if atEOF {
 		return len(data), data, nil
 	}
