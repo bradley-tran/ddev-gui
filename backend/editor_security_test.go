@@ -17,9 +17,9 @@ func TestLaunchNeovimEditor_DarwinCommand(t *testing.T) {
 
 	path := "/path/with/spaces and \"quotes\""
 	script := "on run argv\ntell application \"Terminal\" to do script \"cd \" & quoted form of item 1 of argv & \" && nvim\"\nend run"
-	cmd := exec.Command("osascript", "-e", script, path)
+	cmd := exec.Command("osascript", "-e", script, "--", path)
 
-	expectedArgs := []string{"osascript", "-e", script, path}
+	expectedArgs := []string{"osascript", "-e", script, "--", path}
 	if !reflect.DeepEqual(cmd.Args, expectedArgs) {
 		t.Errorf("expected args %v, got %v", expectedArgs, cmd.Args)
 	}
