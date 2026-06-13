@@ -288,19 +288,10 @@ func scanLinesOrCR(data []byte, atEOF bool) (advance int, token []byte, err erro
 		return 0, nil, nil
 	}
 
-	if i := bytes.IndexByte(data, '\n'); i >= 0 {
-		// Look for an earlier \r before the \n
-		if r := bytes.IndexByte(data[:i], '\r'); r >= 0 {
-			if r+1 == i {
-				return i + 1, data[:r], nil // \r\n
-			}
-			return r + 1, data[:r], nil // bare \r earlier in string
+	if i := bytes.IndexAny(data, "\r\n"); i >= 0 {
+		if data[i] == '\r' && i+1 < len(data) && data[i+1] == '\n' {
+			return i + 2, data[:i], nil
 		}
-		return i + 1, data[:i], nil // \n without \r
-	}
-
-	// No \n found. Check for bare \r
-	if i := bytes.IndexByte(data, '\r'); i >= 0 {
 		return i + 1, data[:i], nil
 	}
 
