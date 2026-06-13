@@ -221,11 +221,14 @@ func launchWindowsElevated(path string) error {
 	if runtimeGOOS != "windows" {
 		return fmt.Errorf("elevation only supported on Windows")
 	}
-	safe := strings.ReplaceAll(path, "'", "''")
 	// Use -ErrorAction Stop so cancellation produces a non-zero exit code.
 	// Exit 1223 (ERROR_CANCELLED) when user cancels UAC if detectable; otherwise inspect output.
-	ps := `$ErrorActionPreference='Stop'; try { Start-Process -FilePath '` + safe + `' -Verb RunAs; exit 0 } catch { if ($_.Exception -and ($_.Exception.NativeErrorCode -eq 1223 -or $_.Exception.HResult -eq -2147023675) ) { exit 1223 } else { Write-Output $_.Exception.Message; exit 1 } }`
+	ps := `$ErrorActionPreference='Stop'; try { Start-Process -FilePath $env:TARGET_PATH -Verb RunAs; exit 0 } catch { if ($_.Exception -and ($_.Exception.NativeErrorCode -eq 1223 -or $_.Exception.HResult -eq -2147023675) ) { exit 1223 } else { Write-Output $_.Exception.Message; exit 1 } }`
 	cmd := execCommand("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps)
+	if cmd.Env == nil {
+		cmd.Env = os.Environ()
+	}
+	cmd.Env = append(cmd.Env, "TARGET_PATH="+path)
 	var outBuf, errBuf bytes.Buffer
 	cmd.Stdout = &outBuf
 	cmd.Stderr = &errBuf
