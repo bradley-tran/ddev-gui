@@ -3,6 +3,7 @@ import {
   getProjectName,
   getProjectStatus,
   getProjectType,
+  pickProjectValue,
   getPrimaryUrl,
   getMailpitUrl,
   isProjectRunning,
@@ -75,6 +76,54 @@ describe('utils', () => {
     it('should return empty string if no status fields exist', () => {
       const p: DdevProject = {}
       expect(getProjectStatus(p)).toBe('')
+    })
+  })
+
+  describe('pickProjectValue', () => {
+    it('should return undefined if project is null', () => {
+      expect(pickProjectValue(null, ['type'])).toBeUndefined()
+    })
+
+    it('should return exact match via fast path', () => {
+      const p: DdevProject = { exactMatch: 'value1' }
+      expect(pickProjectValue(p, ['exactMatch'])).toBe('value1')
+    })
+
+    it('should return case-insensitive match via slow path', () => {
+      const p = { ExAcTmAtCh: 'value2' } as unknown as DdevProject
+      expect(pickProjectValue(p, ['exactmatch'])).toBe('value2')
+    })
+
+    it('should return undefined if the key does not exist', () => {
+      const p: DdevProject = { someOtherKey: 'value' }
+      expect(pickProjectValue(p, ['missingKey'])).toBeUndefined()
+    })
+
+    it('should handle falsy but defined values (e.g., empty string, 0, false)', () => {
+      const p = {
+        emptyString: '',
+        zero: 0,
+        falseVal: false,
+      } as unknown as DdevProject
+
+      expect(pickProjectValue(p, ['emptyString'])).toBe('')
+      expect(pickProjectValue(p, ['zero'])).toBe(0)
+      expect(pickProjectValue(p, ['falseVal'])).toBe(false)
+
+      // Also test slow path
+      expect(pickProjectValue(p, ['emptystring'])).toBe('')
+      expect(pickProjectValue(p, ['ZERO'])).toBe(0)
+      expect(pickProjectValue(p, ['FALSEVAL'])).toBe(false)
+    })
+
+    it('should check multiple keys and return first exact match', () => {
+      const p: DdevProject = { secondary: 'value3' }
+      expect(pickProjectValue(p, ['primary', 'secondary'])).toBe('value3')
+    })
+
+    it('should check multiple keys and return first case-insensitive match', () => {
+      const p = { SeCoNdArY: 'value4' } as unknown as DdevProject
+      expect(pickProjectValue(p, ['primary', 'secondary'])).toBe('value4')
     })
   })
 
