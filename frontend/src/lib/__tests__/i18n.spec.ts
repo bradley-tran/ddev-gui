@@ -6,6 +6,7 @@ import {
   useTranslation,
   loadLocale,
   en,
+  LOCALE_LABELS,
 } from '../i18n'
 
 // Mock the dynamic imports for locales
@@ -18,6 +19,16 @@ vi.mock('../locales/vi.po?raw', () => ({
 }))
 
 describe('i18n', () => {
+  describe('LOCALE_LABELS', () => {
+    it('should define labels for supported locales', () => {
+      expect(LOCALE_LABELS).toEqual({
+        en: 'English',
+        zh: '简体中文',
+        vi: 'Tiếng Việt',
+      })
+    })
+  })
+
   describe('createI18nState', () => {
     it('should initialize with default locale (en)', () => {
       const state = createI18nState()
