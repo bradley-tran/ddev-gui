@@ -6,6 +6,7 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -17,7 +18,20 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"unicode/utf16"
 )
+
+// encodePowerShellCommand encodes a string to UTF-16LE and then base64 encodes it
+// for use with the PowerShell -EncodedCommand parameter.
+func encodePowerShellCommand(s string) string {
+	runes := utf16.Encode([]rune(s))
+	b := make([]byte, len(runes)*2)
+	for i, r := range runes {
+		b[i*2] = byte(r)
+		b[i*2+1] = byte(r >> 8)
+	}
+	return base64.StdEncoding.EncodeToString(b)
+}
 
 // stripAnsi removes ANSI escape sequences from a string.
 func stripAnsi(s string) string {
@@ -224,7 +238,8 @@ func launchWindowsElevated(path string) error {
 	// Use -ErrorAction Stop so cancellation produces a non-zero exit code.
 	// Exit 1223 (ERROR_CANCELLED) when user cancels UAC if detectable; otherwise inspect output.
 	ps := `$ErrorActionPreference='Stop'; try { Start-Process -FilePath $env:TARGET_PATH -Verb RunAs; exit 0 } catch { if ($_.Exception -and ($_.Exception.NativeErrorCode -eq 1223 -or $_.Exception.HResult -eq -2147023675) ) { exit 1223 } else { Write-Output $_.Exception.Message; exit 1 } }`
-	cmd := execCommand("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps)
+	encoded := encodePowerShellCommand(ps)
+	cmd := execCommand("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-EncodedCommand", encoded)
 	if cmd.Env == nil {
 		cmd.Env = os.Environ()
 	}
