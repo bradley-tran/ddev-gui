@@ -53,12 +53,10 @@ import {
 } from '@/lib/utils'
 import { useAppStore } from '@/stores/app'
 
-type DetailTab = 'overview' | 'files' | 'addons' | 'snapshots' |'logs' | 'terminal'
+type DetailTab = 'overview' | 'files' | 'addons' | 'snapshots' | 'logs' | 'terminal'
 type ToolbarMenu = 'drupal' | 'more' | null
 
-type DeleteTarget =
-  | { kind: 'project' }
-  | { kind: 'snapshot', snapshotName: string }
+type DeleteTarget = { kind: 'project' } | { kind: 'snapshot'; snapshotName: string }
 
 interface OverviewItem {
   label: string
@@ -88,18 +86,26 @@ const deleteRunning = ref(false)
 const routeProjectName = computed(() => String(route.params.name ?? ''))
 const cachedProject = computed(() => appStore.projectsMap.get(routeProjectName.value) ?? null)
 const displayProject = computed(() => describeData.value ?? cachedProject.value)
-const projectType = computed(() => (displayProject.value ? getProjectType(displayProject.value) : ''))
-const projectStatus = computed(() => (displayProject.value ? getProjectStatus(displayProject.value) : ''))
+const projectType = computed(() =>
+  displayProject.value ? getProjectType(displayProject.value) : '',
+)
+const projectStatus = computed(() =>
+  displayProject.value ? getProjectStatus(displayProject.value) : '',
+)
 const primaryUrl = computed(() => (displayProject.value ? getPrimaryUrl(displayProject.value) : ''))
 const mailpitUrl = computed(() => (displayProject.value ? getMailpitUrl(displayProject.value) : ''))
-const isStopped = computed(() => (displayProject.value ? isProjectStopped(displayProject.value) : false))
+const isStopped = computed(() =>
+  displayProject.value ? isProjectStopped(displayProject.value) : false,
+)
 const isInitialized = computed(
   () => !!appStore.config.projects?.[routeProjectName.value]?.initialized,
 )
 const isDrupal = computed(() => projectType.value.toLowerCase().startsWith('drupal'))
 const isSshBackend = computed(() => appStore.config.backend === 'ssh')
-const projectLocation = computed(
-  () => String(displayProject.value?.approot ?? displayProject.value?.shortroot ?? routeProjectName.value),
+const projectLocation = computed(() =>
+  String(
+    displayProject.value?.approot ?? displayProject.value?.shortroot ?? routeProjectName.value,
+  ),
 )
 const tabs = computed(() => [
   { id: 'overview' as const, label: t('detail.tabOverview') },
@@ -113,14 +119,32 @@ const overviewItems = computed<OverviewItem[]>(() => {
   const project = displayProject.value
 
   return [
-    { label: t('detail.overview.name'), value: project ? getProjectName(project) : routeProjectName.value },
+    {
+      label: t('detail.overview.name'),
+      value: project ? getProjectName(project) : routeProjectName.value,
+    },
     { label: t('detail.overview.status'), value: projectStatus.value || 'n/a', isStatus: true },
     { label: t('detail.overview.type'), value: projectType.value || 'n/a' },
-    { label: t('detail.overview.phpVersion'), value: String(pickProjectValue(project, ['php_version', 'phpversion']) ?? '') || 'n/a' },
-    { label: t('detail.overview.docroot'), value: String(pickProjectValue(project, ['docroot']) ?? '') || 'n/a' },
-    { label: t('detail.overview.location'), value: String(pickProjectValue(project, ['approot', 'shortroot']) ?? '') || 'n/a' },
-    { label: t('detail.overview.router'), value: String(pickProjectValue(project, ['router']) ?? '') || 'n/a' },
-    { label: t('detail.overview.nodejs'), value: String(pickProjectValue(project, ['nodejs_version']) ?? '') || 'n/a' },
+    {
+      label: t('detail.overview.phpVersion'),
+      value: String(pickProjectValue(project, ['php_version', 'phpversion']) ?? '') || 'n/a',
+    },
+    {
+      label: t('detail.overview.docroot'),
+      value: String(pickProjectValue(project, ['docroot']) ?? '') || 'n/a',
+    },
+    {
+      label: t('detail.overview.location'),
+      value: String(pickProjectValue(project, ['approot', 'shortroot']) ?? '') || 'n/a',
+    },
+    {
+      label: t('detail.overview.router'),
+      value: String(pickProjectValue(project, ['router']) ?? '') || 'n/a',
+    },
+    {
+      label: t('detail.overview.nodejs'),
+      value: String(pickProjectValue(project, ['nodejs_version']) ?? '') || 'n/a',
+    },
   ]
 })
 const services = computed(() => {
@@ -190,7 +214,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function normalizeSnapshotName(snapshot: DdevSnapshot | string): string | null {
   if (typeof snapshot === 'string') return snapshot.trim() || null
 
-  const value = snapshot.Name ?? snapshot.name ?? snapshot.snapshot_name ?? snapshot.snapshotName ?? ''
+  const value =
+    snapshot.Name ?? snapshot.name ?? snapshot.snapshot_name ?? snapshot.snapshotName ?? ''
   const normalized = String(value).trim()
   return normalized || null
 }
@@ -234,8 +259,14 @@ async function loadSnapshots(projectName = routeProjectName.value) {
     }
 
     if (isRecord(data) && isRecord(data.raw)) {
-      const list = Object.values(data.raw).find(Array.isArray)
-      snapshots.value = Array.isArray(list) ? (list as DdevSnapshot[]) : []
+      let list: unknown[] | undefined
+      for (const key in data.raw) {
+        if (Array.isArray(data.raw[key])) {
+          list = data.raw[key]
+          break
+        }
+      }
+      snapshots.value = list ? (list as DdevSnapshot[]) : []
       return
     }
 
@@ -332,7 +363,11 @@ async function handleImportDB() {
     if (!filePath) return
 
     const fileName = filePath.split('/').pop() || filePath
-    if (!window.confirm(t('detail.importDb.confirm', { file: fileName, project: routeProjectName.value }))) {
+    if (
+      !window.confirm(
+        t('detail.importDb.confirm', { file: fileName, project: routeProjectName.value }),
+      )
+    ) {
       return
     }
 
@@ -494,9 +529,10 @@ async function handleDeleteConfirm() {
   deleteRunning.value = true
 
   try {
-    const success = deleteTarget.value.kind === 'project'
-      ? await deleteProject()
-      : await deleteSnapshot(deleteTarget.value.snapshotName)
+    const success =
+      deleteTarget.value.kind === 'project'
+        ? await deleteProject()
+        : await deleteSnapshot(deleteTarget.value.snapshotName)
 
     if (success) {
       deleteTarget.value = null
@@ -560,7 +596,7 @@ async function handleDeleteConfirm() {
               v-if="isDrupal"
               class="toolbar-dropdown"
               @mouseenter="setToolbarMenu('drupal')"
-              @mouseleave="setToolbarMenu(null)"
+              @mouseleave="setToolbarMenu(null);"
             >
               <button
                 type="button"
@@ -578,7 +614,10 @@ async function handleDeleteConfirm() {
                     :disabled="isSshBackend"
                     :title="isSshBackend ? t('detail.drupal.notAvailableSsh') : undefined"
                     :style="isSshBackend ? { opacity: 0.45, cursor: 'not-allowed' } : undefined"
-                    @click="setToolbarMenu(null); handleExportDB()"
+                    @click="
+                      setToolbarMenu(null);
+                      handleExportDB()
+                    "
                   >
                     <DownloadIcon :size="12" :stroke-width="2" />
                     {{ t('detail.drupal.exportDb') }}
@@ -589,7 +628,10 @@ async function handleDeleteConfirm() {
                     :disabled="isSshBackend"
                     :title="isSshBackend ? t('detail.drupal.notAvailableSsh') : undefined"
                     :style="isSshBackend ? { opacity: 0.45, cursor: 'not-allowed' } : undefined"
-                    @click="setToolbarMenu(null); handleImportDB()"
+                    @click="
+                      setToolbarMenu(null);
+                      handleImportDB()
+                    "
                   >
                     <UploadIcon :size="12" :stroke-width="2" />
                     {{ t('detail.drupal.importDb') }}
@@ -600,7 +642,10 @@ async function handleDeleteConfirm() {
                     :disabled="isStopped"
                     :title="isStopped ? t('detail.drupal.mustBeRunning') : undefined"
                     :style="isStopped ? { opacity: 0.45, cursor: 'not-allowed' } : undefined"
-                    @click="setToolbarMenu(null); openMasqueradeModal()"
+                    @click="
+                      setToolbarMenu(null);
+                      openMasqueradeModal()
+                    "
                   >
                     <VenetianMaskIcon :size="12" :stroke-width="2" />
                     {{ t('detail.drupal.masquerade') }}
@@ -611,7 +656,10 @@ async function handleDeleteConfirm() {
                     :disabled="isStopped"
                     :title="isStopped ? t('detail.drupal.mustBeRunning') : undefined"
                     :style="isStopped ? { opacity: 0.45, cursor: 'not-allowed' } : undefined"
-                    @click="setToolbarMenu(null); handleClearCache()"
+                    @click="
+                      setToolbarMenu(null);
+                      handleClearCache()
+                    "
                   >
                     <EraserIcon :size="12" :stroke-width="2" />
                     {{ t('detail.drupal.clearCache') }}
@@ -622,7 +670,7 @@ async function handleDeleteConfirm() {
             <div
               class="toolbar-dropdown"
               @mouseenter="setToolbarMenu('more')"
-              @mouseleave="setToolbarMenu(null)"
+              @mouseleave="setToolbarMenu(null);"
             >
               <button
                 type="button"
@@ -637,7 +685,10 @@ async function handleDeleteConfirm() {
                   <button
                     type="button"
                     class="toolbar-dropdown-item proj-action"
-                    @click="setToolbarMenu(null); openLocation('open:folder')"
+                    @click="
+                      setToolbarMenu(null);
+                      openLocation('open:folder')
+                    "
                   >
                     <FolderOpenIcon :size="14" :stroke-width="2" />
                     {{ t('detail.more.openFolder') }}
@@ -645,7 +696,10 @@ async function handleDeleteConfirm() {
                   <button
                     type="button"
                     class="toolbar-dropdown-item proj-action"
-                    @click="setToolbarMenu(null); openLocation('open:editor')"
+                    @click="
+                      setToolbarMenu(null);
+                      openLocation('open:editor')
+                    "
                   >
                     <Code2Icon :size="14" :stroke-width="2" />
                     {{ t('detail.more.openEditor') }}
@@ -655,7 +709,10 @@ async function handleDeleteConfirm() {
                     type="button"
                     class="toolbar-dropdown-item proj-action"
                     :disabled="initRunning"
-                    @click="setToolbarMenu(null); handleInitSite(true)"
+                    @click="
+                      setToolbarMenu(null);
+                      handleInitSite(true)
+                    "
                   >
                     <ZapIcon :size="12" :stroke-width="2" />
                     {{ t('detail.more.reinitSite') }}
@@ -663,7 +720,10 @@ async function handleDeleteConfirm() {
                   <button
                     type="button"
                     class="toolbar-dropdown-item proj-action toolbar-dropdown-item-danger"
-                    @click="setToolbarMenu(null); openProjectDeleteModal()"
+                    @click="
+                      setToolbarMenu(null);
+                      openProjectDeleteModal()
+                    "
                   >
                     <Trash2Icon :size="12" :stroke-width="2" />
                     {{ t('detail.more.delete') }}
