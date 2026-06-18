@@ -288,7 +288,25 @@ func scanLinesOrCR(data []byte, atEOF bool) (advance int, token []byte, err erro
 		return 0, nil, nil
 	}
 
-	if i := bytes.IndexAny(data, "\r\n"); i >= 0 {
+	idxR := bytes.IndexByte(data, '\r')
+	idxN := bytes.IndexByte(data, '\n')
+
+	var i int
+	if idxR >= 0 && idxN >= 0 {
+		if idxR < idxN {
+			i = idxR
+		} else {
+			i = idxN
+		}
+	} else if idxR >= 0 {
+		i = idxR
+	} else if idxN >= 0 {
+		i = idxN
+	} else {
+		i = -1
+	}
+
+	if i >= 0 {
 		if data[i] == '\r' && i+1 < len(data) && data[i+1] == '\n' {
 			return i + 2, data[:i], nil
 		}
