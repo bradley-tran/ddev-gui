@@ -16,7 +16,7 @@ func fakeDdevScriptNameDrush() string {
 	return "ddev"
 }
 
-func fakeDdevScriptDrush(mockOutput string) string {
+func fakeDdevScriptDrush() string {
 	if runtime.GOOS == "windows" {
 		return "@echo off\r\n" +
 			"if \"%1\"==\"describe\" (\r\n" +
@@ -25,7 +25,7 @@ func fakeDdevScriptDrush(mockOutput string) string {
 			")\r\n" +
 			"if \"%1\"==\"drush\" (\r\n" +
 			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2 %3\r\n" +
-			"  echo " + mockOutput + "\r\n" +
+			"  type \"%TEST_DDEV_MOCK_OUTPUT_FILE%\"\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
 			"echo unexpected args %* 1>&2\r\n" +
@@ -39,7 +39,7 @@ func fakeDdevScriptDrush(mockOutput string) string {
 		"fi\n" +
 		"if [ \"$1\" = \"drush\" ]; then\n" +
 		"  printf '%s %s %s\\n' \"$1\" \"$2\" \"$3\" > \"$TEST_DDEV_ARGS_FILE\"\n" +
-		"  printf '" + mockOutput + "\\n'\n" +
+		"  cat \"$TEST_DDEV_MOCK_OUTPUT_FILE\"\n" +
 		"  exit 0\n" +
 		"fi\n" +
 		"echo \"unexpected args: $*\" >&2\n" +
@@ -68,10 +68,14 @@ func TestDrushRecentUsers(t *testing.T) {
 	}
 
 	argsFile := filepath.Join(tempDir, "args.txt")
+	mockOutputFile := filepath.Join(tempDir, "mock_output.txt")
 	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptNameDrush())
 
-	mockOutput := "1\\tadmin\\tadmin@example.com\\n2\\tuser1\\tuser1@example.com"
-	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScriptDrush(mockOutput)), 0755); err != nil {
+	mockOutput := "1\tadmin\tadmin@example.com\n2\tuser1\tuser1@example.com"
+	if err := os.WriteFile(mockOutputFile, []byte(mockOutput), 0644); err != nil {
+		t.Fatalf("failed to write mock output file: %v", err)
+	}
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScriptDrush()), 0755); err != nil {
 		t.Fatalf("failed to write fake ddev script: %v", err)
 	}
 
@@ -79,6 +83,7 @@ func TestDrushRecentUsers(t *testing.T) {
 	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
 	t.Setenv("TEST_DDEV_DESCRIBE_FILE", describeFile)
 	t.Setenv("TEST_DDEV_ARGS_FILE", argsFile)
+	t.Setenv("TEST_DDEV_MOCK_OUTPUT_FILE", mockOutputFile)
 
 	svc := &DdevService{
 		config: &ConfigService{data: map[string]any{"backend": "local"}},
@@ -201,11 +206,15 @@ func TestDrushRecentUsers_Parsing(t *testing.T) {
 	}
 
 	argsFile := filepath.Join(tempDir, "args.txt")
+	mockOutputFile := filepath.Join(tempDir, "mock_output.txt")
 	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptNameDrush())
 
 	// Mock output with some malformed lines and missing mail
-	mockOutput := "1\\tadmin\\tadmin@example.com\\n\\n2\\tuser1\\nmalformed"
-	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScriptDrush(mockOutput)), 0755); err != nil {
+	mockOutput := "1\tadmin\tadmin@example.com\n\n2\tuser1\nmalformed"
+	if err := os.WriteFile(mockOutputFile, []byte(mockOutput), 0644); err != nil {
+		t.Fatalf("failed to write mock output file: %v", err)
+	}
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScriptDrush()), 0755); err != nil {
 		t.Fatalf("failed to write fake ddev script: %v", err)
 	}
 
@@ -213,6 +222,7 @@ func TestDrushRecentUsers_Parsing(t *testing.T) {
 	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
 	t.Setenv("TEST_DDEV_DESCRIBE_FILE", describeFile)
 	t.Setenv("TEST_DDEV_ARGS_FILE", argsFile)
+	t.Setenv("TEST_DDEV_MOCK_OUTPUT_FILE", mockOutputFile)
 
 	svc := &DdevService{
 		config: &ConfigService{data: map[string]any{"backend": "local"}},
@@ -251,11 +261,15 @@ func TestDrushRecentUsers_NoUsers(t *testing.T) {
 	}
 
 	argsFile := filepath.Join(tempDir, "args.txt")
+	mockOutputFile := filepath.Join(tempDir, "mock_output.txt")
 	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptNameDrush())
 
 	// Mock output with no users
 	mockOutput := ""
-	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScriptDrush(mockOutput)), 0755); err != nil {
+	if err := os.WriteFile(mockOutputFile, []byte(mockOutput), 0644); err != nil {
+		t.Fatalf("failed to write mock output file: %v", err)
+	}
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScriptDrush()), 0755); err != nil {
 		t.Fatalf("failed to write fake ddev script: %v", err)
 	}
 
@@ -263,6 +277,7 @@ func TestDrushRecentUsers_NoUsers(t *testing.T) {
 	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
 	t.Setenv("TEST_DDEV_DESCRIBE_FILE", describeFile)
 	t.Setenv("TEST_DDEV_ARGS_FILE", argsFile)
+	t.Setenv("TEST_DDEV_MOCK_OUTPUT_FILE", mockOutputFile)
 
 	svc := &DdevService{
 		config: &ConfigService{data: map[string]any{"backend": "local"}},
