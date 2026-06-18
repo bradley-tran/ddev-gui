@@ -293,3 +293,136 @@ func TestDrushRecentUsers_NoUsers(t *testing.T) {
 		t.Fatalf("expected JSON output %q, got %q", expectedJSON, output)
 	}
 }
+
+func TestDrushCacheRebuild_Success(t *testing.T) {
+	tempDir := t.TempDir()
+	projectDir := filepath.Join(tempDir, "project")
+	if err := os.Mkdir(projectDir, 0755); err != nil {
+		t.Fatalf("failed to create project dir: %v", err)
+	}
+
+	describePayload, err := json.Marshal(map[string]any{
+		"raw": map[string]string{
+			"approot": projectDir,
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal describe payload: %v", err)
+	}
+
+	describeFile := filepath.Join(tempDir, "describe.json")
+	if err := os.WriteFile(describeFile, describePayload, 0644); err != nil {
+		t.Fatalf("failed to write describe payload: %v", err)
+	}
+
+	argsFile := filepath.Join(tempDir, "args.txt")
+	mockOutputFile := filepath.Join(tempDir, "mock_output.txt")
+	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptNameDrush())
+
+	mockOutput := "[success] Cache rebuild complete."
+	if err := os.WriteFile(mockOutputFile, []byte(mockOutput), 0644); err != nil {
+		t.Fatalf("failed to write mock output file: %v", err)
+	}
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScriptDrush()), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev script: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+	t.Setenv("TEST_DDEV_DESCRIBE_FILE", describeFile)
+	t.Setenv("TEST_DDEV_ARGS_FILE", argsFile)
+	t.Setenv("TEST_DDEV_MOCK_OUTPUT_FILE", mockOutputFile)
+
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	output, err := svc.DrushCacheRebuild("demo")
+	if err != nil {
+		t.Fatalf("DrushCacheRebuild returned error: %v", err)
+	}
+
+	if strings.TrimSpace(output) != mockOutput {
+		t.Fatalf("expected output %q, got %q", mockOutput, output)
+	}
+
+	argsRaw, err := os.ReadFile(argsFile)
+	if err != nil {
+		t.Fatalf("failed to read fake ddev args: %v", err)
+	}
+	if !strings.Contains(string(argsRaw), "drush cr") {
+		t.Fatalf("expected drush command to include cr, got %q", strings.TrimSpace(string(argsRaw)))
+	}
+}
+
+func TestDrushCacheRebuild_EmptyProject(t *testing.T) {
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	output, err := svc.DrushCacheRebuild(" ")
+	if err == nil {
+		t.Fatal("expected error for empty project name, got nil")
+	}
+
+	if output != "" {
+		t.Fatalf("expected output '', got %q", output)
+	}
+
+	if err.Error() != "project name is required" {
+		t.Fatalf("expected error 'project name is required', got %q", err.Error())
+	}
+}
+
+func TestDrushCacheRebuild_Error(t *testing.T) {
+	tempDir := t.TempDir()
+	projectDir := filepath.Join(tempDir, "project")
+	if err := os.Mkdir(projectDir, 0755); err != nil {
+		t.Fatalf("failed to create project dir: %v", err)
+	}
+
+	describePayload, err := json.Marshal(map[string]any{
+		"raw": map[string]string{
+			"approot": projectDir,
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal describe payload: %v", err)
+	}
+
+	describeFile := filepath.Join(tempDir, "describe.json")
+	if err := os.WriteFile(describeFile, describePayload, 0644); err != nil {
+		t.Fatalf("failed to write describe payload: %v", err)
+	}
+
+	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptNameDrush())
+
+	// mock output that causes an error by exiting 1
+	var script string
+	if runtime.GOOS == "windows" {
+		script = "@echo off\nexit /b 1"
+	} else {
+		script = "#!/bin/sh\nexit 1"
+	}
+
+	if err := os.WriteFile(fakeDdevPath, []byte(script), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev script: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+	t.Setenv("TEST_DDEV_DESCRIBE_FILE", describeFile)
+
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	output, err := svc.DrushCacheRebuild("demo")
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+
+	if output != "" {
+		t.Fatalf("expected output '', got %q", output)
+	}
+}
