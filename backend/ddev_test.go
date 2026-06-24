@@ -253,3 +253,48 @@ func TestExecSpawnCmdSignature(t *testing.T) {
 		t.Errorf("execSpawnCmd() = %v, want %v", out, expected)
 	}
 }
+
+func TestReadFileBase64Errors(t *testing.T) {
+	d := &DdevService{}
+
+	tests := []struct {
+		name    string
+		project string
+		relPath string
+		wantErr string
+	}{
+		{
+			name:    "empty project name",
+			project: "   ",
+			relPath: "some/path.txt",
+			wantErr: "project name is required",
+		},
+		{
+			name:    "empty relative path",
+			project: "myproject",
+			relPath: "   ",
+			wantErr: "file path is required",
+		},
+		{
+			name:    "path containing ..",
+			project: "myproject",
+			relPath: "some/../path.txt",
+			wantErr: "relative path must not contain '..'",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := d.ReadFileBase64(tt.project, tt.relPath)
+			if err == nil {
+				t.Fatalf("ReadFileBase64() expected error, got nil")
+			}
+			if !strings.Contains(err.Error(), tt.wantErr) {
+				t.Errorf("ReadFileBase64() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if got != "" {
+				t.Errorf("ReadFileBase64() got = %v, want empty string", got)
+			}
+		})
+	}
+}
