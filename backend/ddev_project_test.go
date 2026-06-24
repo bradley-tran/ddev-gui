@@ -81,6 +81,11 @@ func fakeDdevScript() string {
 			"  echo service=%3\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
+			"if \"%1\"==\"restart\" (\r\n" +
+			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2\r\n" +
+			"  echo restarted %2\r\n" +
+			"  exit /b 0\r\n" +
+			")\r\n" +
 			"echo unexpected args %* 1>&2\r\n" +
 			"exit /b 1\r\n"
 	}
@@ -95,6 +100,54 @@ func fakeDdevScript() string {
 		"  printf 'service=%s\\n' \"$3\"\n" +
 		"  exit 0\n" +
 		"fi\n" +
+		"if [ \"$1\" = \"restart\" ]; then\n" +
+		"  printf '%s %s\\n' \"$1\" \"$2\" > \"$TEST_DDEV_ARGS_FILE\"\n" +
+		"  printf 'restarted %s\\n' \"$2\"\n" +
+		"  exit 0\n" +
+		"fi\n" +
 		"echo \"unexpected args: $*\" >&2\n" +
 		"exit 1\n"
+}
+
+func TestRestart(t *testing.T) {
+	tempDir := t.TempDir()
+	argsFile := filepath.Join(tempDir, "args.txt")
+	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptName())
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScript()), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev script: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+	t.Setenv("TEST_DDEV_ARGS_FILE", argsFile)
+
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	// Test 1: Empty project name
+	_, err := svc.Restart("   ")
+	if err == nil {
+		t.Fatalf("expected error for empty project name, got nil")
+	}
+	if err.Error() != "project name is required" {
+		t.Fatalf("expected error 'project name is required', got %q", err.Error())
+	}
+
+	// Test 2: Valid project name
+	output, err := svc.Restart("myproject")
+	if err != nil {
+		t.Fatalf("Restart returned error: %v", err)
+	}
+	if strings.TrimSpace(output) != "restarted myproject" {
+		t.Fatalf("expected 'restarted myproject', got %q", output)
+	}
+
+	argsRaw, err := os.ReadFile(argsFile)
+	if err != nil {
+		t.Fatalf("failed to read fake ddev args: %v", err)
+	}
+	if strings.TrimSpace(string(argsRaw)) != "restart myproject" {
+		t.Fatalf("expected 'restart myproject', got %q", strings.TrimSpace(string(argsRaw)))
+	}
 }
