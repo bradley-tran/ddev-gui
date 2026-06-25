@@ -96,6 +96,11 @@ func fakeDdevScript() string {
 			"  echo deleted %4\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
+			"if \"%1\"==\"import-db\" (\r\n" +
+			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2 %3=%4\r\n" +
+			"  echo imported db for %2\r\n" +
+			"  exit /b 0\r\n" +
+			")\r\n" +
 			"echo unexpected args %* 1>&2\r\n" +
 			"exit /b 1\r\n"
 	}
@@ -123,6 +128,11 @@ func fakeDdevScript() string {
 		"if [ \"$1\" = \"delete\" ]; then\n" +
 		"  printf '%s %s %s %s\\n' \"$1\" \"$2\" \"$3\" \"$4\" > \"$TEST_DDEV_ARGS_FILE\"\n" +
 		"  printf 'deleted %s\\n' \"$4\"\n" +
+		"  exit 0\n" +
+		"fi\n" +
+		"if [ \"$1\" = \"import-db\" ]; then\n" +
+		"  printf '%s %s %s\\n' \"$1\" \"$2\" \"$3\" > \"$TEST_DDEV_ARGS_FILE\"\n" +
+		"  printf 'imported db for %s\\n' \"$2\"\n" +
 		"  exit 0\n" +
 		"fi\n" +
 		"echo \"unexpected args: $*\" >&2\n" +
@@ -256,4 +266,62 @@ func TestDeleteProject(t *testing.T) {
 	if strings.TrimSpace(string(argsRaw)) != "delete -O -y myproject" {
 		t.Fatalf("expected 'delete -O -y myproject', got %q", strings.TrimSpace(string(argsRaw)))
 	}
+}
+
+func TestImportDBFromFile(t *testing.T) {
+	tempDir := t.TempDir()
+	argsFile := filepath.Join(tempDir, "args.txt")
+	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptName())
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScript()), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev script: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+	t.Setenv("TEST_DDEV_ARGS_FILE", argsFile)
+
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	t.Run("success", func(t *testing.T) {
+		output, err := svc.ImportDBFromFile("myproject", "/path/to/db.sql")
+		if err != nil {
+			t.Fatalf("ImportDBFromFile returned error: %v", err)
+		}
+
+		if !strings.Contains(output, "imported db for myproject") {
+			t.Fatalf("expected output to contain 'imported db for myproject', got %q", output)
+		}
+
+		argsRaw, err := os.ReadFile(argsFile)
+		if err != nil {
+			t.Fatalf("failed to read fake ddev args: %v", err)
+		}
+
+		expectedArgs := "import-db myproject --file=/path/to/db.sql"
+		if strings.TrimSpace(string(argsRaw)) != expectedArgs {
+			t.Fatalf("expected '%s', got %q", expectedArgs, strings.TrimSpace(string(argsRaw)))
+		}
+	})
+
+	t.Run("empty project", func(t *testing.T) {
+		_, err := svc.ImportDBFromFile("   ", "/path/to/db.sql")
+		if err == nil {
+			t.Fatalf("expected error for empty project, got nil")
+		}
+		if err.Error() != "project name and file path are required" {
+			t.Fatalf("expected specific error message, got %q", err.Error())
+		}
+	})
+
+	t.Run("empty file path", func(t *testing.T) {
+		_, err := svc.ImportDBFromFile("myproject", "   ")
+		if err == nil {
+			t.Fatalf("expected error for empty file path, got nil")
+		}
+		if err.Error() != "project name and file path are required" {
+			t.Fatalf("expected specific error message, got %q", err.Error())
+		}
+	})
 }
