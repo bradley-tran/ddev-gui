@@ -573,3 +573,33 @@ func TestImportDBFromFile(t *testing.T) {
 		}
 	})
 }
+
+func TestValidateServicePort(t *testing.T) {
+	tests := []struct {
+		name      string
+		portValue string
+		portLabel string
+		wantErr   bool
+	}{
+		{"empty string", "", "test port", false},
+		{"valid port 1", "1", "test port", false},
+		{"valid port 80", "80", "test port", false},
+		{"valid port 443", "443", "test port", false},
+		{"valid port 65535", "65535", "test port", false},
+		{"invalid string", "abc", "test port", true},
+		{"invalid mixed string", "12a", "test port", true},
+		{"out of bounds zero", "0", "test port", true},
+		{"out of bounds negative", "-1", "test port", true},
+		{"out of bounds max+1", "65536", "test port", true},
+		{"out of bounds high", "70000", "test port", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateServicePort(tt.portValue, tt.portLabel)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("validateServicePort() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
