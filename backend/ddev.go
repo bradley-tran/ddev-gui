@@ -1100,7 +1100,7 @@ func (d *DdevService) VersionInfo() (string, bool) {
 		cmd.Stderr = &errBuf
 		err := cmd.Run()
 		if err == nil && strings.TrimSpace(outBuf.String()) != "" {
-			line := strings.Split(strings.ReplaceAll(outBuf.String(), "\r\n", "\n"), "\n")[0]
+			line := strings.Split(outBuf.String(), "\n")[0]
 			wslLines = append(wslLines, "Status: "+strings.TrimSpace(line))
 			// Determine list of distro and warn if there is no Ubuntu-based one
 			outBuf.Reset()
@@ -1110,7 +1110,7 @@ func (d *DdevService) VersionInfo() (string, bool) {
 			cmd.Stdout = &outBuf
 			cmd.Stderr = &errBuf
 			if err3 := cmd.Run(); err3 == nil {
-				lines := strings.Split(strings.ReplaceAll(outBuf.String(), "\r\n", "\n"), "\n")
+				lines := strings.Split(outBuf.String(), "\n")
 				ubuntuInstalled := false
 				for _, ln := range lines {
 					l := strings.TrimSpace(ln)
@@ -1134,7 +1134,7 @@ func (d *DdevService) VersionInfo() (string, bool) {
 			cmd.Stdout = &outBuf
 			cmd.Stderr = &errBuf
 			if err2 := cmd.Run(); err2 == nil && strings.TrimSpace(outBuf.String()) != "" {
-				lines := strings.Split(strings.ReplaceAll(outBuf.String(), "\r\n", "\n"), "\n")
+				lines := strings.Split(outBuf.String(), "\n")
 				header := strings.TrimSpace(lines[0])
 				if header == "" && len(lines) > 1 {
 					header = strings.TrimSpace(lines[1])
