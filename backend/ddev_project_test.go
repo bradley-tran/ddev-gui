@@ -111,6 +111,10 @@ func fakeDdevScript() string {
 			"  echo imported db for %2\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
+			"if \"%1\"==\"config\" (\r\n" +
+			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %*\r\n" +
+			"  exit /b 0\r\n" +
+			")\r\n" +
 			"echo unexpected args %* 1>&2\r\n" +
 			"exit /b 1\r\n"
 	}
@@ -153,6 +157,10 @@ func fakeDdevScript() string {
 		"if [ \"$1\" = \"import-db\" ]; then\n" +
 		"  printf '%s %s %s\\n' \"$1\" \"$2\" \"$3\" > \"$TEST_DDEV_ARGS_FILE\"\n" +
 		"  printf 'imported db for %s\\n' \"$2\"\n" +
+		"  exit 0\n" +
+		"fi\n" +
+		"if [ \"$1\" = \"config\" ]; then\n" +
+		"  printf '%s\\n' \"$*\" > \"$TEST_DDEV_ARGS_FILE\"\n" +
 		"  exit 0\n" +
 		"fi\n" +
 		"echo \"unexpected args: $*\" >&2\n" +
@@ -364,6 +372,94 @@ func TestDeleteProject(t *testing.T) {
 	if strings.TrimSpace(string(argsRaw)) != "delete -O -y myproject" {
 		t.Fatalf("expected 'delete -O -y myproject', got %q", strings.TrimSpace(string(argsRaw)))
 	}
+}
+
+func TestModifyProject(t *testing.T) {
+	tempDir := t.TempDir()
+	projectDir := filepath.Join(tempDir, "project")
+	if err := os.Mkdir(projectDir, 0755); err != nil {
+		t.Fatalf("failed to create project dir: %v", err)
+	}
+
+	describePayload, err := json.Marshal(map[string]any{
+		"raw": map[string]string{
+			"approot": projectDir,
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal describe payload: %v", err)
+	}
+
+	describeFile := filepath.Join(tempDir, "describe.json")
+	if err := os.WriteFile(describeFile, describePayload, 0644); err != nil {
+		t.Fatalf("failed to write describe payload: %v", err)
+	}
+
+	argsFile := filepath.Join(tempDir, "args.txt")
+	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptName())
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScript()), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev script: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+	t.Setenv("TEST_DDEV_DESCRIBE_FILE", describeFile)
+	t.Setenv("TEST_DDEV_ARGS_FILE", argsFile)
+
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	t.Run("missing project name", func(t *testing.T) {
+		_, err := svc.ModifyProject("  ", "8.2", "", "", "")
+		if err == nil {
+			t.Fatalf("expected error for missing project name, got nil")
+		}
+	})
+
+	t.Run("no settings to update", func(t *testing.T) {
+		_, err := svc.ModifyProject("myproject", "", "", "", "")
+		if err == nil {
+			t.Fatalf("expected error for no settings to update, got nil")
+		}
+	})
+
+	t.Run("update single setting", func(t *testing.T) {
+		os.Remove(argsFile) // Clean up
+		_, err := svc.ModifyProject("myproject", "8.1", "", "", "")
+		if err != nil {
+			t.Fatalf("ModifyProject returned error: %v", err)
+		}
+
+		argsRaw, err := os.ReadFile(argsFile)
+		if err != nil {
+			t.Fatalf("failed to read args file: %v", err)
+		}
+
+		argsStr := strings.TrimSpace(string(argsRaw))
+		if argsStr != "config --php-version 8.1" {
+			t.Fatalf("expected args to be 'config --php-version 8.1', got %q", argsStr)
+		}
+	})
+
+	t.Run("update all settings", func(t *testing.T) {
+		os.Remove(argsFile) // Clean up
+		_, err := svc.ModifyProject("myproject", "8.2", "20", "drupal10", "web")
+		if err != nil {
+			t.Fatalf("ModifyProject returned error: %v", err)
+		}
+
+		argsRaw, err := os.ReadFile(argsFile)
+		if err != nil {
+			t.Fatalf("failed to read args file: %v", err)
+		}
+
+		argsStr := strings.TrimSpace(string(argsRaw))
+		expected := "config --php-version 8.2 --nodejs-version 20 --project-type drupal10 --docroot web"
+		if argsStr != expected {
+			t.Fatalf("expected args to be %q, got %q", expected, argsStr)
+		}
+	})
 }
 
 func TestImportDBFromFile(t *testing.T) {
