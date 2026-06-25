@@ -424,7 +424,7 @@ func TestModifyProject(t *testing.T) {
 		}
 	})
 
-	t.Run("update single setting", func(t *testing.T) {
+	t.Run("update php version only", func(t *testing.T) {
 		os.Remove(argsFile) // Clean up
 		_, err := svc.ModifyProject("myproject", "8.1", "", "", "")
 		if err != nil {
@@ -439,6 +439,60 @@ func TestModifyProject(t *testing.T) {
 		argsStr := strings.TrimSpace(string(argsRaw))
 		if argsStr != "config --php-version 8.1" {
 			t.Fatalf("expected args to be 'config --php-version 8.1', got %q", argsStr)
+		}
+	})
+
+	t.Run("update nodejs version only", func(t *testing.T) {
+		os.Remove(argsFile) // Clean up
+		_, err := svc.ModifyProject("myproject", "", "20", "", "")
+		if err != nil {
+			t.Fatalf("ModifyProject returned error: %v", err)
+		}
+
+		argsRaw, err := os.ReadFile(argsFile)
+		if err != nil {
+			t.Fatalf("failed to read args file: %v", err)
+		}
+
+		argsStr := strings.TrimSpace(string(argsRaw))
+		if argsStr != "config --nodejs-version 20" {
+			t.Fatalf("expected args to be 'config --nodejs-version 20', got %q", argsStr)
+		}
+	})
+
+	t.Run("update project type only", func(t *testing.T) {
+		os.Remove(argsFile) // Clean up
+		_, err := svc.ModifyProject("myproject", "", "", "drupal10", "")
+		if err != nil {
+			t.Fatalf("ModifyProject returned error: %v", err)
+		}
+
+		argsRaw, err := os.ReadFile(argsFile)
+		if err != nil {
+			t.Fatalf("failed to read args file: %v", err)
+		}
+
+		argsStr := strings.TrimSpace(string(argsRaw))
+		if argsStr != "config --project-type drupal10" {
+			t.Fatalf("expected args to be 'config --project-type drupal10', got %q", argsStr)
+		}
+	})
+
+	t.Run("update docroot only", func(t *testing.T) {
+		os.Remove(argsFile) // Clean up
+		_, err := svc.ModifyProject("myproject", "", "", "", "web")
+		if err != nil {
+			t.Fatalf("ModifyProject returned error: %v", err)
+		}
+
+		argsRaw, err := os.ReadFile(argsFile)
+		if err != nil {
+			t.Fatalf("failed to read args file: %v", err)
+		}
+
+		argsStr := strings.TrimSpace(string(argsRaw))
+		if argsStr != "config --docroot web" {
+			t.Fatalf("expected args to be 'config --docroot web', got %q", argsStr)
 		}
 	})
 
