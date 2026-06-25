@@ -255,6 +255,38 @@ func TestExecSpawnCmdSignature(t *testing.T) {
 }
 
 func TestReadFileBase64Errors(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Create a fake bash that exits with error when a specific file is read
+	fakeBashPath := filepath.Join(tempDir, "bash")
+	fakeBashScript := "#!/bin/sh\n" +
+		"TARGET=\"$4\"\n" +
+		"if [ \"$TARGET\" = \"/fake/dir/fail.txt\" ]; then\n" +
+		"    echo \"simulated error\" >&2\n" +
+		"    false\n" +
+		"else\n" +
+		"    true\n" +
+		"fi\n"
+	if err := os.WriteFile(fakeBashPath, []byte(fakeBashScript), 0755); err != nil {
+		t.Fatalf("failed to write fake bash: %v", err)
+	}
+
+	// Create a fake ddev to resolve the project directory
+	fakeDdevPath := filepath.Join(tempDir, "ddev")
+	fakeDdevScript := "#!/bin/sh\n" +
+		"if [ \"$1\" = \"describe\" ]; then\n" +
+		"    echo '{\"raw\":{\"approot\":\"/fake/dir\"}}'\n" +
+		"    true\n" +
+		"else\n" +
+		"    false\n" +
+		"fi\n"
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScript), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+
 	d := &DdevService{}
 
 	tests := []struct {
@@ -280,6 +312,12 @@ func TestReadFileBase64Errors(t *testing.T) {
 			project: "myproject",
 			relPath: "some/../path.txt",
 			wantErr: "relative path must not contain '..'",
+		},
+		{
+			name:    "exec error",
+			project: "myproject",
+			relPath: "fail.txt",
+			wantErr: "exit status 1",
 		},
 	}
 
