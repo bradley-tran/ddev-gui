@@ -97,7 +97,7 @@ func fakeDdevScript() string {
 			"  exit /b 0\r\n" +
 			")\r\n" +
 			"if \"%1\"==\"import-db\" (\r\n" +
-			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2 %3\r\n" +
+			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2 %3=%4\r\n" +
 			"  echo imported db for %2\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
