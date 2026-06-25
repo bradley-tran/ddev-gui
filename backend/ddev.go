@@ -1098,43 +1098,23 @@ func (d *DdevService) VersionInfo() (string, bool) {
 		var outBuf, errBuf bytes.Buffer
 		cmd.Stdout = &outBuf
 		cmd.Stderr = &errBuf
-		err := cmd.Run()
-		if err == nil && strings.TrimSpace(outBuf.String()) != "" {
+		versionSucceeded := false
+		if err := cmd.Run(); err == nil && strings.TrimSpace(outBuf.String()) != "" {
 			line := strings.Split(outBuf.String(), "\n")[0]
 			wslLines = append(wslLines, "Status: "+strings.TrimSpace(line))
-			// Determine list of distro and warn if there is no Ubuntu-based one
-			outBuf.Reset()
-			errBuf.Reset()
-			cmd = exec.CommandContext(ctx, "wsl.exe", "-l", "-v")
-			HideWSLWindow(cmd)
-			cmd.Stdout = &outBuf
-			cmd.Stderr = &errBuf
-			if err3 := cmd.Run(); err3 == nil {
-				lines := strings.Split(outBuf.String(), "\n")
-				ubuntuInstalled := false
-				for _, ln := range lines {
-					l := strings.TrimSpace(ln)
-					if l == "" || strings.HasPrefix(strings.ToUpper(l), "NAME") {
-						continue
-					}
-					if strings.Contains(strings.ToLower(l), "ubuntu") || strings.Contains(l, "DDEV") {
-						ubuntuInstalled = true
-					}
-					wslLines = append(wslLines, l)
-				}
-				if !ubuntuInstalled {
-					wslLines = append(wslLines, "Warning: ddev requires a ubuntu-based wsl distro ⚠️")
-				}
-			}
-		} else {
-			outBuf.Reset()
-			errBuf.Reset()
-			cmd = exec.CommandContext(ctx, "wsl.exe", "-l", "-v")
-			HideWSLWindow(cmd)
-			cmd.Stdout = &outBuf
-			cmd.Stderr = &errBuf
-			if err2 := cmd.Run(); err2 == nil && strings.TrimSpace(outBuf.String()) != "" {
-				lines := strings.Split(outBuf.String(), "\n")
+			versionSucceeded = true
+		}
+
+		outBuf.Reset()
+		errBuf.Reset()
+		cmd = exec.CommandContext(ctx, "wsl.exe", "-l", "-v")
+		HideWSLWindow(cmd)
+		cmd.Stdout = &outBuf
+		cmd.Stderr = &errBuf
+		if err := cmd.Run(); err == nil && strings.TrimSpace(outBuf.String()) != "" {
+			lines := strings.Split(outBuf.String(), "\n")
+
+			if !versionSucceeded {
 				header := strings.TrimSpace(lines[0])
 				if header == "" && len(lines) > 1 {
 					header = strings.TrimSpace(lines[1])
@@ -1143,30 +1123,50 @@ func (d *DdevService) VersionInfo() (string, bool) {
 					header = "WSL is installed (details via `wsl -l -v`)"
 				}
 				wslLines = append(wslLines, "Status: "+header)
-				// Determine default distro and warn if not Ubuntu-based
-				var defaultName string
-				for _, ln := range lines {
-					l := strings.TrimSpace(ln)
-					if l == "" || strings.HasPrefix(strings.ToUpper(l), "NAME") {
-						continue
-					}
-					isDefault := strings.HasPrefix(l, "*")
-					if isDefault {
-						l = strings.TrimSpace(strings.TrimPrefix(l, "*"))
-						parts := strings.Fields(l)
-						if len(parts) > 0 {
-							defaultName = parts[0]
-							break
-						}
+			}
+
+			ubuntuInstalled := false
+			var defaultName string
+			var distroLines []string
+
+			for _, ln := range lines {
+				l := strings.TrimSpace(ln)
+				if l == "" || (len(l) >= 4 && strings.EqualFold(l[:4], "NAME")) {
+					continue
+				}
+
+				if versionSucceeded {
+					distroLines = append(distroLines, l)
+				}
+
+				if strings.HasPrefix(l, "*") {
+					lTrimmed := strings.TrimSpace(strings.TrimPrefix(l, "*"))
+					parts := strings.Fields(lTrimmed)
+					if len(parts) > 0 {
+						defaultName = parts[0]
 					}
 				}
+
+				if !ubuntuInstalled && (strings.Contains(l, "DDEV") || strings.Contains(strings.ToLower(l), "ubuntu")) {
+					ubuntuInstalled = true
+				}
+			}
+
+			if versionSucceeded {
+				wslLines = append(wslLines, distroLines...)
+				if !ubuntuInstalled {
+					wslLines = append(wslLines, "Warning: ddev requires a ubuntu-based wsl distro ⚠️")
+				}
+			} else {
 				if defaultName != "" {
 					wslLines = append(wslLines, "Default distro: "+defaultName)
 					if !strings.Contains(strings.ToLower(defaultName), "ubuntu") {
 						wslLines = append(wslLines, "Warning: ddev requires a ubuntu-based wsl distro ⚠️")
 					}
 				}
-			} else {
+			}
+		} else {
+			if !versionSucceeded {
 				// Consider unavailable as not installed
 				wslLines = append(wslLines, "Status: not installed or not available ⚠️")
 				wslLines = append(wslLines, "Install: https://learn.microsoft.com/windows/wsl/install")
