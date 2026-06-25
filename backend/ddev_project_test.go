@@ -82,46 +82,31 @@ func fakeDdevScript() string {
 			"  exit /b 0\r\n" +
 			")\r\n" +
 			"if \"%1\"==\"restart\" (\r\n" +
-			"  if \"%2\"==\"errorproject\" (\r\n" +
-			"    echo restart error 1>&2\r\n" +
-			"    exit /b 1\r\n" +
-			"  )\r\n" +
+			"  if \"%~2\"==\"errorproject\" exit 1\r\n" +
 			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2\r\n" +
 			"  echo restarted %2\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
 			"if \"%1\"==\"stop\" (\r\n" +
-			"  if \"%2\"==\"errorproject\" (\r\n" +
-			"    echo stop error 1>&2\r\n" +
-			"    exit /b 1\r\n" +
-			"  )\r\n" +
+			"  if \"%~2\"==\"errorproject\" exit 1\r\n" +
 			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2\r\n" +
 			"  echo stopped %2\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
 			"if \"%1\"==\"delete\" (\r\n" +
-			"  if \"%4\"==\"errorproject\" (\r\n" +
-			"    echo delete error 1>&2\r\n" +
-			"    exit /b 1\r\n" +
-			"  )\r\n" +
+			"  if \"%~4\"==\"errorproject\" exit 1\r\n" +
 			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2 %3 %4\r\n" +
 			"  echo deleted %4\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
 			"if \"%1\"==\"start\" (\r\n" +
-			"  if \"%2\"==\"errorproject\" (\r\n" +
-			"    echo start error 1>&2\r\n" +
-			"    exit /b 1\r\n" +
-			"  )\r\n" +
+			"  if \"%~2\"==\"errorproject\" exit 1\r\n" +
 			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2\r\n" +
 			"  echo started %2\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
 			"if \"%1\"==\"poweroff\" (\r\n" +
-			"  if \"%TEST_ERROR_POWEROFF%\"==\"1\" (\r\n" +
-			"    echo poweroff error 1>&2\r\n" +
-			"    exit /b 1\r\n" +
-			"  )\r\n" +
+			"  if \"%TEST_ERROR_POWEROFF%\"==\"1\" exit 1\r\n" +
 			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1\r\n" +
 			"  echo powered off\r\n" +
 			"  exit /b 0\r\n" +
