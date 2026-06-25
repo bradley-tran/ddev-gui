@@ -140,43 +140,7 @@ func (w *WSLShell) Exec(dir string, args []string, envVars []string, timeout tim
 	markerPrefix := "<<<EXIT:"
 	markerSuffix := fmt.Sprintf(":%s>>>", id)
 
-	// Build the command string.
-	// 1. Optionally cd to the working directory.
-	// 2. Run the command with stderr merged via 2>&1.
-	// 3. Capture $? and echo the delimiter with exit code.
-	var cmdParts []string
-	if dir != "" {
-		// Expand ~ to $HOME before quoting, because single-quoted ~ won't expand in bash.
-		var expandedDir string
-		if strings.HasPrefix(dir, "~/") {
-			expandedDir = "$HOME/" + shellQuote(dir[2:])
-		} else if dir == "~" {
-			expandedDir = "$HOME"
-		} else {
-			expandedDir = shellQuote(dir)
-		}
-		// Use cd with || true so a missing directory doesn't abort the whole line.
-		cmdParts = append(cmdParts, fmt.Sprintf("cd %s 2>/dev/null || true", expandedDir))
-	}
-	// Prepend any env var exports before the command.
-	for _, ev := range envVars {
-		parts := strings.SplitN(ev, "=", 2)
-		if len(parts) == 2 {
-			cmdParts = append(cmdParts, fmt.Sprintf("export %s=%s", parts[0], shellQuote(parts[1])))
-		} else {
-			cmdParts = append(cmdParts, "export "+shellQuote(ev))
-		}
-	}
-
-	// Shell-quote each argument to handle spaces and special characters.
-	quotedArgs := make([]string, len(args))
-	for i, a := range args {
-		quotedArgs[i] = shellQuote(a)
-	}
-	cmdParts = append(cmdParts, strings.Join(quotedArgs, " ")+" 2>&1")
-
-	// The final line captures the exit code and echoes the marker.
-	fullCmd := strings.Join(cmdParts, "; ") + fmt.Sprintf("; echo '<<<EXIT:'$?':%s>>>'", id)
+	fullCmd := buildWSLCommand(dir, args, envVars, id)
 
 	// Write the command to stdin.
 	if _, err := io.WriteString(w.stdin, fullCmd+"\n"); err != nil {
@@ -237,6 +201,43 @@ func (w *WSLShell) Exec(dir string, args []string, envVars []string, timeout tim
 
 	output := strings.Join(outputLines, "\n")
 	return output, exitCode, nil
+}
+
+// buildWSLCommand constructs a bash command string from dir, args, and envVars.
+func buildWSLCommand(dir string, args []string, envVars []string, id string) string {
+	var cmdParts []string
+	if dir != "" {
+		// Expand ~ to $HOME before quoting, because single-quoted ~ won't expand in bash.
+		var expandedDir string
+		if strings.HasPrefix(dir, "~/") {
+			expandedDir = "$HOME/" + shellQuote(dir[2:])
+		} else if dir == "~" {
+			expandedDir = "$HOME"
+		} else {
+			expandedDir = shellQuote(dir)
+		}
+		// Use cd with || true so a missing directory doesn't abort the whole line.
+		cmdParts = append(cmdParts, fmt.Sprintf("cd %s 2>/dev/null || true", expandedDir))
+	}
+	// Prepend any env var exports before the command.
+	for _, ev := range envVars {
+		parts := strings.SplitN(ev, "=", 2)
+		if len(parts) == 2 {
+			cmdParts = append(cmdParts, fmt.Sprintf("export %s=%s", parts[0], shellQuote(parts[1])))
+		} else {
+			cmdParts = append(cmdParts, "export "+shellQuote(ev))
+		}
+	}
+
+	// Shell-quote each argument to handle spaces and special characters.
+	quotedArgs := make([]string, len(args))
+	for i, a := range args {
+		quotedArgs[i] = shellQuote(a)
+	}
+	cmdParts = append(cmdParts, strings.Join(quotedArgs, " ")+" 2>&1")
+
+	// The final line captures the exit code and echoes the marker.
+	return strings.Join(cmdParts, "; ") + fmt.Sprintf("; echo '<<<EXIT:'$?':%s>>>'", id)
 }
 
 // Close shuts down the persistent shell process.
