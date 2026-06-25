@@ -255,6 +255,63 @@ func TestExecSpawnCmdSignature(t *testing.T) {
 }
 
 func TestReadFileBase64Errors(t *testing.T) {
+	tempDir := t.TempDir()
+
+	// Create a fake bash that exits with error when a specific file is read
+	bashName := "bash"
+	ddevName := "ddev"
+	if stdruntime.GOOS == "windows" {
+		bashName = "bash.bat"
+		ddevName = "ddev.bat"
+	}
+	fakeBashPath := filepath.Join(tempDir, bashName)
+	fakeBashScript := "#!/bin/sh\n" +
+		"TARGET=\"$4\"\n" +
+		"if [ \"$TARGET\" = \"/fake/dir/fail.txt\" ]; then\n" +
+		"    echo \"simulated error\" >&2\n" +
+		"    exit 1\n" +
+		"else\n" +
+		"    exit 0\n" +
+		"fi\n"
+	if stdruntime.GOOS == "windows" {
+		fakeBashScript = "@echo off\r\n" +
+			"set TARGET=%~4\r\n" +
+			"if \"%TARGET%\"==\"/fake/dir/fail.txt\" (\r\n" +
+			"    echo simulated error >&2\r\n" +
+			"    exit /b 1\r\n" +
+			") else (\r\n" +
+			"    exit /b 0\r\n" +
+			")\r\n"
+	}
+	if err := os.WriteFile(fakeBashPath, []byte(fakeBashScript), 0755); err != nil {
+		t.Fatalf("failed to write fake bash: %v", err)
+	}
+
+	// Create a fake ddev to resolve the project directory
+	fakeDdevPath := filepath.Join(tempDir, ddevName)
+	fakeDdevScript := "#!/bin/sh\n" +
+		"if [ \"$1\" = \"describe\" ]; then\n" +
+		"    echo '{\"raw\":{\"approot\":\"/fake/dir\"}}'\n" +
+		"    exit 0\n" +
+		"else\n" +
+		"    exit 1\n" +
+		"fi\n"
+	if stdruntime.GOOS == "windows" {
+		fakeDdevScript = "@echo off\r\n" +
+			"if \"%~1\"==\"describe\" (\r\n" +
+			"    echo {\"raw\":{\"approot\":\"/fake/dir\"}}\r\n" +
+			"    exit /b 0\r\n" +
+			") else (\r\n" +
+			"    exit /b 1\r\n" +
+			")\r\n"
+	}
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScript), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+
 	d := &DdevService{}
 
 	tests := []struct {
@@ -280,6 +337,12 @@ func TestReadFileBase64Errors(t *testing.T) {
 			project: "myproject",
 			relPath: "some/../path.txt",
 			wantErr: "relative path must not contain '..'",
+		},
+		{
+			name:    "exec error",
+			project: "myproject",
+			relPath: "fail.txt",
+			wantErr: "exit status",
 		},
 	}
 
