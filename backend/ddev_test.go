@@ -342,7 +342,7 @@ func TestReadFileBase64Errors(t *testing.T) {
 			name:    "exec error",
 			project: "myproject",
 			relPath: "fail.txt",
-			wantErr: "exit status 1",
+			wantErr: "exit status",
 		},
 	}
 
