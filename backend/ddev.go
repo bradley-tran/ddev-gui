@@ -1345,100 +1345,112 @@ func (d *DdevService) CloneRepo(name, repoURL string) (string, error) {
 
 	// ── SSH backend ──
 	if d.activeBackend() == "ssh" && d.sshShell != nil {
-		// Use $HOME instead of ~ to allow safe quoting of the target directory.
-		quotedTargetDir := "$HOME/ddev-projects/" + shellQuote(name)
-		cloneCmd := fmt.Sprintf("git clone %s %s", shellQuote(repoURL), quotedTargetDir)
-		args := []string{"bash", "-c", cloneCmd}
-		var onLine func(string)
-		if d.ctx != nil {
-			onLine = func(line string) {
-				wruntime.EventsEmit(d.ctx, "ddev:output", line)
-			}
-		}
-		output, exitCode, execErr := d.sshShell.Exec("", args, nil, timeout, onLine)
-		if execErr != nil {
-			return "", execErr
-		}
-		if exitCode != 0 {
-			// Check if the repo was actually cloned despite the non-zero exit
-			_, checkExit, checkErr := d.sshShell.Exec("", []string{"test", "-d", targetDir + "/.git"}, nil, 15*time.Second, nil)
-			if checkErr == nil && checkExit == 0 {
-				log.Printf("[ddev] git clone for %q exited with status %d but repo exists, treating as success", name, exitCode)
-				return strings.TrimSpace(output), nil
-			}
-			if strings.TrimSpace(output) != "" {
-				return "", fmt.Errorf("%s", strings.TrimSpace(output))
-			}
-			return "", fmt.Errorf("git clone failed with exit status %d", exitCode)
-		}
-		return strings.TrimSpace(output), nil
+		return d.cloneSSH(name, repoURL, targetDir, timeout)
 	}
 
 	// ── WSL backend (Windows): spawn a fresh wsl.exe process ──
 	// This avoids the shared WSL shell mutex so the main shell stays
 	// free for start/stop/list during long-running clones.
 	if runtime.GOOS == "windows" && d.activeBackend() == "wsl" {
-		ctx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
+		return d.cloneWSL(name, repoURL, targetDir, timeout)
+	}
 
-		// Use bash -c so $HOME expands properly inside WSL.
-		// Merge stderr via 2>&1 inside bash to avoid pipe fd leaks that keep wsl.exe alive.
-		// Use $HOME instead of ~ to allow safe quoting of the target directory.
-		quotedTargetDir := "$HOME/ddev-projects/" + shellQuote(name)
-		cloneCmd := fmt.Sprintf("mkdir -p $HOME/ddev-projects && git clone %s %s 2>&1", shellQuote(repoURL), quotedTargetDir)
-		wslArgs := []string{"-d", d.WSLDistro(), "-e", "bash", "-c", cloneCmd}
-		cmd := exec.CommandContext(ctx, "wsl.exe", wslArgs...)
-		HideWSLWindow(cmd)
+	// ── Local backend ──
+	return d.cloneLocal(name, repoURL, targetDir, timeout)
+}
 
-		stdoutPipe, _ := cmd.StdoutPipe()
-
-		if err := cmd.Start(); err != nil {
-			return "", err
+func (d *DdevService) cloneSSH(name, repoURL, targetDir string, timeout time.Duration) (string, error) {
+	// Use $HOME instead of ~ to allow safe quoting of the target directory.
+	quotedTargetDir := "$HOME/ddev-projects/" + shellQuote(name)
+	cloneCmd := fmt.Sprintf("git clone %s %s", shellQuote(repoURL), quotedTargetDir)
+	args := []string{"bash", "-c", cloneCmd}
+	var onLine func(string)
+	if d.ctx != nil {
+		onLine = func(line string) {
+			wruntime.EventsEmit(d.ctx, "ddev:output", line)
 		}
-
-		var mu sync.Mutex
-		var lines []string
-		scanner := bufio.NewScanner(stdoutPipe)
-		scanner.Buffer(make([]byte, 0, 256*1024), 1024*1024)
-		scanner.Split(scanLinesOrCR)
-
-		for scanner.Scan() {
-			line := scanner.Text()
-			mu.Lock()
-			lines = append(lines, line)
-			mu.Unlock()
-			if d.ctx != nil {
-				wruntime.EventsEmit(d.ctx, "ddev:output", line)
-			}
+	}
+	output, exitCode, execErr := d.sshShell.Exec("", args, nil, timeout, onLine)
+	if execErr != nil {
+		return "", execErr
+	}
+	if exitCode != 0 {
+		// Check if the repo was actually cloned despite the non-zero exit
+		_, checkExit, checkErr := d.sshShell.Exec("", []string{"test", "-d", targetDir + "/.git"}, nil, 15*time.Second, nil)
+		if checkErr == nil && checkExit == 0 {
+			log.Printf("[ddev] git clone for %q exited with status %d but repo exists, treating as success", name, exitCode)
+			return strings.TrimSpace(output), nil
 		}
+		if strings.TrimSpace(output) != "" {
+			return "", fmt.Errorf("%s", strings.TrimSpace(output))
+		}
+		return "", fmt.Errorf("git clone failed with exit status %d", exitCode)
+	}
+	return strings.TrimSpace(output), nil
+}
 
-		if err := cmd.Wait(); err != nil {
-			// Check if the repo was actually cloned despite the non-zero exit
-			checkCmd := exec.CommandContext(context.Background(), "wsl.exe", "-d", d.WSLDistro(), "-e", "test", "-d", targetDir+"/.git")
-			HideWSLWindow(checkCmd)
-			if checkErr := checkCmd.Run(); checkErr == nil {
-				log.Printf("[ddev] git clone for %q exited with error but repo exists, treating as success: %v", name, err)
-				mu.Lock()
-				out := strings.Join(lines, "\n")
-				mu.Unlock()
-				return strings.TrimSpace(out), nil
-			}
+func (d *DdevService) cloneWSL(name, repoURL, targetDir string, timeout time.Duration) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	// Use bash -c so $HOME expands properly inside WSL.
+	// Merge stderr via 2>&1 inside bash to avoid pipe fd leaks that keep wsl.exe alive.
+	// Use $HOME instead of ~ to allow safe quoting of the target directory.
+	quotedTargetDir := "$HOME/ddev-projects/" + shellQuote(name)
+	cloneCmd := fmt.Sprintf("mkdir -p $HOME/ddev-projects && git clone %s %s 2>&1", shellQuote(repoURL), quotedTargetDir)
+	wslArgs := []string{"-d", d.WSLDistro(), "-e", "bash", "-c", cloneCmd}
+	cmd := exec.CommandContext(ctx, "wsl.exe", wslArgs...)
+	HideWSLWindow(cmd)
+
+	stdoutPipe, _ := cmd.StdoutPipe()
+
+	if err := cmd.Start(); err != nil {
+		return "", err
+	}
+
+	var mu sync.Mutex
+	var lines []string
+	scanner := bufio.NewScanner(stdoutPipe)
+	scanner.Buffer(make([]byte, 0, 256*1024), 1024*1024)
+	scanner.Split(scanLinesOrCR)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		mu.Lock()
+		lines = append(lines, line)
+		mu.Unlock()
+		if d.ctx != nil {
+			wruntime.EventsEmit(d.ctx, "ddev:output", line)
+		}
+	}
+
+	if err := cmd.Wait(); err != nil {
+		// Check if the repo was actually cloned despite the non-zero exit
+		checkCmd := exec.CommandContext(context.Background(), "wsl.exe", "-d", d.WSLDistro(), "-e", "test", "-d", targetDir+"/.git")
+		HideWSLWindow(checkCmd)
+		if checkErr := checkCmd.Run(); checkErr == nil {
+			log.Printf("[ddev] git clone for %q exited with error but repo exists, treating as success: %v", name, err)
 			mu.Lock()
 			out := strings.Join(lines, "\n")
 			mu.Unlock()
-			combined := strings.TrimSpace(out)
-			if combined != "" {
-				return "", fmt.Errorf("%s", combined)
-			}
-			return "", err
+			return strings.TrimSpace(out), nil
 		}
 		mu.Lock()
 		out := strings.Join(lines, "\n")
 		mu.Unlock()
-		return strings.TrimSpace(out), nil
+		combined := strings.TrimSpace(out)
+		if combined != "" {
+			return "", fmt.Errorf("%s", combined)
+		}
+		return "", err
 	}
+	mu.Lock()
+	out := strings.Join(lines, "\n")
+	mu.Unlock()
+	return strings.TrimSpace(out), nil
+}
 
-	// ── Local backend ──
+func (d *DdevService) cloneLocal(name, repoURL, targetDir string, timeout time.Duration) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
