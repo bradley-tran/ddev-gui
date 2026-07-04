@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -143,9 +142,19 @@ func (d *DdevService) DrushRecentUsers(name string) (string, error) {
 		Mail string `json:"mail"`
 	}
 	var users []drupalUser
-	scanner := bufio.NewScanner(strings.NewReader(out))
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+	remaining := out
+	for len(remaining) > 0 {
+		var line string
+		idx := strings.IndexByte(remaining, '\n')
+		if idx >= 0 {
+			line = remaining[:idx]
+			remaining = remaining[idx+1:]
+		} else {
+			line = remaining
+			remaining = ""
+		}
+
+		line = strings.TrimSpace(line)
 		if line == "" {
 			continue
 		}

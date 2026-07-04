@@ -2,8 +2,8 @@ package backend
 
 import (
 	"bytes"
-	"testing"
 	"reflect"
+	"testing"
 )
 
 func scanLinesOrCRIterative(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -28,11 +28,10 @@ func scanLinesOrCRIterative(data []byte, atEOF bool) (advance int, token []byte,
 	return 0, nil, nil
 }
 
-
 func TestScanLinesOrCREquivalence(t *testing.T) {
-	cases := []struct{
-		name string
-		data []byte
+	cases := []struct {
+		name  string
+		data  []byte
 		atEOF bool
 	}{
 		{"empty", []byte(""), true},

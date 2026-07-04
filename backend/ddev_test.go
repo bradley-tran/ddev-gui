@@ -242,7 +242,7 @@ func TestExecSpawnCmdSignature(t *testing.T) {
 	script := "echo \"$1\""
 	expected := "hello security\n"
 
-	out, err := d.execSpawnCmd(script, []string{"hello security"}, 5 * 1000 * 1000 * 1000) // 5 seconds
+	out, err := d.execSpawnCmd(script, []string{"hello security"}, 5*1000*1000*1000) // 5 seconds
 
 	// If bash is not installed or available, we might get an exec error, which is fine for this environment check
 	if err != nil {
