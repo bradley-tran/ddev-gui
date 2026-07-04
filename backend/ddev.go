@@ -442,8 +442,9 @@ func (d *DdevService) ListDir(project, relPath string) (string, error) {
 
 	// Parse output lines: type|size|date|name
 	var entries []FileEntry
-	for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
-		line = strings.TrimSpace(line)
+	scanner := bufio.NewScanner(strings.NewReader(out))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
 			continue
 		}
