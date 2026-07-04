@@ -60,7 +60,7 @@ export function linkifyHtmlUrls(html: string): string {
 }
 
 export function ansiToHtml(str: string): string {
-  let html = ''
+  const html: string[] = []
   let openCount = 0
   let index = 0
 
@@ -70,7 +70,7 @@ export function ansiToHtml(str: string): string {
       while (cursor < str.length && str[cursor] !== 'm') cursor++
       if (cursor < str.length) {
         while (openCount > 0) {
-          html += '</span>'
+          html.push('</span>')
           openCount--
         }
 
@@ -81,7 +81,7 @@ export function ansiToHtml(str: string): string {
               const code = str.slice(codeStart, i)
               const color = COLORS[code]
               if (color) {
-                html += `<span style="color:${color}">`
+                html.push(`<span style="color:${color}">`)
                 openCount++
               }
             }
@@ -95,19 +95,21 @@ export function ansiToHtml(str: string): string {
     }
 
     const char = str[index]
-    if (char === '<') html += '&lt;'
-    else if (char === '>') html += '&gt;'
-    else if (char === '&') html += '&amp;'
-    else html += char
+    if (char) {
+      if (char === '<') html.push('&lt;')
+      else if (char === '>') html.push('&gt;')
+      else if (char === '&') html.push('&amp;')
+      else html.push(char)
+    }
 
     index++
   }
 
   while (openCount > 0) {
-    html += '</span>'
+    html.push('</span>')
     openCount--
   }
-  return html
+  return html.join('')
 }
 
 export function escapeHtml(value: string): string {
