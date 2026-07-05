@@ -670,6 +670,39 @@ func (d *DdevService) LaravelInit(name string) (string, error) {
 	return d.runDirect(context.Background(), dirHint, nil, "exec", "php", "artisan", "migrate", "--force")
 }
 
+// streamCmdOutput sets up stdout capturing, optionally merges stderr, starts the command,
+// streams output line-by-line, and waits for completion.
+func streamCmdOutput(cmd *exec.Cmd, mergeStderr bool, onLine func(string)) (string, int, error) {
+	stdoutPipe, err := cmd.StdoutPipe()
+	if err != nil {
+		return "", -1, err
+	}
+	if mergeStderr {
+		cmd.Stderr = cmd.Stdout
+	}
+	if err := cmd.Start(); err != nil {
+		return "", -1, err
+	}
+	var lines []string
+	scanner := bufio.NewScanner(stdoutPipe)
+	scanner.Buffer(make([]byte, 0, 256*1024), 1024*1024)
+	scanner.Split(scanLinesOrCR)
+	for scanner.Scan() {
+		line := scanner.Text()
+		lines = append(lines, line)
+		onLine(line)
+	}
+	exitCode := 0
+	if err := cmd.Wait(); err != nil {
+		exitCode = -1
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+		}
+	}
+	output := strings.TrimSpace(strings.Join(lines, "\n"))
+	return output, exitCode, nil
+}
+
 // ExecCommand runs a command inside the project's ddev web container via
 // `ddev exec` and streams output line-by-line via Wails events:
 //   - "terminal:output:<project>" for each line of output
@@ -707,11 +740,35 @@ func (d *DdevService) ExecCommand(project, command string) (string, error) {
 
 	switch d.activeBackend() {
 	case "ssh":
-		if d.sshShell == nil {
-			emitDone(-1)
-			return "", errors.New("SSH shell not available")
-		}
-		output, exitCode, execErr := d.sshShell.Exec(dirHint, []string{"ddev", "exec", "--", "bash", "-c", command}, nil, timeout, onLine)
+		return d.execCommandSSH(dirHint, command, timeout, onLine, emitDone)
+
+	case "wsl":
+		return d.execCommandWSL(dirHint, command, timeout, onLine, emitDone)
+
+	default:
+		return d.execCommandLocal(dirHint, command, timeout, onLine, emitDone)
+	}
+}
+
+func (d *DdevService) execCommandSSH(dirHint, command string, timeout time.Duration, onLine func(string), emitDone func(int)) (string, error) {
+	if d.sshShell == nil {
+		emitDone(-1)
+		return "", errors.New("SSH shell not available")
+	}
+	output, exitCode, execErr := d.sshShell.Exec(dirHint, []string{"ddev", "exec", "--", "bash", "-c", command}, nil, timeout, onLine)
+	emitDone(exitCode)
+	if execErr != nil {
+		return "", execErr
+	}
+	if exitCode != 0 {
+		return strings.TrimSpace(output), fmt.Errorf("exit status %d", exitCode)
+	}
+	return strings.TrimSpace(output), nil
+}
+
+func (d *DdevService) execCommandWSL(dirHint, command string, timeout time.Duration, onLine func(string), emitDone func(int)) (string, error) {
+	if d.shell != nil {
+		output, exitCode, execErr := d.shell.Exec(dirHint, []string{"ddev", "exec", "--", "bash", "-c", command}, nil, timeout, onLine)
 		emitDone(exitCode)
 		if execErr != nil {
 			return "", execErr
@@ -720,89 +777,43 @@ func (d *DdevService) ExecCommand(project, command string) (string, error) {
 			return strings.TrimSpace(output), fmt.Errorf("exit status %d", exitCode)
 		}
 		return strings.TrimSpace(output), nil
-
-	case "wsl":
-		if d.shell != nil {
-			output, exitCode, execErr := d.shell.Exec(dirHint, []string{"ddev", "exec", "--", "bash", "-c", command}, nil, timeout, onLine)
-			emitDone(exitCode)
-			if execErr != nil {
-				return "", execErr
-			}
-			if exitCode != 0 {
-				return strings.TrimSpace(output), fmt.Errorf("exit status %d", exitCode)
-			}
-			return strings.TrimSpace(output), nil
-		}
-		// Fallback: spawn a fresh wsl.exe process
-		execCtx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		wslArgs := []string{"-d", d.WSLDistro(), "--cd", dirHint, "-e", "bash", "-c", "ddev exec -- bash -c \"$1\" 2>&1", "--", command}
-		cmd := exec.CommandContext(execCtx, "wsl.exe", wslArgs...)
-		HideWSLWindow(cmd)
-		stdoutPipe, _ := cmd.StdoutPipe()
-		if err := cmd.Start(); err != nil {
-			emitDone(-1)
-			return "", err
-		}
-		var lines []string
-		scanner := bufio.NewScanner(stdoutPipe)
-		scanner.Buffer(make([]byte, 0, 256*1024), 1024*1024)
-		scanner.Split(scanLinesOrCR)
-		for scanner.Scan() {
-			line := scanner.Text()
-			lines = append(lines, line)
-			onLine(line)
-		}
-		exitCode := 0
-		if err := cmd.Wait(); err != nil {
-			exitCode = -1
-			if exitErr, ok := err.(*exec.ExitError); ok {
-				exitCode = exitErr.ExitCode()
-			}
-		}
-		emitDone(exitCode)
-		output := strings.TrimSpace(strings.Join(lines, "\n"))
-		if exitCode != 0 {
-			return output, fmt.Errorf("exit status %d", exitCode)
-		}
-		return output, nil
-
-	default:
-		// Local backend
-		execCtx, cancel := context.WithTimeout(context.Background(), timeout)
-		defer cancel()
-		cmd := exec.CommandContext(execCtx, "ddev", "exec", "--", "bash", "-c", command)
-		cmd.Dir = dirHint
-		cmd.Env = os.Environ()
-		stdoutPipe, _ := cmd.StdoutPipe()
-		cmd.Stderr = cmd.Stdout
-		if err := cmd.Start(); err != nil {
-			emitDone(-1)
-			return "", err
-		}
-		var lines []string
-		scanner := bufio.NewScanner(stdoutPipe)
-		scanner.Buffer(make([]byte, 0, 256*1024), 1024*1024)
-		scanner.Split(scanLinesOrCR)
-		for scanner.Scan() {
-			line := scanner.Text()
-			lines = append(lines, line)
-			onLine(line)
-		}
-		exitCode := 0
-		if err := cmd.Wait(); err != nil {
-			exitCode = -1
-			if exitErr, ok := err.(*exec.ExitError); ok {
-				exitCode = exitErr.ExitCode()
-			}
-		}
-		emitDone(exitCode)
-		output := strings.TrimSpace(strings.Join(lines, "\n"))
-		if exitCode != 0 {
-			return output, fmt.Errorf("exit status %d", exitCode)
-		}
-		return output, nil
 	}
+	// Fallback: spawn a fresh wsl.exe process
+	execCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	wslArgs := []string{"-d", d.WSLDistro(), "--cd", dirHint, "-e", "bash", "-c", "ddev exec -- bash -c \"$1\" 2>&1", "--", command}
+	cmd := exec.CommandContext(execCtx, "wsl.exe", wslArgs...)
+	HideWSLWindow(cmd)
+
+	output, exitCode, err := streamCmdOutput(cmd, false, onLine)
+	if err != nil {
+		emitDone(-1)
+		return "", err
+	}
+	emitDone(exitCode)
+	if exitCode != 0 {
+		return output, fmt.Errorf("exit status %d", exitCode)
+	}
+	return output, nil
+}
+
+func (d *DdevService) execCommandLocal(dirHint, command string, timeout time.Duration, onLine func(string), emitDone func(int)) (string, error) {
+	execCtx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	cmd := exec.CommandContext(execCtx, "ddev", "exec", "--", "bash", "-c", command)
+	cmd.Dir = dirHint
+	cmd.Env = os.Environ()
+
+	output, exitCode, err := streamCmdOutput(cmd, true, onLine)
+	if err != nil {
+		emitDone(-1)
+		return "", err
+	}
+	emitDone(exitCode)
+	if exitCode != 0 {
+		return output, fmt.Errorf("exit status %d", exitCode)
+	}
+	return output, nil
 }
 
 // run is a wrapper around runStream for non-streaming calls.
