@@ -41,22 +41,17 @@ func (d *DdevService) DrushUli(name string) (string, error) {
 	}
 
 	// Try to extract a URL from the output (drush uli outputs a URL)
-	remaining := combined
-	for len(remaining) > 0 {
-		var line string
-		idx := strings.IndexByte(remaining, '\n')
-		if idx >= 0 {
-			line = remaining[:idx]
-			remaining = remaining[idx+1:]
-		} else {
-			line = remaining
-			remaining = ""
-		}
-		line = strings.TrimSpace(line)
+	scanner := bufio.NewScanner(strings.NewReader(combined))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, "http://") || strings.HasPrefix(line, "https://") {
 			return line, nil
 		}
 	}
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("error parsing drush output: %w", err)
+	}
+
 	if err != nil {
 		cleaned := stripAnsi(combined)
 		if cleaned != "" {
@@ -112,22 +107,17 @@ func (d *DdevService) DrushUliAsUser(name, uid string) (string, error) {
 	}
 
 	// Try to extract a URL from the output (drush uli outputs a URL)
-	remaining := combined
-	for len(remaining) > 0 {
-		var line string
-		idx := strings.IndexByte(remaining, '\n')
-		if idx >= 0 {
-			line = remaining[:idx]
-			remaining = remaining[idx+1:]
-		} else {
-			line = remaining
-			remaining = ""
-		}
-		line = strings.TrimSpace(line)
+	scanner := bufio.NewScanner(strings.NewReader(combined))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, "http://") || strings.HasPrefix(line, "https://") {
 			return line, nil
 		}
 	}
+	if err := scanner.Err(); err != nil {
+		return "", fmt.Errorf("error parsing drush output: %w", err)
+	}
+
 	if err != nil {
 		cleaned := stripAnsi(combined)
 		if cleaned != "" {
