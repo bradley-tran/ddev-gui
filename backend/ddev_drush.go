@@ -24,7 +24,7 @@ func (d *DdevService) DrushUli(name string) (string, error) {
 	combined := strings.TrimSpace(out)
 
 	// Check if drush needs to be installed first
-	if err != nil && strings.Contains(strings.ToLower(combined), "drush is not available") {
+	if err != nil && (strings.Contains(strings.ToLower(combined), "drush is not available") || strings.Contains(strings.ToLower(err.Error()), "drush is not available")) {
 		if d.ctx != nil {
 			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush not found - installing drush/drush via Composer…")
 		}
@@ -90,7 +90,7 @@ func (d *DdevService) DrushUliAsUser(name, uid string) (string, error) {
 	combined := strings.TrimSpace(out)
 
 	// Check if drush needs to be installed first
-	if err != nil && strings.Contains(strings.ToLower(combined), "drush is not available") {
+	if err != nil && (strings.Contains(strings.ToLower(combined), "drush is not available") || strings.Contains(strings.ToLower(err.Error()), "drush is not available")) {
 		if d.ctx != nil {
 			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush not found - installing drush/drush via Composer…")
 		}
