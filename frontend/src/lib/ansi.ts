@@ -63,12 +63,27 @@ export function ansiToHtml(str: string): string {
   const html: string[] = []
   let openCount = 0
   let index = 0
+  const len = str.length
 
-  while (index < str.length) {
-    if (str[index] === '\x1b' && str[index + 1] === '[') {
+  while (index < len) {
+    let nextIndex = index
+    while (nextIndex < len) {
+      const code = str.charCodeAt(nextIndex)
+      if (code === 27 || code === 60 || code === 62 || code === 38) break
+      nextIndex++
+    }
+
+    if (nextIndex > index) {
+      html.push(str.slice(index, nextIndex))
+      index = nextIndex
+    }
+
+    if (index >= len) break
+
+    if (str.charCodeAt(index) === 27 && str.charCodeAt(index + 1) === 91) {
       let cursor = index + 2
-      while (cursor < str.length && str[cursor] !== 'm') cursor++
-      if (cursor < str.length) {
+      while (cursor < len && str.charCodeAt(cursor) !== 109) cursor++
+      if (cursor < len) {
         while (openCount > 0) {
           html.push('</span>')
           openCount--
@@ -76,7 +91,7 @@ export function ansiToHtml(str: string): string {
 
         let codeStart = index + 2
         for (let i = codeStart; i <= cursor; i++) {
-          if (i === cursor || str[i] === ';') {
+          if (i === cursor || str.charCodeAt(i) === 59) {
             if (i > codeStart) {
               const code = str.slice(codeStart, i)
               const color = COLORS[code]
@@ -94,12 +109,13 @@ export function ansiToHtml(str: string): string {
       }
     }
 
-    const char = str[index]
-    if (char) {
-      if (char === '<') html.push('&lt;')
-      else if (char === '>') html.push('&gt;')
-      else if (char === '&') html.push('&amp;')
-      else html.push(char)
+    const code = str.charCodeAt(index)
+    if (code === 60) html.push('&lt;')
+    else if (code === 62) html.push('&gt;')
+    else if (code === 38) html.push('&amp;')
+    else {
+      const char = str[index]
+      if (char) html.push(char)
     }
 
     index++
