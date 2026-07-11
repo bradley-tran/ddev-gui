@@ -16,7 +16,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTranslation } from '@/lib/i18n'
 import type { AppModal } from '@/lib/types'
-import { getProjectName, getProjectType } from '@/lib/utils'
+import { getProjectType } from '@/lib/utils'
 import { DdevService, Runtime } from '@/lib/wails'
 import { useAppStore } from '@/stores/app'
 
