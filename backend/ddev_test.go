@@ -361,3 +361,41 @@ func TestReadFileBase64Errors(t *testing.T) {
 		})
 	}
 }
+
+func TestActiveBackend(t *testing.T) {
+	// Setup mock ddev in PATH for all subtests so we don't accidentally
+	// invoke the real system 'ddev' if ActiveBackend uses exec.Command.
+	tempDir := t.TempDir()
+	fakeDdevPath := filepath.Join(tempDir, "ddev")
+	if stdruntime.GOOS == "windows" {
+		fakeDdevPath += ".cmd"
+		os.WriteFile(fakeDdevPath, []byte("@echo off\r\necho global-config:\r\necho   wsl2_enabled: true\r\n"), 0755)
+	} else {
+		os.WriteFile(fakeDdevPath, []byte("#!/bin/sh\nprintf 'global-config:\\n  wsl2_enabled: true\\n'\n"), 0755)
+	}
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	t.Run("default fallback with mock", func(t *testing.T) {
+		cfg := &ConfigService{data: map[string]any{}}
+		svc := NewDdevService(cfg)
+
+		// Ensure it successfully returns string
+		got := svc.ActiveBackend()
+		expected := "local"
+		if stdruntime.GOOS == "windows" {
+			expected = "wsl"
+		}
+		if got != expected {
+			t.Errorf("expected %q, got %q", expected, got)
+		}
+	})
+
+	t.Run("config override", func(t *testing.T) {
+		cfg := &ConfigService{data: map[string]any{}}
+		svc := NewDdevService(cfg)
+		cfg.Set("backend", "ssh")
+		if got := svc.ActiveBackend(); got != "ssh" {
+			t.Errorf("expected overridden backend 'ssh', got %q", got)
+		}
+	})
+}
