@@ -1372,10 +1372,9 @@ func (d *DdevService) CloneRepo(name, repoURL string) (string, error) {
 }
 
 func (d *DdevService) cloneSSH(name, repoURL, targetDir string, timeout time.Duration) (string, error) {
-	// Use $HOME instead of ~ to allow safe quoting of the target directory.
-	quotedTargetDir := "$HOME/ddev-projects/" + shellQuote(name)
-	cloneCmd := fmt.Sprintf("git clone %s %s", shellQuote(repoURL), quotedTargetDir)
-	args := []string{"bash", "-c", cloneCmd}
+	// Use positional arguments to safely pass the repository URL and project name.
+	cloneCmd := "git clone \"$1\" \"$HOME/ddev-projects/$2\""
+	args := []string{"bash", "-c", cloneCmd, "--", repoURL, name}
 	var onLine func(string)
 	if d.ctx != nil {
 		onLine = func(line string) {
@@ -1407,10 +1406,9 @@ func (d *DdevService) cloneWSL(name, repoURL, targetDir string, timeout time.Dur
 
 	// Use bash -c so $HOME expands properly inside WSL.
 	// Merge stderr via 2>&1 inside bash to avoid pipe fd leaks that keep wsl.exe alive.
-	// Use $HOME instead of ~ to allow safe quoting of the target directory.
-	quotedTargetDir := "$HOME/ddev-projects/" + shellQuote(name)
-	cloneCmd := fmt.Sprintf("mkdir -p $HOME/ddev-projects && git clone %s %s 2>&1", shellQuote(repoURL), quotedTargetDir)
-	wslArgs := []string{"-d", d.WSLDistro(), "-e", "bash", "-c", cloneCmd}
+	// Use positional arguments to safely pass the repository URL and project name.
+	cloneCmd := "mkdir -p $HOME/ddev-projects && git clone \"$1\" \"$HOME/ddev-projects/$2\" 2>&1"
+	wslArgs := []string{"-d", d.WSLDistro(), "-e", "bash", "-c", cloneCmd, "--", repoURL, name}
 	cmd := exec.CommandContext(ctx, "wsl.exe", wslArgs...)
 	HideWSLWindow(cmd)
 
