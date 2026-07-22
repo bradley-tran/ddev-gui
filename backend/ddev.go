@@ -25,14 +25,15 @@ import (
 )
 
 type DdevService struct {
-	mu         sync.Mutex
-	ctx        context.Context
-	config     *ConfigService
-	shell      *WSLShell // persistent WSL shell for fast read-only queries (Windows only)
-	fileShell  *WSLShell // dedicated shell for file reads (avoids blocking the main shell)
-	sshShell   *SSHShell // persistent SSH shell for remote execution
-	dirCacheMu sync.RWMutex
-	dirCache   map[string]string
+	mu            sync.RWMutex
+	ctx           context.Context
+	config        *ConfigService
+	shell         *WSLShell // persistent WSL shell for fast read-only queries (Windows only)
+	fileShell     *WSLShell // dedicated shell for file reads (avoids blocking the main shell)
+	sshShell      *SSHShell // persistent SSH shell for remote execution
+	dirCacheMu    sync.RWMutex
+	dirCache      map[string]string
+	cachedBackend string
 }
 
 func NewDdevService(cfg *ConfigService) *DdevService {
@@ -40,7 +41,8 @@ func NewDdevService(cfg *ConfigService) *DdevService {
 		config:   cfg,
 		dirCache: make(map[string]string),
 	}
-	backend, _ := cfg.Get("backend").(string)
+	svc.cachedBackend = svc.determineBackend()
+	backend := svc.cachedBackend
 	switch backend {
 	case "ssh":
 		svc.sshShell = SshShellFromConfig(cfg)
@@ -54,8 +56,8 @@ func NewDdevService(cfg *ConfigService) *DdevService {
 	return svc
 }
 
-// activeBackend returns the currently configured backend type ("wsl", "ssh", or "local").
-func (d *DdevService) activeBackend() string {
+// determineBackend reads the current backend from the config or OS default.
+func (d *DdevService) determineBackend() string {
 	if d.config != nil {
 		if b, ok := d.config.Get("backend").(string); ok && b != "" {
 			return b
@@ -65,6 +67,13 @@ func (d *DdevService) activeBackend() string {
 		return "wsl"
 	}
 	return "local"
+}
+
+// activeBackend returns the currently configured backend type ("wsl", "ssh", or "local").
+func (d *DdevService) activeBackend() string {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	return d.cachedBackend
 }
 
 // WSLDistro returns the resolved WSL distribution name for use by external
@@ -201,8 +210,11 @@ func (d *DdevService) ReloadBackend() {
 		d.sshShell = nil
 	}
 
+	// Update cached backend inside the lock
+	d.cachedBackend = d.determineBackend()
+
 	// Re-initialize based on current config
-	backend := d.activeBackend()
+	backend := d.cachedBackend
 	log.Printf("[ddev] reloading backend: %s", backend)
 	switch backend {
 	case "ssh":

@@ -45,3 +45,13 @@ exit 0
 		svc.resolveProjectDir("dummy_project")
 	}
 }
+func BenchmarkActiveBackend(b *testing.B) {
+	cfg := NewConfigService()
+	cfg.Set("backend", "local")
+	svc := NewDdevService(cfg)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_ = svc.activeBackend()
+	}
+}

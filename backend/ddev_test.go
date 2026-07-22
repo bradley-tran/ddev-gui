@@ -394,6 +394,7 @@ func TestActiveBackend(t *testing.T) {
 		cfg := &ConfigService{data: map[string]any{}}
 		svc := NewDdevService(cfg)
 		cfg.Set("backend", "ssh")
+		svc.ReloadBackend() // added because we now cache the backend
 		if got := svc.ActiveBackend(); got != "ssh" {
 			t.Errorf("expected overridden backend 'ssh', got %q", got)
 		}
