@@ -23,18 +23,11 @@ func (d *DdevService) DrushUli(name string) (string, error) {
 	out, err := d.runDirect(context.Background(), dirHint, nil, "drush", "uli")
 	combined := strings.TrimSpace(out)
 
-	// Check if drush needs to be installed first
-	if err != nil && strings.Contains(strings.ToLower(combined), "drush is not available") {
-		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush not found - installing drush/drush via Composer…")
-		}
-		_, installErr := d.runDirect(context.Background(), dirHint, nil, "composer", "require", "drush/drush")
-		if installErr != nil {
-			return "", fmt.Errorf("failed to install drush: %v", installErr)
-		}
-		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush installed. Generating admin login URL…")
-		}
+	installed, installErr := d.ensureDrushInstalled(dirHint, err, combined, "Generating admin login URL…")
+	if installErr != nil {
+		return "", installErr
+	}
+	if installed {
 		// Retry after installing drush
 		out, err = d.runDirect(context.Background(), dirHint, nil, "drush", "uli")
 		combined = strings.TrimSpace(out)
@@ -89,18 +82,11 @@ func (d *DdevService) DrushUliAsUser(name, uid string) (string, error) {
 	out, err := d.runDirect(context.Background(), dirHint, nil, "drush", "uli", "--uid="+uid)
 	combined := strings.TrimSpace(out)
 
-	// Check if drush needs to be installed first
-	if err != nil && strings.Contains(strings.ToLower(combined), "drush is not available") {
-		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush not found - installing drush/drush via Composer…")
-		}
-		_, installErr := d.runDirect(context.Background(), dirHint, nil, "composer", "require", "drush/drush")
-		if installErr != nil {
-			return "", fmt.Errorf("failed to install drush: %v", installErr)
-		}
-		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush installed. Generating login URL…")
-		}
+	installed, installErr := d.ensureDrushInstalled(dirHint, err, combined, "Generating login URL…")
+	if installErr != nil {
+		return "", installErr
+	}
+	if installed {
 		// Retry after installing drush
 		out, err = d.runDirect(context.Background(), dirHint, nil, "drush", "uli", "--uid="+uid)
 		combined = strings.TrimSpace(out)
@@ -200,23 +186,37 @@ func (d *DdevService) DrushSiteInstall(name string) (string, error) {
 	// First try running drush si to see if drush is available
 	out, err := d.runDirect(context.Background(), dirHint, nil, "drush", "site:install", "--account-name=admin", "--account-pass="+password, "-y")
 
-	// Check if drush needs to be installed first
-	if err != nil && strings.Contains(strings.ToLower(err.Error()), "drush is not available") {
-		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush not found - installing drush/drush via Composer…")
-		}
-		_, installErr := d.runDirect(context.Background(), dirHint, nil, "composer", "require", "drush/drush")
-		if installErr != nil {
-			return "", fmt.Errorf("failed to install drush: %v", installErr)
-		}
-		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush installed. Running site install…")
-		}
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
+	installed, installErr := d.ensureDrushInstalled(dirHint, err, errMsg, "Running site install…")
+	if installErr != nil {
+		return "", installErr
+	}
+	if installed {
 		// Retry after installing drush
 		out, err = d.runDirect(context.Background(), dirHint, nil, "drush", "site:install", "--account-name=admin", "--account-pass="+password, "-y")
 	}
 
 	return out, err
+}
+
+func (d *DdevService) ensureDrushInstalled(dirHint string, commandErr error, output string, postInstallMsg string) (bool, error) {
+	if commandErr != nil && strings.Contains(strings.ToLower(output), "drush is not available") {
+		if d.ctx != nil {
+			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush not found - installing drush/drush via Composer…")
+		}
+		_, installErr := d.runDirect(context.Background(), dirHint, nil, "composer", "require", "drush/drush")
+		if installErr != nil {
+			return false, fmt.Errorf("failed to install drush: %v", installErr)
+		}
+		if d.ctx != nil {
+			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush installed. "+postInstallMsg)
+		}
+		return true, nil
+	}
+	return false, nil
 }
 
 // DrushCacheRebuild runs `ddev drush cr` to clear/rebuild the Drupal cache.
