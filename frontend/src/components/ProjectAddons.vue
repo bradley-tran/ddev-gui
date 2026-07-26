@@ -41,24 +41,32 @@ const removeCandidate = ref<string | null>(null)
 const removing = ref(false)
 
 const normalizedAddons = computed<NormalizedAddon[]>(() =>
-  addons.value
-    .map((item) => ({
-      name: String(item.Name ?? item.name ?? '').trim(),
-      version: String(item.Version ?? item.version ?? '').trim(),
-      repo: String(
-        item.Repository ?? item.repository ?? item.full_name ?? item.FullName ?? item.repo ?? item.source ?? '',
-      ).trim(),
-      installed: String(
-        item.InstalledDate ?? item.installed_date ?? item.installedDate ?? item.installed ?? item.date ?? '',
-      ).trim(),
-    }))
-    .filter((item) => item.name),
+  addons.value.reduce<NormalizedAddon[]>((acc, item) => {
+    const name = String(item.Name ?? item.name ?? '').trim()
+    if (name) {
+      acc.push({
+        name,
+        version: String(item.Version ?? item.version ?? '').trim(),
+        repo: String(
+          item.Repository ?? item.repository ?? item.full_name ?? item.FullName ?? item.repo ?? item.source ?? '',
+        ).trim(),
+        installed: String(
+          item.InstalledDate ?? item.installed_date ?? item.installedDate ?? item.installed ?? item.date ?? '',
+        ).trim(),
+      })
+    }
+    return acc
+  }, []),
 )
 
 const filteredAvailable = computed<AvailableAddon[]>(() =>
-  filterAddons(available.value, search.value)
-    .map((item) => normalizeAvailableAddon(item))
-    .filter((item): item is AvailableAddon => Boolean(item)),
+  filterAddons(available.value, search.value).reduce<AvailableAddon[]>((acc, item) => {
+    const normalized = normalizeAvailableAddon(item)
+    if (normalized) {
+      acc.push(normalized)
+    }
+    return acc
+  }, []),
 )
 
 const removeMessage = computed(() =>
