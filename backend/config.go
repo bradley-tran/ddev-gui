@@ -10,7 +10,7 @@ import (
 
 // ConfigService manages persistent application configuration stored as JSON.
 type ConfigService struct {
-	mu   sync.Mutex
+	mu   sync.RWMutex
 	data map[string]any
 	path string
 }
@@ -77,8 +77,8 @@ func (cs *ConfigService) Save() error {
 
 // GetAll returns the entire config as a JSON string.
 func (cs *ConfigService) GetAll() string {
-	cs.mu.Lock()
-	defer cs.mu.Unlock()
+	cs.mu.RLock()
+	defer cs.mu.RUnlock()
 
 	raw, _ := json.Marshal(cs.data)
 	return string(raw)
@@ -86,8 +86,8 @@ func (cs *ConfigService) GetAll() string {
 
 // Get returns the value for a top-level config key.
 func (cs *ConfigService) Get(key string) any {
-	cs.mu.Lock()
-	defer cs.mu.Unlock()
+	cs.mu.RLock()
+	defer cs.mu.RUnlock()
 	return cs.data[key]
 }
 
@@ -101,8 +101,8 @@ func (cs *ConfigService) Set(key string, value any) error {
 
 // GetProjectConfig returns the value of a per-project config key.
 func (cs *ConfigService) GetProjectConfig(projectName, key string) any {
-	cs.mu.Lock()
-	defer cs.mu.Unlock()
+	cs.mu.RLock()
+	defer cs.mu.RUnlock()
 
 	projects, ok := cs.data["projects"].(map[string]any)
 	if !ok {
@@ -145,8 +145,8 @@ type WindowBounds struct {
 // GetWindowBounds returns the saved window bounds from config.
 // If no bounds have been saved, a zero-value WindowBounds is returned.
 func (cs *ConfigService) GetWindowBounds() WindowBounds {
-	cs.mu.Lock()
-	defer cs.mu.Unlock()
+	cs.mu.RLock()
+	defer cs.mu.RUnlock()
 
 	raw, ok := cs.data["windowBounds"]
 	if !ok {
