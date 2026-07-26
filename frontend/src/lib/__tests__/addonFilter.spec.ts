@@ -66,16 +66,7 @@ describe('addonFilter', () => {
         // if repoMatches fails, and query.length >= 3, it checks ONLY description for the whole tokenized pattern
         const item: AddonItem = { repo: 'ddev/ddev-redis', description: 'awesome caching' }
 
-        // 'redis awesome' -> repo has 'redis' but not 'awesome'
-        // repoMatches = false
-        // then it checks description for /\bawesome.*\bawesome/i if we use tokens.
-        // Wait, let's look at the implementation:
-        // const pattern = new RegExp(`\\b${escaped.join('.*\\b')}`, 'i')
-        // return pattern.test(desc)
-
         expect(matchesAddonSearch(item, 'redis awesome')).toBe(false)
-        // because 'redis' is not in description, and 'awesome' is not in repo.
-        // It's not a hybrid match.
 
         const item2: AddonItem = { repo: 'other', description: 'redis and awesome caching' }
         expect(matchesAddonSearch(item2, 'redis awesome')).toBe(true)
