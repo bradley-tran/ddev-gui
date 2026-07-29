@@ -400,3 +400,90 @@ func TestActiveBackend(t *testing.T) {
 		}
 	})
 }
+
+func TestDescribeJSON(t *testing.T) {
+	tempDir := t.TempDir()
+
+	ddevName := "ddev"
+	fakeDdevScript := "#!/bin/sh\n" +
+		"if [ \"$3\" = \"fail\" ]; then\n" +
+		"    echo \"simulated error\" >&2\n" +
+		"    exit 1\n" +
+		"else\n" +
+		"    echo '{\"raw\":{\"approot\":\"/fake/dir/\"}}'\n" +
+		"    exit 0\n" +
+		"fi\n"
+
+	if stdruntime.GOOS == "windows" {
+		ddevName = "ddev.cmd"
+		fakeDdevScript = "@echo off\r\n" +
+			"if \"%~3\"==\"fail\" (\r\n" +
+			"    echo simulated error >&2\r\n" +
+			"    exit /b 1\r\n" +
+			") else (\r\n" +
+			"    echo {\"raw\":{\"approot\":\"/fake/dir/\"}}\r\n" +
+			"    exit /b 0\r\n" +
+			")\r\n"
+	}
+
+	fakeDdevPath := filepath.Join(tempDir, ddevName)
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScript), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+
+	d := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	tests := []struct {
+		name        string
+		projectName string
+		want        string
+		wantErr     string
+	}{
+		{
+			name:        "empty project name",
+			projectName: "   ",
+			want:        "",
+			wantErr:     "project name is required",
+		},
+		{
+			name:        "successful describe",
+			projectName: "myproject",
+			want:        `{"raw":{"approot":"/fake/dir/"}}`,
+			wantErr:     "",
+		},
+		{
+			name:        "exec error",
+			projectName: "fail",
+			want:        "",
+			wantErr:     "ddev describe -j error: simulated error",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := d.DescribeJSON(tt.projectName)
+
+			if tt.wantErr != "" {
+				if err == nil {
+					t.Fatalf("DescribeJSON() expected error, got nil")
+				}
+				if !strings.Contains(err.Error(), tt.wantErr) {
+					t.Errorf("DescribeJSON() error = %v, wantErr %v", err, tt.wantErr)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("DescribeJSON() unexpected error: %v", err)
+				}
+			}
+
+			if got != tt.want {
+				t.Errorf("DescribeJSON() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
