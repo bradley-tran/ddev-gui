@@ -112,7 +112,22 @@ func fakeDdevScript() string {
 			"  exit /b 0\r\n" +
 			")\r\n" +
 			"if \"%1\"==\"config\" (\r\n" +
-			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %*\r\n" +
+			"  >> \"%TEST_DDEV_ARGS_FILE%\" echo %*\r\n" +
+			"  exit /b 0\r\n" +
+			")\r\n" +
+			"if \"%1\"==\"xdebug\" (\r\n" +
+			"  >> \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2\r\n" +
+			"  echo xdebug %2\r\n" +
+			"  exit /b 0\r\n" +
+			")\r\n" +
+			"if \"%1\"==\"xhprof\" (\r\n" +
+			"  >> \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2\r\n" +
+			"  echo xhprof %2\r\n" +
+			"  exit /b 0\r\n" +
+			")\r\n" +
+			"if \"%1\"==\"xhgui\" (\r\n" +
+			"  >> \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2\r\n" +
+			"  echo xhgui %2\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
 			"echo unexpected args %* 1>&2\r\n" +
@@ -160,7 +175,22 @@ func fakeDdevScript() string {
 		"  exit 0\n" +
 		"fi\n" +
 		"if [ \"$1\" = \"config\" ]; then\n" +
-		"  printf '%s\\n' \"$*\" > \"$TEST_DDEV_ARGS_FILE\"\n" +
+		"  printf '%s\\n' \"$*\" >> \"$TEST_DDEV_ARGS_FILE\"\n" +
+		"  exit 0\n" +
+		"fi\n" +
+		"if [ \"$1\" = \"xdebug\" ]; then\n" +
+		"  printf '%s %s\\n' \"$1\" \"$2\" >> \"$TEST_DDEV_ARGS_FILE\"\n" +
+		"  printf 'xdebug %s\\n' \"$2\"\n" +
+		"  exit 0\n" +
+		"fi\n" +
+		"if [ \"$1\" = \"xhprof\" ]; then\n" +
+		"  printf '%s %s\\n' \"$1\" \"$2\" >> \"$TEST_DDEV_ARGS_FILE\"\n" +
+		"  printf 'xhprof %s\\n' \"$2\"\n" +
+		"  exit 0\n" +
+		"fi\n" +
+		"if [ \"$1\" = \"xhgui\" ]; then\n" +
+		"  printf '%s %s\\n' \"$1\" \"$2\" >> \"$TEST_DDEV_ARGS_FILE\"\n" +
+		"  printf 'xhgui %s\\n' \"$2\"\n" +
 		"  exit 0\n" +
 		"fi\n" +
 		"echo \"unexpected args: $*\" >&2\n" +
@@ -602,4 +632,112 @@ func TestValidateServicePort(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestConfigureServices(t *testing.T) {
+	tempDir := t.TempDir()
+	projectDir := filepath.Join(tempDir, "project")
+	if err := os.Mkdir(projectDir, 0755); err != nil {
+		t.Fatalf("failed to create project dir: %v", err)
+	}
+
+	describePayload, err := json.Marshal(map[string]any{
+		"raw": map[string]string{
+			"approot": projectDir,
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal describe payload: %v", err)
+	}
+
+	describeFile := filepath.Join(tempDir, "describe.json")
+	if err := os.WriteFile(describeFile, describePayload, 0644); err != nil {
+		t.Fatalf("failed to write describe payload: %v", err)
+	}
+
+	argsFile := filepath.Join(tempDir, "args.txt")
+	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptName())
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScript()), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev script: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+	t.Setenv("TEST_DDEV_DESCRIBE_FILE", describeFile)
+	t.Setenv("TEST_DDEV_ARGS_FILE", argsFile)
+
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	t.Run("empty project name", func(t *testing.T) {
+		_, err := svc.ConfigureServices("   ", "8080", "3306", true, false, false)
+		if err == nil {
+			t.Fatalf("expected error for empty project name, got nil")
+		}
+		if err.Error() != "project name is required" {
+			t.Fatalf("expected specific error message, got %q", err.Error())
+		}
+	})
+
+	t.Run("invalid web port", func(t *testing.T) {
+		_, err := svc.ConfigureServices("demo", "abc", "3306", true, false, false)
+		if err == nil {
+			t.Fatalf("expected error for invalid web port, got nil")
+		}
+	})
+
+	t.Run("invalid db port", func(t *testing.T) {
+		_, err := svc.ConfigureServices("demo", "8080", "abc", true, false, false)
+		if err == nil {
+			t.Fatalf("expected error for invalid db port, got nil")
+		}
+	})
+
+	t.Run("successful execution without ports", func(t *testing.T) {
+		if err := os.Remove(argsFile); err != nil && !os.IsNotExist(err) {
+			t.Fatalf("failed to clean args file: %v", err)
+		}
+		output, err := svc.ConfigureServices("demo", "", "", false, false, false)
+		if err != nil {
+			t.Fatalf("ConfigureServices returned error: %v", err)
+		}
+		expectedOut := "xdebug off\nxhprof off\nxhgui off"
+		if strings.TrimSpace(output) != expectedOut {
+			t.Fatalf("expected %q, got %q", expectedOut, strings.TrimSpace(output))
+		}
+		argsRaw, _ := os.ReadFile(argsFile)
+		argsStr := string(argsRaw)
+		if strings.Contains(argsStr, "config --auto") {
+			t.Fatalf("did not expect config command to be called without ports")
+		}
+	})
+
+	t.Run("successful execution with ports and toggles", func(t *testing.T) {
+		if err := os.Remove(argsFile); err != nil && !os.IsNotExist(err) {
+			t.Fatalf("failed to clean args file: %v", err)
+		}
+		// xhguiEnabled=true should force xhprofEnabled=true
+		output, err := svc.ConfigureServices("demo", "8080", "3306", true, false, true)
+		if err != nil {
+			t.Fatalf("ConfigureServices returned error: %v", err)
+		}
+
+		argsRaw, _ := os.ReadFile(argsFile)
+		argsStr := string(argsRaw)
+		if !strings.Contains(argsStr, "config --auto --host-webserver-port=8080 --host-db-port=3306") {
+			t.Fatalf("expected config command in args, got: %q", argsStr)
+		}
+
+		expectedOutLines := []string{
+			"xdebug on",
+			"xhprof on",
+			"xhgui on",
+		}
+		for _, line := range expectedOutLines {
+			if !strings.Contains(output, line) {
+				t.Fatalf("expected output to contain %q, got: %q", line, output)
+			}
+		}
+	})
 }
