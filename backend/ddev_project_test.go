@@ -62,6 +62,64 @@ func TestProjectLogsUsesSelectedService(t *testing.T) {
 	}
 }
 
+func TestStatus(t *testing.T) {
+	tempDir := t.TempDir()
+	describePayload, err := json.Marshal(map[string]any{
+		"raw": map[string]string{
+			"approot": filepath.Join(tempDir, "project"),
+		},
+		"status": "running",
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal describe payload: %v", err)
+	}
+
+	describeFile := filepath.Join(tempDir, "describe.json")
+	if err := os.WriteFile(describeFile, describePayload, 0644); err != nil {
+		t.Fatalf("failed to write describe payload: %v", err)
+	}
+
+	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptName())
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScript()), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev script: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+	t.Setenv("TEST_DDEV_DESCRIBE_FILE", describeFile)
+
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	t.Run("empty project name", func(t *testing.T) {
+		_, err := svc.Status("   ")
+		if err == nil {
+			t.Fatalf("expected error for empty project name, got nil")
+		}
+		if err.Error() != "project name is required" {
+			t.Fatalf("expected error 'project name is required', got %q", err.Error())
+		}
+	})
+
+	t.Run("valid project name", func(t *testing.T) {
+		output, err := svc.Status("myproject")
+		if err != nil {
+			t.Fatalf("Status returned error: %v", err)
+		}
+
+		// The status output will contain the JSON string we created.
+		var parsed map[string]any
+		if err := json.Unmarshal([]byte(output), &parsed); err != nil {
+			t.Fatalf("expected JSON output, got error during parsing: %v, output was: %s", err, output)
+		}
+
+		if parsed["status"] != "running" {
+			t.Fatalf("expected status 'running', got %v", parsed["status"])
+		}
+	})
+}
+
 func fakeDdevScriptName() string {
 	if runtime.GOOS == "windows" {
 		return "ddev.cmd"
