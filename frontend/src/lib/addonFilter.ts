@@ -15,15 +15,18 @@ export interface ParsedSearch {
   pattern: RegExp | null
 }
 
+const WHITESPACE_RE = /\s+/
+const ESCAPE_RE = /[.*+?^${}()|[\]\\]/g
+
 export function parseSearch(search: string): ParsedSearch {
   const query = search.trim().toLowerCase()
   if (!query) return { query, tokens: [], pattern: null }
 
-  const tokens = query.split(/\s+/).filter(Boolean)
+  const tokens = query.split(WHITESPACE_RE).filter(Boolean)
   let pattern: RegExp | null = null
 
   if (query.length >= 3) {
-    const escaped = tokens.map((token) => token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    const escaped = tokens.map((token) => token.replace(ESCAPE_RE, '\\$&'))
     pattern = new RegExp(`\\b${escaped.join('.*\\b')}`, 'i')
   }
 
@@ -36,7 +39,9 @@ export function matchesAddonSearch(item: AddonItem, search: string | ParsedSearc
 
   if (!query) return true
 
-  const repo = String(item.repo ?? item.Repository ?? item.repository ?? item.full_name ?? item.FullName ?? '').toLowerCase()
+  const repo = String(
+    item.repo ?? item.Repository ?? item.repository ?? item.full_name ?? item.FullName ?? '',
+  ).toLowerCase()
   const desc = String(item.description ?? item.Description ?? '').toLowerCase()
 
   const repoSegments = repo.split(/[/\-_\s]+/)
