@@ -40,34 +40,47 @@ const installing = ref('')
 const removeCandidate = ref<string | null>(null)
 const removing = ref(false)
 
-const normalizedAddons = computed<NormalizedAddon[]>(() =>
-  addons.value.reduce<NormalizedAddon[]>((acc, item) => {
+const normalizedAddons = computed<NormalizedAddon[]>(() => {
+  const result: NormalizedAddon[] = []
+  for (const item of addons.value) {
     const name = String(item.Name ?? item.name ?? '').trim()
     if (name) {
-      acc.push({
+      result.push({
         name,
         version: String(item.Version ?? item.version ?? '').trim(),
         repo: String(
-          item.Repository ?? item.repository ?? item.full_name ?? item.FullName ?? item.repo ?? item.source ?? '',
+          item.Repository ??
+            item.repository ??
+            item.full_name ??
+            item.FullName ??
+            item.repo ??
+            item.source ??
+            '',
         ).trim(),
         installed: String(
-          item.InstalledDate ?? item.installed_date ?? item.installedDate ?? item.installed ?? item.date ?? '',
+          item.InstalledDate ??
+            item.installed_date ??
+            item.installedDate ??
+            item.installed ??
+            item.date ??
+            '',
         ).trim(),
       })
     }
-    return acc
-  }, []),
-)
+  }
+  return result
+})
 
-const filteredAvailable = computed<AvailableAddon[]>(() =>
-  filterAddons(available.value, search.value).reduce<AvailableAddon[]>((acc, item) => {
+const filteredAvailable = computed<AvailableAddon[]>(() => {
+  const result: AvailableAddon[] = []
+  for (const item of filterAddons(available.value, search.value)) {
     const normalized = normalizeAvailableAddon(item)
     if (normalized) {
-      acc.push(normalized)
+      result.push(normalized)
     }
-    return acc
-  }, []),
-)
+  }
+  return result
+})
 
 const removeMessage = computed(() =>
   removeCandidate.value ? t('detail.addons.removeConfirm', { repo: removeCandidate.value }) : '',
@@ -111,7 +124,9 @@ function parseAddonItems(json: string, fallbackKeys: string[] = []): DdevAddon[]
 }
 
 function normalizeAvailableAddon(item: DdevAddon): AvailableAddon | null {
-  const rawRepo = String(item.Repository ?? item.repository ?? item.repo ?? item.full_name ?? item.FullName ?? '').trim()
+  const rawRepo = String(
+    item.Repository ?? item.repository ?? item.repo ?? item.full_name ?? item.FullName ?? '',
+  ).trim()
   const user = String(item.user ?? item.User ?? '').trim()
   const repo = rawRepo && !rawRepo.includes('/') && user ? `${user}/${rawRepo}` : rawRepo
   const description = String(item.Description ?? item.description ?? '').trim()
@@ -129,7 +144,10 @@ function closePicker() {
 }
 
 function openAddonLink(repo: string) {
-  openUrl(`https://addons.ddev.com/addons/${repo}`, coerceToBool(appStore.config.openLinksInBrowser))
+  openUrl(
+    `https://addons.ddev.com/addons/${repo}`,
+    coerceToBool(appStore.config.openLinksInBrowser),
+  )
 }
 
 async function loadAddons(projectName = props.projectName) {
