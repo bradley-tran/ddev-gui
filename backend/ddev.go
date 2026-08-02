@@ -111,28 +111,40 @@ func resolveWSLDistro(cfg *ConfigService) string {
 	return ""
 }
 
+var (
+	wslDistrosCache []string
+	wslDistrosOnce  sync.Once
+)
+
 // distroExists checks whether a named WSL distribution is installed.
 func distroExists(name string) bool {
 	if runtime.GOOS != "windows" {
 		return false
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	cmd := exec.CommandContext(ctx, "wsl.exe", "-l", "-q")
-	HideWSLWindow(cmd)
-	out, err := cmd.Output()
-	if err != nil {
-		return false
-	}
-	raw := strings.ReplaceAll(string(out), "\x00", "")
-	for len(raw) > 0 {
-		var line string
-		if idx := strings.IndexByte(raw, '\n'); idx >= 0 {
-			line, raw = raw[:idx], raw[idx+1:]
-		} else {
-			line, raw = raw, ""
+
+	wslDistrosOnce.Do(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		cmd := exec.CommandContext(ctx, "wsl.exe", "-l", "-q")
+		HideWSLWindow(cmd)
+		out, err := cmd.Output()
+		if err != nil {
+			return
 		}
-		if strings.EqualFold(strings.TrimSpace(line), name) {
+		raw := strings.ReplaceAll(string(out), "\x00", "")
+		for len(raw) > 0 {
+			var line string
+			if idx := strings.IndexByte(raw, '\n'); idx >= 0 {
+				line, raw = raw[:idx], raw[idx+1:]
+			} else {
+				line, raw = raw, ""
+			}
+			wslDistrosCache = append(wslDistrosCache, strings.TrimSpace(line))
+		}
+	})
+
+	for _, d := range wslDistrosCache {
+		if strings.EqualFold(d, name) {
 			return true
 		}
 	}
