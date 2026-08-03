@@ -118,6 +118,61 @@ func TestStatus(t *testing.T) {
 			t.Fatalf("expected status 'running', got %v", parsed["status"])
 		}
 	})
+	t.Run("ddev describe execution error", func(t *testing.T) {
+		tempDirError := t.TempDir()
+
+		fakeDdevPathError := filepath.Join(tempDirError, fakeDdevScriptName())
+		errorScript := "#!/bin/sh\n" +
+			"if [ \"$1\" = \"describe\" ]; then\n" +
+			"  echo 'some error output from ddev' >&2\n" +
+			"  exit 1\n" +
+			"fi\n"
+		if runtime.GOOS == "windows" {
+			errorScript = "@echo off\r\n" +
+				"if \"%1\"==\"describe\" (\r\n" +
+				"  echo some error output from ddev 1>&2\r\n" +
+				"  exit /b 1\r\n" +
+				")\r\n"
+		}
+
+		os.WriteFile(fakeDdevPathError, []byte(errorScript), 0755)
+		t.Setenv("PATH", tempDirError+string(os.PathListSeparator)+originalPath)
+
+		_, err := svc.Status("myproject")
+		if err == nil {
+			t.Fatalf("expected error from failed describe, got nil")
+		}
+		if !strings.Contains(err.Error(), "some error output from ddev") {
+			t.Fatalf("expected error to contain 'some error output from ddev', got %q", err.Error())
+		}
+	})
+
+	t.Run("ddev describe execution error without errOut", func(t *testing.T) {
+		tempDirError := t.TempDir()
+
+		fakeDdevPathError := filepath.Join(tempDirError, fakeDdevScriptName())
+		errorScript := "#!/bin/sh\n" +
+			"if [ \"$1\" = \"describe\" ]; then\n" +
+			"  exit 1\n" +
+			"fi\n"
+		if runtime.GOOS == "windows" {
+			errorScript = "@echo off\r\n" +
+				"if \"%1\"==\"describe\" (\r\n" +
+				"  exit /b 1\r\n" +
+				")\r\n"
+		}
+
+		os.WriteFile(fakeDdevPathError, []byte(errorScript), 0755)
+		t.Setenv("PATH", tempDirError+string(os.PathListSeparator)+originalPath)
+
+		_, err := svc.Status("myproject")
+		if err == nil {
+			t.Fatalf("expected error from failed describe, got nil")
+		}
+		if strings.Contains(err.Error(), "ddev describe error") {
+			t.Fatalf("expected raw error, got wrapped error: %q", err.Error())
+		}
+	})
 }
 
 func fakeDdevScriptName() string {
