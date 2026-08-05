@@ -365,5 +365,20 @@ describe('utils', () => {
       openUrl('https://test.com', false)
       expect(window.open).toHaveBeenCalledWith('https://test.com', '_blank', expect.any(String))
     })
+
+    it('should silently catch errors if window.open throws', () => {
+      vi.stubGlobal('navigator', { userAgent: 'mac' })
+
+      // window.open is already mocked as a vi.fn() in the beforeEach block
+      vi.mocked(window.open).mockImplementationOnce(() => {
+        throw new Error('window.open failed')
+      })
+
+      expect(() => {
+        openUrl('https://test.com', false)
+      }).not.toThrow()
+
+      expect(window.open).toHaveBeenCalledWith('https://test.com', '_blank', expect.any(String))
+    })
   })
 })
