@@ -270,6 +270,10 @@ describe('utils', () => {
       expect(parseProjectsJSON('invalid')).toEqual([])
     })
 
+    it('should return empty array on empty string', () => {
+      expect(parseProjectsJSON('')).toEqual([])
+    })
+
     it('should return empty array on JSON.parse error', () => {
       const parseSpy = vi.spyOn(JSON, 'parse').mockImplementation(() => {
         throw new Error('Test error')
