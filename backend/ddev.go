@@ -84,12 +84,43 @@ func (d *DdevService) WSLDistro() string {
 }
 
 var (
-	ddevDistroExistsCache bool
-	ddevDistroExistsOnce  sync.Once
-
-	listWSLDistrosCache []string
-	listWSLDistrosOnce  sync.Once
+	wslDistrosCache []string
+	wslDistrosOnce  sync.Once
 )
+
+func getWSLDistros() []string {
+	if runtime.GOOS != "windows" {
+		return nil
+	}
+
+	wslDistrosOnce.Do(func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		cmd := exec.CommandContext(ctx, "wsl.exe", "-l", "-q")
+		HideWSLWindow(cmd)
+		out, err := cmd.Output()
+		if err != nil {
+			log.Printf("[wsl] failed to list distros: %v", err)
+			return
+		}
+		// wsl -l -q outputs UTF-16LE on some Windows versions - normalise
+		raw := strings.ReplaceAll(string(out), "\x00", "")
+		for len(raw) > 0 {
+			var line string
+			if idx := strings.IndexByte(raw, '\n'); idx >= 0 {
+				line, raw = raw[:idx], raw[idx+1:]
+			} else {
+				line, raw = raw, ""
+			}
+			name := strings.TrimSpace(line)
+			if name != "" {
+				wslDistrosCache = append(wslDistrosCache, name)
+			}
+		}
+	})
+
+	return wslDistrosCache
+}
 
 // resolveWSLDistro determines which WSL distro to use.
 // Priority: 1) explicit config value, 2) "DDEV" if it exists, 3) user's default distro.
@@ -101,11 +132,7 @@ func resolveWSLDistro(cfg *ConfigService) string {
 	}
 
 	// No explicit config - check if "DDEV" distro is installed (cached).
-	ddevDistroExistsOnce.Do(func() {
-		ddevDistroExistsCache = distroExists("DDEV")
-	})
-
-	if ddevDistroExistsCache {
+	if distroExists("DDEV") {
 		return "DDEV"
 	}
 
@@ -114,39 +141,10 @@ func resolveWSLDistro(cfg *ConfigService) string {
 	return ""
 }
 
-var (
-	wslDistrosCache []string
-	wslDistrosOnce  sync.Once
-)
-
 // distroExists checks whether a named WSL distribution is installed.
 func distroExists(name string) bool {
-	if runtime.GOOS != "windows" {
-		return false
-	}
-
-	wslDistrosOnce.Do(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		cmd := exec.CommandContext(ctx, "wsl.exe", "-l", "-q")
-		HideWSLWindow(cmd)
-		out, err := cmd.Output()
-		if err != nil {
-			return
-		}
-		raw := strings.ReplaceAll(string(out), "\x00", "")
-		for len(raw) > 0 {
-			var line string
-			if idx := strings.IndexByte(raw, '\n'); idx >= 0 {
-				line, raw = raw[:idx], raw[idx+1:]
-			} else {
-				line, raw = raw, ""
-			}
-			wslDistrosCache = append(wslDistrosCache, strings.TrimSpace(line))
-		}
-	})
-
-	for _, d := range wslDistrosCache {
+	distros := getWSLDistros()
+	for _, d := range distros {
 		if strings.EqualFold(d, name) {
 			return true
 		}
@@ -157,36 +155,7 @@ func distroExists(name string) bool {
 // ListWSLDistros returns the names of all installed WSL distributions.
 // On non-Windows systems it returns an empty slice.
 func (d *DdevService) ListWSLDistros() []string {
-	if runtime.GOOS != "windows" {
-		return nil
-	}
-
-	listWSLDistrosOnce.Do(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		cmd := exec.CommandContext(ctx, "wsl.exe", "-l", "-q")
-		HideWSLWindow(cmd)
-		out, err := cmd.Output()
-		if err != nil {
-			log.Printf("[wsl] failed to list distros: %v", err)
-			return
-		}
-		// wsl -l -q outputs UTF-16LE on some Windows versions - normalise
-		raw := string(out)
-		// Strip NUL bytes from UTF-16LE output
-		raw = strings.ReplaceAll(raw, "\x00", "")
-		var distros []string
-		scanner := bufio.NewScanner(strings.NewReader(raw))
-		for scanner.Scan() {
-			name := strings.TrimSpace(scanner.Text())
-			if name != "" {
-				distros = append(distros, name)
-			}
-		}
-		listWSLDistrosCache = distros
-	})
-
-	return listWSLDistrosCache
+	return getWSLDistros()
 }
 
 // WSLExists returns whether WSL is available for the current runtime backend.
