@@ -135,14 +135,14 @@ func distroExists(name string) bool {
 			return
 		}
 		raw := strings.ReplaceAll(string(out), "\x00", "")
-		for len(raw) > 0 {
-			var line string
-			if idx := strings.IndexByte(raw, '\n'); idx >= 0 {
-				line, raw = raw[:idx], raw[idx+1:]
-			} else {
-				line, raw = raw, ""
+		scanner := bufio.NewScanner(strings.NewReader(raw))
+		for scanner.Scan() {
+			if text := strings.TrimSpace(scanner.Text()); text != "" {
+				wslDistrosCache = append(wslDistrosCache, text)
 			}
-			wslDistrosCache = append(wslDistrosCache, strings.TrimSpace(line))
+		}
+		if err := scanner.Err(); err != nil {
+			log.Printf("[wsl] failed to parse distros: %v", err)
 		}
 	})
 
