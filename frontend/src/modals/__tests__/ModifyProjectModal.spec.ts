@@ -1,7 +1,7 @@
 import type { App as VueApp } from 'vue'
 import { describe, expect, it, vi, beforeEach, type Mock } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { type VueWrapper, flushPromises, mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 
 import { installI18n } from '@/lib/i18n'
 import ModifyProjectModal from '../ModifyProjectModal.vue'
@@ -52,13 +52,13 @@ describe('ModifyProjectModal.vue', () => {
   it('renders with initial project values', async () => {
     const wrapper = mountModal()
 
-    const phpSelect = wrapper.findComponent('#modifyPhpVersion') as VueWrapper<any>
+    const phpSelect = wrapper.findComponent<typeof Select>('#modifyPhpVersion')
     expect(phpSelect.props('modelValue')).toBe('8.2')
 
-    const nodeSelect = wrapper.findComponent('#modifyNodejsVersion') as VueWrapper<any>
+    const nodeSelect = wrapper.findComponent<typeof Select>('#modifyNodejsVersion')
     expect(nodeSelect.props('modelValue')).toBe('18')
 
-    const typeSelect = wrapper.findComponent('#modifyProjectType') as VueWrapper<any>
+    const typeSelect = wrapper.findComponent<typeof Select>('#modifyProjectType')
     expect(typeSelect.props('modelValue')).toBe('laravel')
 
     const docrootInput = wrapper.find('#modifyDocroot')
@@ -78,9 +78,9 @@ describe('ModifyProjectModal.vue', () => {
 
     await wrapper.setProps({ project: newProject })
 
-    expect((wrapper.findComponent('#modifyPhpVersion') as VueWrapper<any>).props('modelValue')).toBe('8.3')
-    expect((wrapper.findComponent('#modifyNodejsVersion') as VueWrapper<any>).props('modelValue')).toBe('20')
-    expect((wrapper.findComponent('#modifyProjectType') as VueWrapper<any>).props('modelValue')).toBe('wordpress')
+    expect(wrapper.findComponent<typeof Select>('#modifyPhpVersion').props('modelValue')).toBe('8.3')
+    expect(wrapper.findComponent<typeof Select>('#modifyNodejsVersion').props('modelValue')).toBe('20')
+    expect(wrapper.findComponent<typeof Select>('#modifyProjectType').props('modelValue')).toBe('wordpress')
     expect((wrapper.find('#modifyDocroot').element as HTMLInputElement).value).toBe('')
   })
 
@@ -94,7 +94,7 @@ describe('ModifyProjectModal.vue', () => {
     const wrapper = mountModal()
 
     // Change some values
-    await (wrapper.findComponent('#modifyPhpVersion') as VueWrapper<any>).vm.$emit('update:modelValue', '8.4')
+    await wrapper.findComponent<typeof Select>('#modifyPhpVersion').vm.$emit('update:modelValue', '8.4')
     await wrapper.find('#modifyDocroot').setValue('web')
 
     const applyBtn = wrapper.find('button.flu-btn-accent')
@@ -155,9 +155,9 @@ describe('ModifyProjectModal.vue', () => {
 
     await wrapper.find('button.flu-btn-accent').trigger('click')
 
-    expect((wrapper.findComponent('#modifyPhpVersion') as VueWrapper<any>).props('disabled')).toBe(true)
-    expect((wrapper.findComponent('#modifyNodejsVersion') as VueWrapper<any>).props('disabled')).toBe(true)
-    expect((wrapper.findComponent('#modifyProjectType') as VueWrapper<any>).props('disabled')).toBe(true)
+    expect(wrapper.findComponent<typeof Select>('#modifyPhpVersion').props('disabled')).toBe(true)
+    expect(wrapper.findComponent<typeof Select>('#modifyNodejsVersion').props('disabled')).toBe(true)
+    expect(wrapper.findComponent<typeof Select>('#modifyProjectType').props('disabled')).toBe(true)
     expect(wrapper.find('#modifyDocroot').attributes('disabled')).toBeDefined()
     expect(wrapper.find('button.flu-btn-ghost').attributes('disabled')).toBeDefined()
 
@@ -176,9 +176,9 @@ describe('ModifyProjectModal.vue', () => {
   it('uses default values when project fields are missing', async () => {
     const wrapper = mountModal({} as DdevProject)
 
-    expect((wrapper.findComponent('#modifyPhpVersion') as VueWrapper<any>).props('modelValue')).toBe('8.3')
-    expect((wrapper.findComponent('#modifyNodejsVersion') as VueWrapper<any>).props('modelValue')).toBe('20')
-    expect((wrapper.findComponent('#modifyProjectType') as VueWrapper<any>).props('modelValue')).toBe('php')
+    expect(wrapper.findComponent<typeof Select>('#modifyPhpVersion').props('modelValue')).toBe('8.3')
+    expect(wrapper.findComponent<typeof Select>('#modifyNodejsVersion').props('modelValue')).toBe('20')
+    expect(wrapper.findComponent<typeof Select>('#modifyProjectType').props('modelValue')).toBe('php')
     expect((wrapper.find('#modifyDocroot').element as HTMLInputElement).value).toBe('')
   })
 })
