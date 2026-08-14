@@ -1,9 +1,10 @@
 import type { App as VueApp } from 'vue'
 import { describe, expect, it, vi, beforeEach, type Mock } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { type VueWrapper, flushPromises, mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 
 import { installI18n } from '@/lib/i18n'
+import Select from '@/components/Select.vue'
 import NewProjectModal from '../NewProjectModal.vue'
 import { useAppStore } from '@/stores/app'
 
@@ -48,13 +49,13 @@ describe('NewProjectModal.vue', () => {
     expect((wrapper.find('#projName').element as HTMLInputElement).value).toBe('')
     expect((wrapper.find('#projGitRepo').element as HTMLInputElement).value).toBe('')
 
-    const typeSelect = wrapper.findComponent('#projType') as VueWrapper<any>
+    const typeSelect = wrapper.findComponent<typeof Select>('#projType')
     expect(typeSelect.props('modelValue')).toBe('drupal11')
 
     const docrootInput = wrapper.find('#projDocroot')
     expect((docrootInput.element as HTMLInputElement).value).toBe('web')
 
-    const phpSelect = wrapper.findComponent('#projPhpVersion') as VueWrapper<any>
+    const phpSelect = wrapper.findComponent<typeof Select>('#projPhpVersion')
     expect(phpSelect.props('modelValue')).toBe('8.3')
   })
 
@@ -69,7 +70,7 @@ describe('NewProjectModal.vue', () => {
 
   it('updates docroot automatically when type changes', async () => {
     const wrapper = mountModal()
-    const typeSelect = wrapper.findComponent('#projType') as VueWrapper<any>
+    const typeSelect = wrapper.findComponent<typeof Select>('#projType')
 
     await typeSelect.vm.$emit('update:modelValue', 'laravel')
     expect((wrapper.find('#projDocroot').element as HTMLInputElement).value).toBe('public')
@@ -81,7 +82,7 @@ describe('NewProjectModal.vue', () => {
   it('stops auto-updating docroot if manually edited', async () => {
     const wrapper = mountModal()
     const docrootInput = wrapper.find('#projDocroot')
-    const typeSelect = wrapper.findComponent('#projType') as VueWrapper<any>
+    const typeSelect = wrapper.findComponent<typeof Select>('#projType')
 
     await docrootInput.setValue('custom-folder')
     await typeSelect.vm.$emit('update:modelValue', 'laravel')
