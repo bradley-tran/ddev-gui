@@ -34,13 +34,7 @@ export function parseSearch(search: string): ParsedSearch {
   let pattern: RegExp | null = null
 
   if (query.length >= 3) {
-    let regexStr = '\\b'
-    for (let i = 0; i < tokens.length; i++) {
-      if (i > 0) {
-        regexStr += '.*\\b'
-      }
-      regexStr += tokens[i]!.replace(ESCAPE_RE, '\\$&')
-    }
+    const regexStr = '\\b' + tokens.map((t) => t.replace(ESCAPE_RE, '\\$&')).join('.*\\b')
     pattern = new RegExp(regexStr, 'i')
   }
 
