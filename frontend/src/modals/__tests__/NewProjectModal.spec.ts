@@ -20,16 +20,18 @@ describe('NewProjectModal.vue', () => {
     vi.clearAllMocks()
   })
 
-  const getDdevService = () => window.go!.backend!.DdevService as unknown as {
-    CloneRepo: Mock
-    ConfigureProject: Mock
-    Start: Mock
-    ListJSON: Mock
-  }
+  const getDdevService = () =>
+    window.go!.backend!.DdevService as unknown as {
+      CloneRepo: Mock
+      ConfigureProject: Mock
+      Start: Mock
+      ListJSON: Mock
+    }
 
-  const getConfigService = () => window.go!.backend!.ConfigService as unknown as {
-    SetProjectConfig: Mock
-  }
+  const getConfigService = () =>
+    window.go!.backend!.ConfigService as unknown as {
+      SetProjectConfig: Mock
+    }
 
   const mountModal = () => {
     return mount(NewProjectModal, {
@@ -108,7 +110,13 @@ describe('NewProjectModal.vue', () => {
     await form.trigger('submit')
 
     expect(ddevService.CloneRepo).not.toHaveBeenCalled()
-    expect(ddevService.ConfigureProject).toHaveBeenCalledWith('~', 'new-site', 'drupal11', 'web', '8.3')
+    expect(ddevService.ConfigureProject).toHaveBeenCalledWith(
+      '~',
+      'new-site',
+      'drupal11',
+      'web',
+      '8.3',
+    )
     expect(ddevService.Start).toHaveBeenCalledWith('new-site')
     expect(configService.SetProjectConfig).toHaveBeenCalledWith('new-site', 'initialized', false)
 
@@ -118,8 +126,8 @@ describe('NewProjectModal.vue', () => {
     expect(toastSpy).toHaveBeenCalledWith('Project "new-site" created', 'success')
     expect(patchConfigSpy).toHaveBeenCalledWith({
       projects: {
-        'new-site': { initialized: false }
-      }
+        'new-site': { initialized: false },
+      },
     })
     expect(setProjectsJSONSpy).toHaveBeenCalledWith('[{"name": "new-site"}]')
     expect(wrapper.emitted()).toHaveProperty('close')
@@ -136,8 +144,17 @@ describe('NewProjectModal.vue', () => {
     const form = wrapper.find('form')
     await form.trigger('submit')
 
-    expect(ddevService.CloneRepo).toHaveBeenCalledWith('cloned-site', 'https://github.com/example/repo.git')
-    expect(ddevService.ConfigureProject).toHaveBeenCalledWith('~', 'cloned-site', 'drupal11', 'web', '8.3')
+    expect(ddevService.CloneRepo).toHaveBeenCalledWith(
+      'cloned-site',
+      'https://github.com/example/repo.git',
+    )
+    expect(ddevService.ConfigureProject).toHaveBeenCalledWith(
+      '~',
+      'cloned-site',
+      'drupal11',
+      'web',
+      '8.3',
+    )
     expect(configService.SetProjectConfig).toHaveBeenCalledWith('cloned-site', 'initialized', true)
 
     await flushPromises()
@@ -168,8 +185,10 @@ describe('NewProjectModal.vue', () => {
   it('shows loading state during submission', async () => {
     const ddevService = getDdevService()
     // Mock a slow operation
-    let resolveStart: (v: string) => void
-    const startPromise = new Promise<string>(resolve => { resolveStart = resolve })
+    let resolveStart!: (v: string) => void
+    const startPromise = new Promise<string>((resolve) => {
+      resolveStart = resolve
+    })
     ddevService.ConfigureProject.mockResolvedValue('')
     ddevService.Start.mockReturnValue(startPromise)
 
@@ -189,8 +208,7 @@ describe('NewProjectModal.vue', () => {
     expect(submitBtn.text()).toBe('Creating…')
     expect(cancelBtn.attributes('disabled')).toBeDefined()
 
-    // @ts-ignore
-    resolveStart!('')
+    resolveStart('')
     await flushPromises()
 
     expect(wrapper.emitted()).toHaveProperty('close')
