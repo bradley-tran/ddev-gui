@@ -26,8 +26,20 @@ interface WailsDdevService {
   AddonInstall(name: string, addon: string): Promise<string>
   AddonRemove(name: string, addon: string): Promise<string>
   ComposerInstall(name: string, projType: string): Promise<string>
-  ConfigureProject(dir: string, name: string, projType: string, docroot: string, phpVersion: string): Promise<string>
-  ModifyProject(name: string, phpVersion: string, nodejsVersion: string, projectType: string, docroot: string): Promise<string>
+  ConfigureProject(
+    dir: string,
+    name: string,
+    projType: string,
+    docroot: string,
+    phpVersion: string,
+  ): Promise<string>
+  ModifyProject(
+    name: string,
+    phpVersion: string,
+    nodejsVersion: string,
+    projectType: string,
+    docroot: string,
+  ): Promise<string>
   ConfigureServices(
     name: string,
     webPort: string,
@@ -81,7 +93,9 @@ interface WailsRuntime {
 
 function ensureBinding<T>(binding: T | undefined, name: string): T {
   if (!binding) {
-    throw new Error(`${name} is not available. Run the Vue frontend through Wails or provide a test mock.`)
+    throw new Error(
+      `${name} is not available. Run the Vue frontend through Wails or provide a test mock.`,
+    )
   }
 
   return binding
@@ -107,7 +121,7 @@ function ensureRuntimeBridge(event: string): RuntimeCallback {
   const bridge: RuntimeCallback = (...args) => {
     const listeners = runtimeListeners.get(event)
     if (!listeners) return
-    for (const listener of Array.from(listeners)) {
+    for (const listener of listeners) {
       listener(...args)
     }
   }
@@ -129,11 +143,17 @@ export const DdevService = {
   addonsAvailableJSON: (name: string) => getDdevService().AddonsAvailableJSON(name),
   addonInstall: (name: string, addon: string) => getDdevService().AddonInstall(name, addon),
   addonRemove: (name: string, addon: string) => getDdevService().AddonRemove(name, addon),
-  composerInstall: (name: string, projType: string) => getDdevService().ComposerInstall(name, projType),
+  composerInstall: (name: string, projType: string) =>
+    getDdevService().ComposerInstall(name, projType),
   configureProject: (name: string, projType: string, docroot: string, phpVersion: string) =>
     getDdevService().ConfigureProject('~', name, projType, docroot, phpVersion),
-  modifyProject: (name: string, phpVersion: string, nodejsVersion: string, projectType: string, docroot: string) =>
-    getDdevService().ModifyProject(name, phpVersion, nodejsVersion, projectType, docroot),
+  modifyProject: (
+    name: string,
+    phpVersion: string,
+    nodejsVersion: string,
+    projectType: string,
+    docroot: string,
+  ) => getDdevService().ModifyProject(name, phpVersion, nodejsVersion, projectType, docroot),
   configureServices: (
     name: string,
     webPort: string,
@@ -141,14 +161,23 @@ export const DdevService = {
     xdebugEnabled: boolean,
     xhprofEnabled: boolean,
     xhguiEnabled: boolean,
-  ) => getDdevService().ConfigureServices(name, webPort, dbPort, xdebugEnabled, xhprofEnabled, xhguiEnabled),
+  ) =>
+    getDdevService().ConfigureServices(
+      name,
+      webPort,
+      dbPort,
+      xdebugEnabled,
+      xhprofEnabled,
+      xhguiEnabled,
+    ),
   cloneRepo: (name: string, repoURL: string) => getDdevService().CloneRepo(name, repoURL),
   ddevInstalledVersion: () => getDdevService().DdevInstalledVersion(),
   installDdev: () => getDdevService().InstallDdev(),
   deleteProject: (name: string) => getDdevService().DeleteProject(name),
   exportDB: (name: string) => getDdevService().ExportDB(name),
   importDBSelectFile: (name: string) => getDdevService().ImportDBSelectFile(name),
-  importDBFromFile: (name: string, filePath: string) => getDdevService().ImportDBFromFile(name, filePath),
+  importDBFromFile: (name: string, filePath: string) =>
+    getDdevService().ImportDBFromFile(name, filePath),
   drushUli: (name: string) => getDdevService().DrushUli(name),
   drushUliAsUser: (name: string, uid: string) => getDdevService().DrushUliAsUser(name, uid),
   drushRecentUsers: (name: string) => getDdevService().DrushRecentUsers(name),
@@ -157,9 +186,12 @@ export const DdevService = {
   wpCoreInstall: (name: string) => getDdevService().WpCoreInstall(name),
   laravelInit: (name: string) => getDdevService().LaravelInit(name),
   snapshotListJSON: (name: string) => getDdevService().SnapshotListJSON(name),
-  snapshotCreate: (name: string, snapName: string) => getDdevService().SnapshotCreate(name, snapName),
-  snapshotRestore: (name: string, snapName: string) => getDdevService().SnapshotRestore(name, snapName),
-  snapshotDelete: (name: string, snapName: string) => getDdevService().SnapshotDelete(name, snapName),
+  snapshotCreate: (name: string, snapName: string) =>
+    getDdevService().SnapshotCreate(name, snapName),
+  snapshotRestore: (name: string, snapName: string) =>
+    getDdevService().SnapshotRestore(name, snapName),
+  snapshotDelete: (name: string, snapName: string) =>
+    getDdevService().SnapshotDelete(name, snapName),
   ProjectLogs: (name: string, service = 'web') => getDdevService().ProjectLogs(name, service),
   activeBackend: () => getDdevService().ActiveBackend(),
   wslExists: () => getDdevService().WSLExists(),
@@ -168,7 +200,8 @@ export const DdevService = {
   appVersion: () => getDdevService().AppVersion(),
   listDir: (project: string, relPath: string) => getDdevService().ListDir(project, relPath),
   readFile: (project: string, relPath: string) => getDdevService().ReadFile(project, relPath),
-  readFileBase64: (project: string, relPath: string) => getDdevService().ReadFileBase64(project, relPath),
+  readFileBase64: (project: string, relPath: string) =>
+    getDdevService().ReadFileBase64(project, relPath),
   execCommand: (project: string, command: string) => getDdevService().ExecCommand(project, command),
 }
 
