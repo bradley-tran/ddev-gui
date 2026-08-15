@@ -1,6 +1,17 @@
 import { defineStore } from 'pinia'
 import { DEFAULT_APP_CONFIG, normalizeAppConfig } from '@/lib/config'
-import type { AppConfig, AppModal, AppModals, CurrentView, DdevProject, LogEntry, LogLevel, ToastEntry, ToastType, ViewMode } from '@/lib/types'
+import type {
+  AppConfig,
+  AppModal,
+  AppModals,
+  CurrentView,
+  DdevProject,
+  LogEntry,
+  LogLevel,
+  ToastEntry,
+  ToastType,
+  ViewMode,
+} from '@/lib/types'
 import { getProjectName, parseProjectsJSON, uid } from '@/lib/utils'
 import { ConfigService, DdevService } from '@/lib/wails'
 
@@ -48,8 +59,7 @@ export const useAppStore = defineStore('app', {
     projects: (state): DdevProject[] => parseProjectsJSON(state.projectsJSON),
     projectsMap(state): Map<string, DdevProject> {
       const map = new Map<string, DdevProject>()
-      const parsedProjects = parseProjectsJSON(state.projectsJSON)
-      for (const project of parsedProjects) {
+      for (const project of this.projects) {
         map.set(getProjectName(project), project)
       }
       return map
@@ -82,7 +92,11 @@ export const useAppStore = defineStore('app', {
       const now = new Date()
       this.addLog({
         id: uid(),
-        timestamp: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        timestamp: now.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+        }),
         message,
         level,
       })
