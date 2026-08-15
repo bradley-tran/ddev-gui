@@ -147,7 +147,7 @@ describe('ModifyProjectModal.vue', () => {
 
   it('disables inputs and shows spinner while running', async () => {
     const ddevService = getDdevService()
-    let resolveModify: (v: string) => void
+    let resolveModify!: (v: string) => void
     const promise = new Promise<string>((resolve) => { resolveModify = resolve })
     ddevService.ModifyProject.mockReturnValue(promise)
 
@@ -166,8 +166,7 @@ describe('ModifyProjectModal.vue', () => {
     expect(applyBtn.text()).toContain('Saving…')
     expect(wrapper.findComponent(Spinner).exists()).toBe(true)
 
-    // @ts-ignore
-    resolveModify!('ok')
+    resolveModify('ok')
     await flushPromises()
 
     expect(applyBtn.text()).not.toContain('Saving…')
