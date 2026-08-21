@@ -57,7 +57,7 @@ export const useAppStore = defineStore('app', {
 
   getters: {
     projects: (state): DdevProject[] => parseProjectsJSON(state.projectsJSON),
-    projectsMap(state): Map<string, DdevProject> {
+    projectsMap(): Map<string, DdevProject> {
       const map = new Map<string, DdevProject>()
       for (const project of this.projects) {
         map.set(getProjectName(project), project)
