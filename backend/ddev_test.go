@@ -487,3 +487,39 @@ func TestDescribeJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestSetContext(t *testing.T) {
+	t.Run("without telemetry opt-in", func(t *testing.T) {
+		cfg := &ConfigService{
+			data: map[string]any{},
+		}
+		d := NewDdevService(cfg)
+
+		type key string
+		var testKey key = "test_key"
+		ctx := context.WithValue(context.Background(), testKey, "test_value")
+		d.SetContext(ctx)
+
+		if d.ctx != ctx {
+			t.Errorf("expected context to be set on DdevService")
+		}
+	})
+
+	t.Run("with telemetry opt-in", func(t *testing.T) {
+		cfg := &ConfigService{
+			data: map[string]any{
+				"ddevTelemetryOptIn": true,
+			},
+		}
+		d := NewDdevService(cfg)
+
+		type key string
+		var testKey key = "test_key"
+		ctx := context.WithValue(context.Background(), testKey, "test_value")
+		d.SetContext(ctx)
+
+		if d.ctx != ctx {
+			t.Errorf("expected context to be set on DdevService")
+		}
+	})
+}
