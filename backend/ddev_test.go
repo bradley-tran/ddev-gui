@@ -1,15 +1,19 @@
 package backend
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	stdruntime "runtime"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestGetLatestDdevRelease(t *testing.T) {
@@ -488,6 +492,23 @@ func TestDescribeJSON(t *testing.T) {
 	}
 }
 
+type threadSafeWriter struct {
+	mu sync.Mutex
+	b  bytes.Buffer
+}
+
+func (w *threadSafeWriter) Write(p []byte) (n int, err error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.b.Write(p)
+}
+
+func (w *threadSafeWriter) String() string {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.b.String()
+}
+
 func TestSetContext(t *testing.T) {
 	t.Run("without telemetry opt-in", func(t *testing.T) {
 		cfg := &ConfigService{
@@ -520,6 +541,71 @@ func TestSetContext(t *testing.T) {
 
 		if d.ctx != ctx {
 			t.Errorf("expected context to be set on DdevService")
+		}
+	})
+
+	t.Run("telemetry error", func(t *testing.T) {
+		tempDir := t.TempDir()
+		ddevName := "ddev"
+		if stdruntime.GOOS == "windows" {
+			ddevName = "ddev.cmd"
+		}
+		fakeDdevPath := filepath.Join(tempDir, ddevName)
+
+		fakeDdevScript := "#!/bin/sh\n" +
+			"if [ \"$1\" = \"config\" ]; then\n" +
+			"    echo 'simulated error' >&2\n" +
+			"    exit 1\n" +
+			"fi\n"
+
+		if stdruntime.GOOS == "windows" {
+			fakeDdevScript = "@echo off\r\n" +
+				"if \"%~1\"==\"config\" (\r\n" +
+				"    echo simulated error >&2\r\n" +
+				"    exit /b 1\r\n" +
+				")\r\n"
+		}
+
+		if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScript), 0755); err != nil {
+			t.Fatalf("failed to write fake ddev: %v", err)
+		}
+
+		originalPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+
+		logWriter := &threadSafeWriter{}
+		defaultLogger := log.Writer()
+		log.SetOutput(logWriter)
+		defer log.SetOutput(defaultLogger)
+
+		cfg := &ConfigService{
+			data: map[string]any{
+				"ddevTelemetryOptIn": true,
+				"backend":            "local",
+			},
+		}
+		d := NewDdevService(cfg)
+		d.cachedBackend = "local"
+
+		type key string
+		var testKey key = "test_key"
+		ctx := context.WithValue(context.Background(), testKey, "test_value")
+		d.SetContext(ctx)
+
+		// Wait for goroutine with retry to avoid flakiness and race conditions
+		timeout := time.After(2 * time.Second)
+		ticker := time.NewTicker(50 * time.Millisecond)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-timeout:
+				t.Fatalf("timed out waiting for log output")
+			case <-ticker.C:
+				if strings.Contains(logWriter.String(), "telemetry preference apply failed") {
+					return // Success
+				}
+			}
 		}
 	})
 }
