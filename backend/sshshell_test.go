@@ -2,6 +2,7 @@ package backend
 
 import (
 	"net"
+	"path/filepath"
 	"testing"
 
 	"golang.org/x/crypto/ssh"
@@ -157,6 +158,68 @@ func TestUpdateConfig(t *testing.T) {
 			}
 			if shell.cfg.Host != tt.expected.Host {
 				t.Errorf("UpdateConfig() expected Host = %v, got %v", tt.expected.Host, shell.cfg.Host)
+			}
+		})
+	}
+}
+
+func TestExpandHome(t *testing.T) {
+	// Setup: Predictable user home directory
+	originalHome := t.TempDir()
+	t.Setenv("HOME", originalHome)
+	t.Setenv("USERPROFILE", originalHome) // Windows compatibility for tests generally relies on USERPROFILE, but x/crypto/ssh and os.UserHomeDir typically check HOME or USERPROFILE. Setenv "HOME" works for this UNIX-centric test setup.
+
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name:     "Empty path",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "Path without tilde",
+			input:    "/var/www/html",
+			expected: "/var/www/html",
+		},
+		{
+			name:     "Exact tilde",
+			input:    "~",
+			expected: originalHome,
+		},
+		{
+			name:     "Tilde with slash",
+			input:    "~/",
+			expected: originalHome,
+		},
+		{
+			name:     "Tilde with subpath",
+			input:    "~/project/test",
+			expected: originalHome + "/project/test", // Note: filepath.Join will handle OS-specific separators.
+		},
+		{
+			name:     "Tilde not at start",
+			input:    "/path/to/~",
+			expected: "/path/to/~",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := expandHome(tt.input)
+
+			// We need to normalize expected path for Windows using filepath.Join if needed,
+			// but since originalHome is from TempDir, it already has the correct separators.
+			// However, our expected strings hardcode "/", so let's adjust them.
+			expected := tt.expected
+			if tt.input == "~/project/test" {
+				expected = originalHome + string(filepath.Separator) + "project" + string(filepath.Separator) + "test"
+			}
+
+			if result != expected {
+				t.Errorf("expandHome(%q) = %q, want %q", tt.input, result, expected)
 			}
 		})
 	}
