@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
@@ -506,20 +507,120 @@ func TestSetContext(t *testing.T) {
 	})
 
 	t.Run("with telemetry opt-in", func(t *testing.T) {
+		tempDir := t.TempDir()
+		argsFile := filepath.Join(tempDir, "args.txt")
+
+		originalPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+		t.Setenv("TEST_DDEV_ARGS_FILE", argsFile)
+
+		fakeDdevPath := filepath.Join(tempDir, "ddev")
+		if stdruntime.GOOS == "windows" {
+			fakeDdevPath = filepath.Join(tempDir, "ddev.cmd")
+		}
+
+		// simplified script for ddev config global --instrumentation-opt-in=true
+		script := "#!/bin/sh\n" +
+			"if [ \"$1\" = \"config\" ]; then\n" +
+			"  printf '%s\\n' \"$*\" >> \"$TEST_DDEV_ARGS_FILE\"\n" +
+			"  exit 0\n" +
+			"fi\n" +
+			"echo \"unexpected args: $*\" >&2\n" +
+			"exit 1\n"
+		if stdruntime.GOOS == "windows" {
+			script = "@echo off\r\n" +
+				"if \"%1\"==\"config\" (\r\n" +
+				"  >> \"%TEST_DDEV_ARGS_FILE%\" echo %*\r\n" +
+				"  exit /b 0\r\n" +
+				")\r\n" +
+				"echo unexpected args %* 1>&2\r\n" +
+				"exit /b 1\r\n"
+		}
+
+		if err := os.WriteFile(fakeDdevPath, []byte(script), 0755); err != nil {
+			t.Fatalf("failed to write fake ddev script: %v", err)
+		}
+
 		cfg := &ConfigService{
 			data: map[string]any{
 				"ddevTelemetryOptIn": true,
+				"backend":            "local",
 			},
 		}
 		d := NewDdevService(cfg)
+		// Trigger load backend configuration
+		d.ReloadBackend()
 
 		type key string
 		var testKey key = "test_key"
 		ctx := context.WithValue(context.Background(), testKey, "test_value")
+
 		d.SetContext(ctx)
 
 		if d.ctx != ctx {
 			t.Errorf("expected context to be set on DdevService")
 		}
+
+		// Wait briefly to allow goroutine to finish execution
+		time.Sleep(100 * time.Millisecond)
+
+		argsBytes, err := os.ReadFile(argsFile)
+		if err != nil {
+			t.Fatalf("failed to read args file: %v", err)
+		}
+
+		expectedArg := "config global --instrumentation-opt-in=true"
+		if !strings.Contains(string(argsBytes), expectedArg) {
+			t.Errorf("expected arg %q, got %q", expectedArg, string(argsBytes))
+		}
+	})
+
+	t.Run("with telemetry opt-in error", func(t *testing.T) {
+		tempDir := t.TempDir()
+
+		originalPath := os.Getenv("PATH")
+		t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+
+		fakeDdevPath := filepath.Join(tempDir, "ddev")
+		if stdruntime.GOOS == "windows" {
+			fakeDdevPath = filepath.Join(tempDir, "ddev.cmd")
+		}
+
+		// simplified script for ddev config global --instrumentation-opt-in=true that fails
+		script := "#!/bin/sh\n" +
+			"echo \"simulated failure\" >&2\n" +
+			"exit 1\n"
+		if stdruntime.GOOS == "windows" {
+			script = "@echo off\r\n" +
+				"echo simulated failure 1>&2\r\n" +
+				"exit /b 1\r\n"
+		}
+
+		if err := os.WriteFile(fakeDdevPath, []byte(script), 0755); err != nil {
+			t.Fatalf("failed to write fake ddev script: %v", err)
+		}
+
+		cfg := &ConfigService{
+			data: map[string]any{
+				"ddevTelemetryOptIn": true,
+				"backend":            "local",
+			},
+		}
+		d := NewDdevService(cfg)
+		// Trigger load backend configuration
+		d.ReloadBackend()
+
+		type key string
+		var testKey key = "test_key"
+		ctx := context.WithValue(context.Background(), testKey, "test_value")
+
+		d.SetContext(ctx)
+
+		if d.ctx != ctx {
+			t.Errorf("expected context to be set on DdevService")
+		}
+
+		// Wait briefly to allow goroutine to finish execution
+		time.Sleep(100 * time.Millisecond)
 	})
 }
