@@ -146,6 +146,11 @@ describe('wails bridge', () => {
       expect(getMockDdevService().DrushCacheRebuild).toHaveBeenCalledWith('name')
     })
 
+    it('should call DrushCron', async () => {
+      await DdevService.drushCron('name')
+      expect(getMockDdevService().DrushCron).toHaveBeenCalledWith('name')
+    })
+
     it('should call WpCoreInstall', async () => {
       await DdevService.wpCoreInstall('name')
       expect(getMockDdevService().WpCoreInstall).toHaveBeenCalledWith('name')

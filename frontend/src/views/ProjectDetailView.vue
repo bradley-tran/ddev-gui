@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   ArrowLeftIcon,
+  ClockIcon,
   Code2Icon,
   CopyIcon,
   DownloadIcon,
@@ -424,6 +425,20 @@ async function handleClearCache() {
   }
 }
 
+async function handleRunCron() {
+  appStore.appLog(`Running cron for ${routeProjectName.value}...`, 'info')
+
+  try {
+    await DdevApi.drushCron(routeProjectName.value)
+    appStore.appLog(`Cron completed for ${routeProjectName.value}`, 'success')
+    appStore.showToast(`Cron completed for ${routeProjectName.value}`, 'success')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    appStore.appLog(`Run cron failed: ${message}`, 'error')
+    appStore.showToast('Run cron failed', 'error')
+  }
+}
+
 async function openMasqueradeModal() {
   showMasquerade.value = true
 }
@@ -663,6 +678,20 @@ async function handleDeleteConfirm() {
                   >
                     <EraserIcon :size="12" :stroke-width="2" />
                     {{ t('detail.drupal.clearCache') }}
+                  </button>
+                  <button
+                    type="button"
+                    class="toolbar-dropdown-item proj-action"
+                    :disabled="isStopped"
+                    :title="isStopped ? t('detail.drupal.mustBeRunning') : undefined"
+                    :style="isStopped ? { opacity: 0.45, cursor: 'not-allowed' } : undefined"
+                    @click="
+                      setToolbarMenu(null);
+                      handleRunCron()
+                    "
+                  >
+                    <ClockIcon :size="12" :stroke-width="2" />
+                    {{ t('detail.drupal.runCron') }}
                   </button>
                 </div>
               </div>

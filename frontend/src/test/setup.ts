@@ -43,6 +43,7 @@ const mockDdevService = {
   DrushRecentUsers: vi.fn().mockResolvedValue('[]'),
   DrushSiteInstall: vi.fn().mockResolvedValue(''),
   DrushCacheRebuild: vi.fn().mockResolvedValue(''),
+  DrushCron: vi.fn().mockResolvedValue(''),
   WpCoreInstall: vi.fn().mockResolvedValue(''),
   LaravelInit: vi.fn().mockResolvedValue(''),
   SnapshotListJSON: vi.fn().mockResolvedValue('[]'),

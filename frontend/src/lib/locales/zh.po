@@ -421,6 +421,9 @@ msgstr "伪装登录"
 msgid "detail.drupal.clearCache"
 msgstr "清除缓存"
 
+msgid "detail.drupal.runCron"
+msgstr "运行 Cron"
+
 msgid "detail.drupal.notAvailableSsh"
 msgstr "SSH 后端不支持此功能"
 

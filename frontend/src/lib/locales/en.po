@@ -422,6 +422,9 @@ msgstr "Masquerade"
 msgid "detail.drupal.clearCache"
 msgstr "Clear Cache"
 
+msgid "detail.drupal.runCron"
+msgstr "Run Cron"
+
 msgid "detail.drupal.notAvailableSsh"
 msgstr "Not available with SSH backend"
 

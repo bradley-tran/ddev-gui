@@ -23,6 +23,7 @@ describe('ProjectDetailView', () => {
     const ddevService = window.go.backend.DdevService as unknown as {
       DescribeJSON: Mock
       DrushRecentUsers: Mock
+      DrushCron: Mock
       SnapshotCreate: Mock
       SnapshotListJSON: Mock
       ProjectLogs: Mock
@@ -99,7 +100,7 @@ describe('ProjectDetailView', () => {
 
     await drupalToggle.trigger('click')
     await flushPromises()
-    expect(wrapper.findAll('.toolbar-dropdown-item')).toHaveLength(4)
+    expect(wrapper.findAll('.toolbar-dropdown-item')).toHaveLength(5)
 
     const drupalMenuItems = wrapper.findAll('.toolbar-dropdown-item')
     const masqueradeItem = drupalMenuItems[2]
@@ -117,6 +118,20 @@ describe('ProjectDetailView', () => {
     expect(closeButton.exists()).toBe(true)
     await closeButton.trigger('click')
     await flushPromises()
+
+    await drupalToggle.trigger('click')
+    await flushPromises()
+    const runCronItem = wrapper
+      .findAll('.toolbar-dropdown-item')
+      .find((button) => button.text().includes('Run Cron'))
+    expect(runCronItem).toBeDefined()
+    if (!runCronItem) {
+      throw new Error('Run Cron dropdown item was not rendered')
+    }
+
+    await runCronItem.trigger('click')
+    await flushPromises()
+    expect(ddevService.DrushCron).toHaveBeenCalledWith('demo')
 
     await moreToggle.trigger('click')
     await flushPromises()

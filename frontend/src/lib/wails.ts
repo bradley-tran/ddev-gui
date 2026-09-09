@@ -60,6 +60,7 @@ interface WailsDdevService {
   DrushRecentUsers(name: string): Promise<string>
   DrushSiteInstall(name: string): Promise<string>
   DrushCacheRebuild(name: string): Promise<string>
+  DrushCron(name: string): Promise<string>
   WpCoreInstall(name: string): Promise<string>
   LaravelInit(name: string): Promise<string>
   SnapshotListJSON(name: string): Promise<string>
@@ -183,6 +184,7 @@ export const DdevService = {
   drushRecentUsers: (name: string) => getDdevService().DrushRecentUsers(name),
   drushSiteInstall: (name: string) => getDdevService().DrushSiteInstall(name),
   drushCacheRebuild: (name: string) => getDdevService().DrushCacheRebuild(name),
+  drushCron: (name: string) => getDdevService().DrushCron(name),
   wpCoreInstall: (name: string) => getDdevService().WpCoreInstall(name),
   laravelInit: (name: string) => getDdevService().LaravelInit(name),
   snapshotListJSON: (name: string) => getDdevService().SnapshotListJSON(name),

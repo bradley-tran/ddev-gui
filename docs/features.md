@@ -50,6 +50,7 @@ A two-panel layout (toolbar/URL bar + sidebar navigation) for drilling into a si
   - Import DB - imports a `.sql` / `.sql.gz` / `.tgz` file, replaces the current DB
   - Masquerade - log in as any Drupal user by UID or name (opens a user-picker modal)
   - Clear Cache - runs `drush cr`
+  - Run Cron - runs `drush cron`
 - **More** dropdown - Open Folder, Open in Editor, Re-init Site, Delete Project
 
 The "Open in Editor" action launches the configured editor with the project root as the working directory. Supported editors include:

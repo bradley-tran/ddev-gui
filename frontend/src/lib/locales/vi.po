@@ -421,6 +421,9 @@ msgstr "Mạo danh"
 msgid "detail.drupal.clearCache"
 msgstr "Xóa bộ nhớ đệm"
 
+msgid "detail.drupal.runCron"
+msgstr "Chạy cron"
+
 msgid "detail.drupal.notAvailableSsh"
 msgstr "Không hỗ trợ với backend SSH"
 

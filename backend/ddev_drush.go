@@ -228,3 +228,13 @@ func (d *DdevService) DrushCacheRebuild(name string) (string, error) {
 	dirHint := d.resolveProjectDir(name)
 	return d.runDirect(context.Background(), dirHint, nil, "drush", "cr")
 }
+
+// DrushCron runs `ddev drush cron` for the given Drupal project.
+func (d *DdevService) DrushCron(name string) (string, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return "", errors.New("project name is required")
+	}
+	dirHint := d.resolveProjectDir(name)
+	return d.runDirect(context.Background(), dirHint, nil, "drush", "cron")
+}
