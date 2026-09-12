@@ -5,6 +5,7 @@ import {
   getProjectType,
   pickProjectValue,
   getPrimaryUrl,
+  getProjectUrls,
   getMailpitUrl,
   isProjectRunning,
   isProjectStopped,
@@ -195,6 +196,31 @@ describe('utils', () => {
     it('should return empty string if no URLs exist', () => {
       const p: DdevProject = {}
       expect(getPrimaryUrl(p)).toBe('')
+    })
+  })
+
+  describe('getProjectUrls', () => {
+    it('returns DDEV URL lists and adds legacy URL fields without duplicates', () => {
+      const project = {
+        urls: ['https://demo.ddev.site', 'http://demo.ddev.site'],
+        httpsurl: 'https://demo.ddev.site',
+        primary_url: 'https://demo.ddev.site',
+        httpurl: 'http://demo.ddev.site',
+      } as DdevProject
+
+      expect(getProjectUrls(project)).toEqual([
+        'https://demo.ddev.site',
+        'http://demo.ddev.site',
+      ])
+    })
+
+    it('falls back to legacy URL fields when a URL list is unavailable', () => {
+      expect(
+        getProjectUrls({
+          httpsurl: 'https://demo.ddev.site',
+          httpurl: 'http://demo.ddev.site',
+        }),
+      ).toEqual(['https://demo.ddev.site', 'http://demo.ddev.site'])
     })
   })
 

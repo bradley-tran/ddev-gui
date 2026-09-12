@@ -277,6 +277,12 @@ msgstr "PHP 版本"
 msgid "detail.overview.modify"
 msgstr "修改"
 
+msgid "detail.urls.title"
+msgstr "URL"
+
+msgid "detail.urls.none"
+msgstr "未找到项目 URL"
+
 msgid "detail.modify.title"
 msgstr "修改项目"
 

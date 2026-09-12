@@ -277,6 +277,12 @@ msgstr "Phiên bản PHP"
 msgid "detail.overview.modify"
 msgstr "Sửa đổi"
 
+msgid "detail.urls.title"
+msgstr "URL"
+
+msgid "detail.urls.none"
+msgstr "Không tìm thấy URL dự án"
+
 msgid "detail.modify.title"
 msgstr "Sửa đổi dự án"
 

@@ -70,6 +70,7 @@ export interface DdevProject {
   httpurl?: string
   httpsurl?: string
   url?: string
+  urls?: string[]
   primary_url?: string
   mailpit_url?: string
   mailpit_https_url?: string

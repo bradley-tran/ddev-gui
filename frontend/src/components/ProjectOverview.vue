@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EditIcon, SlidersHorizontalIcon } from '@lucide/vue'
+import { EditIcon, ExternalLinkIcon, SlidersHorizontalIcon } from '@lucide/vue'
 import Spinner from '@/components/Spinner.vue'
 import { useTranslation } from '@/lib/i18n'
 import type { DdevService } from '@/lib/types'
@@ -14,6 +14,7 @@ defineProps<{
   loading: boolean
   hasProject: boolean
   overviewItems: OverviewItem[]
+  projectUrls: string[]
   services: Array<[string, DdevService]>
 }>()
 
@@ -62,6 +63,27 @@ function statusClass(status: string): string {
                 </template>
               </span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="detail-section">
+        <div class="detail-section-title">{{ t('detail.urls.title') }}</div>
+        <div class="detail-section-body">
+          <div v-if="projectUrls.length === 0" class="text-muted">
+            {{ t('detail.urls.none') }}
+          </div>
+          <div v-else class="detail-url-list">
+            <button
+              v-for="url in projectUrls"
+              :key="url"
+              type="button"
+              class="detail-link-button detail-url-link"
+              @click="emit('open-url', url)"
+            >
+              <ExternalLinkIcon :size="13" :stroke-width="2" />
+              {{ url }}
+            </button>
           </div>
         </div>
       </section>
@@ -142,5 +164,18 @@ function statusClass(status: string): string {
   color: var(--accent-primary);
   cursor: pointer;
   text-decoration: underline;
+}
+
+.detail-url-list {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.detail-url-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 </style>

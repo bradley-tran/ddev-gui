@@ -278,6 +278,12 @@ msgstr "PHP Version"
 msgid "detail.overview.modify"
 msgstr "Modify"
 
+msgid "detail.urls.title"
+msgstr "URLs"
+
+msgid "detail.urls.none"
+msgstr "No project URLs found"
+
 msgid "detail.modify.title"
 msgstr "Modify Project"
 

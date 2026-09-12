@@ -56,6 +56,7 @@ describe('ProjectDetailView', () => {
           router: 'https',
           php_version: '8.3',
           nodejs_version: '20',
+          urls: ['https://demo.ddev.site', 'http://demo.ddev.site'],
           services: {
             web: {
               status: 'running',
@@ -83,6 +84,10 @@ describe('ProjectDetailView', () => {
     expect(ddevService.SnapshotListJSON).toHaveBeenCalledWith('demo')
     expect(wrapper.text()).toContain('drupal10')
     expect(wrapper.text()).toContain('8.3')
+    expect(wrapper.findAll('.detail-url-link').map((link) => link.text())).toEqual([
+      'https://demo.ddev.site',
+      'http://demo.ddev.site',
+    ])
     expect(wrapper.findAll('.toolbar-dropdown')).toHaveLength(2)
     expect(appStore.terminalActive).toBe(false)
 

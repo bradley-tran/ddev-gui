@@ -64,6 +64,23 @@ export function getPrimaryUrl(project: DdevProject): string {
   )
 }
 
+/**
+ * Returns every URL exposed for a project. Newer DDEV output includes a `urls`
+ * array, while older output exposes the individual URL fields instead.
+ */
+export function getProjectUrls(project: DdevProject): string[] {
+  const urls = pickProjectValue(project, ['urls'])
+  const listedUrls = Array.isArray(urls) ? urls : []
+  const candidates = [
+    ...listedUrls,
+    pickProjectValue(project, ['httpsurl']),
+    pickProjectValue(project, ['primary_url']),
+    pickProjectValue(project, ['httpurl', 'url']),
+  ]
+
+  return [...new Set(candidates.filter((url): url is string => typeof url === 'string' && !!url.trim()))]
+}
+
 export function getMailpitUrl(project: DdevProject): string {
   return String(project.mailpit_https_url ?? project.mailpit_url ?? '')
 }

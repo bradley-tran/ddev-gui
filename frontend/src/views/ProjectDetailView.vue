@@ -45,6 +45,7 @@ import {
   coerceToBool,
   getMailpitUrl,
   getPrimaryUrl,
+  getProjectUrls,
   getProjectName,
   getProjectStatus,
   getProjectType,
@@ -95,6 +96,7 @@ const projectStatus = computed(() =>
 )
 const primaryUrl = computed(() => (displayProject.value ? getPrimaryUrl(displayProject.value) : ''))
 const mailpitUrl = computed(() => (displayProject.value ? getMailpitUrl(displayProject.value) : ''))
+const projectUrls = computed(() => (displayProject.value ? getProjectUrls(displayProject.value) : []))
 const isStopped = computed(() =>
   displayProject.value ? isProjectStopped(displayProject.value) : false,
 )
@@ -871,6 +873,7 @@ async function handleDeleteConfirm() {
           :loading="loadingDesc"
           :has-project="Boolean(displayProject)"
           :overview-items="overviewItems"
+          :project-urls="projectUrls"
           :services="services"
           @modify="openModifyModal"
           @config-services="openServiceConfigModal"
