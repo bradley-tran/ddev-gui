@@ -161,3 +161,74 @@ func TestUpdateConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestSSHShellBuildCommand(t *testing.T) {
+	s := &SSHShell{}
+
+	tests := []struct {
+		name     string
+		dir      string
+		args     []string
+		envVars  []string
+		expected string
+	}{
+		{
+			name:     "Basic command",
+			dir:      "",
+			args:     []string{"echo", "hello"},
+			envVars:  nil,
+			expected: "echo hello 2>&1",
+		},
+		{
+			name:     "Environment variable with space",
+			dir:      "",
+			args:     []string{"echo", "hello"},
+			envVars:  []string{"GREETING=hello world"},
+			expected: "export GREETING='hello world'; echo hello 2>&1",
+		},
+		{
+			name:     "Command injection via env var value",
+			dir:      "",
+			args:     []string{"echo", "hello"},
+			envVars:  []string{"EVIL=bar; echo injected"},
+			expected: "export EVIL='bar; echo injected'; echo hello 2>&1",
+		},
+		{
+			name:     "Command injection via env var name",
+			dir:      "",
+			args:     []string{"echo", "hello"},
+			envVars:  []string{"EVIL; echo injected=1"},
+			expected: "export 'EVIL; echo injected'=1; echo hello 2>&1",
+		},
+		{
+			name:     "Command injection via env var without equals",
+			dir:      "",
+			args:     []string{"echo", "hello"},
+			envVars:  []string{"EVIL; echo injected"},
+			expected: "export 'EVIL; echo injected'; echo hello 2>&1",
+		},
+		{
+			name:     "Multiple env vars",
+			dir:      "~/test",
+			args:     []string{"ls", "-la"},
+			envVars:  []string{"A=b", "C=d e"},
+			expected: "cd $HOME/test 2>/dev/null || true; export A=b; export C='d e'; ls -la 2>&1",
+		},
+		{
+			name:     "Complex command injection attempt",
+			dir:      "",
+			args:     []string{"test"},
+			envVars:  []string{"TEST=$(cat /etc/passwd)"},
+			expected: "export TEST='$(cat /etc/passwd)'; test 2>&1",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := s.buildCommand(tt.dir, tt.args, tt.envVars)
+			if result != tt.expected {
+				t.Errorf("buildCommand() = %q, expected %q", result, tt.expected)
+			}
+		})
+	}
+}
