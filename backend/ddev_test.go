@@ -609,3 +609,82 @@ func TestSetContext(t *testing.T) {
 		}
 	})
 }
+
+func TestWSLDistro(t *testing.T) {
+	// Force execution of the sync.Once block to ensure our mock cache
+	// isn't overwritten during test execution on Windows.
+	getWSLDistros()
+
+	tests := []struct {
+		name        string
+		configVal   any
+		isNilConfig bool
+		mockDistros []string
+		expected    string
+	}{
+		{
+			name:      "explicit config value overrides all",
+			configVal: "CustomDistro",
+			expected:  "CustomDistro",
+		},
+		{
+			name:        "empty config value, DDEV distro exists",
+			configVal:   "",
+			mockDistros: []string{"Ubuntu", "DDEV"},
+			expected:    "DDEV",
+		},
+		{
+			name:        "empty config value, no DDEV distro",
+			configVal:   "",
+			mockDistros: []string{"Ubuntu"},
+			expected:    "",
+		},
+		{
+			name:        "nil config value, DDEV distro exists",
+			isNilConfig: true,
+			mockDistros: []string{"Ubuntu", "DDEV"},
+			expected:    "DDEV",
+		},
+		{
+			name:        "nil config value, no DDEV distro",
+			isNilConfig: true,
+			mockDistros: []string{"Ubuntu"},
+			expected:    "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var cfg *ConfigService
+			if !tt.isNilConfig {
+				cfg = &ConfigService{data: map[string]any{}}
+				if tt.configVal != nil {
+					cfg.Set("wslDistro", tt.configVal)
+				}
+			}
+
+			d := &DdevService{config: cfg}
+
+			// Capture original cache so we don't mess up other tests
+			originalCache := wslDistrosCache
+			t.Cleanup(func() {
+				wslDistrosCache = originalCache
+			})
+
+			// Override cache
+			wslDistrosCache = tt.mockDistros
+
+			got := d.WSLDistro()
+
+			expected := tt.expected
+			// On non-windows, distroExists evaluates to false, so the fallback behaves differently.
+			if stdruntime.GOOS != "windows" && expected == "DDEV" {
+				expected = ""
+			}
+
+			if got != expected {
+				t.Errorf("WSLDistro() = %v, want %v", got, expected)
+			}
+		})
+	}
+}
