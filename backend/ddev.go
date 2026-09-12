@@ -1001,7 +1001,12 @@ func (d *DdevService) runDirect(ctx context.Context, dir string, envVars []strin
 		// alive when ddev child processes inherit the duplicated pipe fd.
 		var parts []string
 		for _, ev := range envVars {
-			parts = append(parts, "export "+ev)
+			envParts := strings.SplitN(ev, "=", 2)
+			if len(envParts) == 2 {
+				parts = append(parts, fmt.Sprintf("export %s=%s", shellQuote(envParts[0]), shellQuote(envParts[1])))
+			} else {
+				parts = append(parts, "export "+shellQuote(ev))
+			}
 		}
 		var sb strings.Builder
 		sb.WriteString("ddev")
