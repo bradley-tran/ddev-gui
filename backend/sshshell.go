@@ -321,7 +321,12 @@ func (s *SSHShell) buildCommand(dir string, args []string, envVars []string) str
 	}
 
 	for _, ev := range envVars {
-		parts = append(parts, "export "+ev)
+		envParts := strings.SplitN(ev, "=", 2)
+		if len(envParts) == 2 {
+			parts = append(parts, fmt.Sprintf("export %s=%s", shellQuote(envParts[0]), shellQuote(envParts[1])))
+		} else {
+			parts = append(parts, "export "+shellQuote(ev))
+		}
 	}
 
 	quotedArgs := make([]string, len(args))
