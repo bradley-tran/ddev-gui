@@ -5,10 +5,7 @@ import enRaw from './locales/en.po?raw'
 function extractQuoted(line: string): string {
   const match = line.match(/^"(.*)"$/)
   return match?.[1]
-    ? match[1]
-        .replace(/\\n/g, '\n')
-        .replace(/\\"/g, '"')
-        .replace(/\\\\/g, '\\')
+    ? match[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\')
     : ''
 }
 
@@ -114,10 +111,9 @@ export function createI18nState(initialLocale: Locale = 'en'): I18nState {
   function t(key: string, vars?: Record<string, string>): string {
     let value = messages.value[key] ?? en[key] ?? key
     if (vars) {
-      // Use split/join instead of replaceAll to avoid TS target library issues
-      for (const [token, replacement] of Object.entries(vars)) {
-        value = value.split(`{${token}}`).join(replacement)
-      }
+      value = value.replace(/\{([^{}]+)\}/g, (match, key) => {
+        return vars[key!] !== undefined ? vars[key!]! : match
+      })
     }
     return value
   }
