@@ -405,6 +405,41 @@ func TestActiveBackend(t *testing.T) {
 	})
 }
 
+func TestShutdown(t *testing.T) {
+	// Create a clean config service without loading from disk
+	cfg := &ConfigService{
+		data: map[string]any{},
+	}
+
+	// Default config
+	svc := NewDdevService(cfg)
+	if stdruntime.GOOS == "windows" {
+		if svc.shell == nil || svc.fileShell == nil {
+			t.Errorf("expected shell and fileShell to be non-nil on Windows")
+		}
+	}
+	// Calling Shutdown shouldn't panic
+	svc.Shutdown()
+
+	// SSH config
+	cfg.Set("backend", "ssh")
+	cfg.Set("ssh", map[string]any{
+		"host": "localhost",
+		"port": "22",
+		"user": "test",
+	})
+	svcSsh := NewDdevService(cfg)
+	if svcSsh.sshShell == nil {
+		t.Fatalf("expected sshShell to be non-nil when backend is ssh")
+	}
+
+	svcSsh.Shutdown()
+
+	if svcSsh.sshShell.alive {
+		t.Errorf("expected sshShell to be marked not alive after shutdown")
+	}
+}
+
 func TestDescribeJSON(t *testing.T) {
 	tempDir := t.TempDir()
 
