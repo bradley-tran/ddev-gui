@@ -216,8 +216,11 @@ export const ConfigService = {
 
 export const Runtime = {
   on: (event: string, cb: RuntimeCallback) => {
-    const listeners = runtimeListeners.get(event) ?? new Set<RuntimeCallback>()
-    runtimeListeners.set(event, listeners)
+    let listeners = runtimeListeners.get(event)
+    if (!listeners) {
+      listeners = new Set<RuntimeCallback>()
+      runtimeListeners.set(event, listeners)
+    }
     listeners.add(cb)
     ensureRuntimeBridge(event)
   },
