@@ -35,9 +35,17 @@ const lineCount = computed(() => {
   return count
 })
 
-const lineNumbers = computed(() =>
-  Array.from({ length: lineCount.value }, (_, index) => String(index + 1)).join('\n'),
-)
+const lineNumbers = computed(() => {
+  const count = lineCount.value
+  let result = ''
+  if (count > 0) {
+    result = '1'
+    for (let i = 2; i <= count; i++) {
+      result += '\n' + i
+    }
+  }
+  return result
+})
 </script>
 
 <template>
@@ -45,7 +53,9 @@ const lineNumbers = computed(() =>
     <div class="code-viewer-lang">{{ language }}</div>
     <div class="code-viewer-scroll">
       <pre class="code-viewer-lines" aria-hidden="true">{{ lineNumbers }}</pre>
-      <pre class="code-viewer-code"><code :class="['hljs', `language-${language}`]" v-html="html" /></pre>
+      <pre
+        class="code-viewer-code"
+      ><code :class="['hljs', `language-${language}`]" v-html="html" /></pre>
     </div>
   </div>
 </template>
