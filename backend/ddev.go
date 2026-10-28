@@ -103,12 +103,14 @@ func resolveWSLDistro(cfg *ConfigService) string {
 }
 
 var (
-	wslDistrosCache []string
-	wslDistrosOnce  sync.Once
+	wslDistrosCache   []string
+	wslDistroMapCache map[string]bool
+	wslDistrosOnce    sync.Once
 )
 
 func getWSLDistros() []string {
 	wslDistrosOnce.Do(func() {
+		wslDistroMapCache = make(map[string]bool)
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		cmd := exec.CommandContext(ctx, "wsl.exe", "-l", "-q")
@@ -123,6 +125,7 @@ func getWSLDistros() []string {
 		for scanner.Scan() {
 			if text := strings.TrimSpace(scanner.Text()); text != "" {
 				wslDistrosCache = append(wslDistrosCache, text)
+				wslDistroMapCache[strings.ToLower(text)] = true
 			}
 		}
 		if err := scanner.Err(); err != nil {
@@ -139,12 +142,10 @@ func distroExists(name string) bool {
 		return false
 	}
 
-	for _, d := range getWSLDistros() {
-		if strings.EqualFold(d, name) {
-			return true
-		}
-	}
-	return false
+	// Ensure cache is initialized
+	getWSLDistros()
+
+	return wslDistroMapCache[strings.ToLower(name)]
 }
 
 // ListWSLDistros returns the names of all installed WSL distributions.
