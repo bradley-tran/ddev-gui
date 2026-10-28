@@ -501,8 +501,7 @@ func (d *DdevService) ReadFile(project, relPath string) (string, error) {
 		return "", err
 	}
 	// Strip line-wrapping whitespace and decode
-	out = strings.ReplaceAll(out, "\n", "")
-	out = strings.ReplaceAll(out, "\r", "")
+	out = stripNewlines(out)
 	decoded, err := base64.StdEncoding.DecodeString(out)
 	if err != nil {
 		return "", fmt.Errorf("base64 decode: %w", err)
@@ -537,8 +536,7 @@ func (d *DdevService) ReadFileBase64(project, relPath string) (string, error) {
 		return "", err
 	}
 	// Strip all whitespace (newlines from line wrapping) to produce a clean base64 string
-	out = strings.ReplaceAll(out, "\n", "")
-	out = strings.ReplaceAll(out, "\r", "")
+	out = stripNewlines(out)
 	return out, nil
 }
 
@@ -1735,4 +1733,30 @@ func (d *DdevService) verifyInstallerChecksum(fname, expectedHash string) bool {
 		return false
 	}
 	return strings.EqualFold(expectedHash, localSum)
+}
+
+func stripNewlines(s string) string {
+	hasNl := strings.IndexByte(s, '\n') != -1
+	hasCr := strings.IndexByte(s, '\r') != -1
+
+	if !hasNl && !hasCr {
+		return s
+	}
+
+	if hasNl && hasCr {
+		s = strings.ReplaceAll(s, "\r\n", "")
+		hasNl = strings.IndexByte(s, '\n') != -1
+		hasCr = strings.IndexByte(s, '\r') != -1
+		if !hasNl && !hasCr {
+			return s
+		}
+	}
+
+	if hasNl {
+		s = strings.ReplaceAll(s, "\n", "")
+	}
+	if hasCr {
+		s = strings.ReplaceAll(s, "\r", "")
+	}
+	return s
 }
