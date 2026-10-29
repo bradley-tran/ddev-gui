@@ -24,7 +24,7 @@ func fakeDdevScriptDrush() string {
 			"  exit /b 0\r\n" +
 			")\r\n" +
 			"if \"%1\"==\"drush\" (\r\n" +
-			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %1 %2 %3\r\n" +
+			"  > \"%TEST_DDEV_ARGS_FILE%\" echo %*\r\n" +
 			"  type \"%TEST_DDEV_MOCK_OUTPUT_FILE%\"\r\n" +
 			"  exit /b 0\r\n" +
 			")\r\n" +
@@ -38,7 +38,7 @@ func fakeDdevScriptDrush() string {
 		"  exit 0\n" +
 		"fi\n" +
 		"if [ \"$1\" = \"drush\" ]; then\n" +
-		"  printf '%s %s %s\\n' \"$1\" \"$2\" \"$3\" > \"$TEST_DDEV_ARGS_FILE\"\n" +
+		"  echo \"$@\" > \"$TEST_DDEV_ARGS_FILE\"\n" +
 		"  cat \"$TEST_DDEV_MOCK_OUTPUT_FILE\"\n" +
 		"  exit 0\n" +
 		"fi\n" +
