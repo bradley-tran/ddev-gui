@@ -165,13 +165,14 @@ describe('filePreview', () => {
       expect(mimeFromExt(`test.${ext}`)).toBe(expected)
     })
 
-    it('should return default image/png for unknown or non-image extensions', () => {
-      expect(mimeFromExt('test.txt')).toBe('image/png')
-      expect(mimeFromExt('no-extension')).toBe('image/png')
-    })
-
-    it('should handle empty string', () => {
-      expect(mimeFromExt('')).toBe('image/png')
+    it.each([
+      ['test.txt', 'image/png'],
+      ['no-extension', 'image/png'],
+      ['', 'image/png'],
+      ['test.', 'image/png'],
+      ['.hidden', 'image/png'],
+    ])('should return default image/png for unknown, non-image, or edge case extensions (%s)', (filename, expected) => {
+      expect(mimeFromExt(filename)).toBe(expected)
     })
   })
 })
