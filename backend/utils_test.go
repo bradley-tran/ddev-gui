@@ -71,6 +71,30 @@ func TestStripAnsi(t *testing.T) {
 	}
 }
 
+func TestEncodePowerShellCommand(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{"Empty", "", ""},
+		{"Simple", "dir", "ZABpAHIA"},
+		{"Command", "echo 'hello'", "ZQBjAGgAbwAgACcAaABlAGwAbABvACcA"},
+		{"Complex", "Write-Host \"Hello World\"", "VwByAGkAdABlAC0ASABvAHMAdAAgACIASABlAGwAbABvACAAVwBvAHIAbABkACIA"},
+		{"Ddev", "ddev start", "ZABkAGUAdgAgAHMAdABhAHIAdAA="},
+		{"Emoji", "✨ emoji test", "KCcgAGUAbQBvAGoAaQAgAHQAZQBzAHQA"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := encodePowerShellCommand(tt.input)
+			if got != tt.expected {
+				t.Errorf("encodePowerShellCommand(%q) = %q, want %q", tt.input, got, tt.expected)
+			}
+		})
+	}
+}
+
 func TestGenerateRandomString(t *testing.T) {
 	t.Run("Length", func(t *testing.T) {
 		lengths := []int{8, 12, 16, 32}
