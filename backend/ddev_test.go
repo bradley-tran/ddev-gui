@@ -723,3 +723,59 @@ func TestWSLDistro(t *testing.T) {
 		})
 	}
 }
+
+func TestWSLExists(t *testing.T) {
+	// Force execution of the sync.Once block to ensure our mock cache
+	// isn't overwritten during test execution.
+	getWSLDistros()
+
+	tests := []struct {
+		name          string
+		activeBackend string
+		mockDistros   []string
+		expected      bool
+	}{
+		{
+			name:          "non-wsl backend",
+			activeBackend: "local",
+			mockDistros:   []string{},
+			expected:      true,
+		},
+		{
+			name:          "wsl backend, no distros",
+			activeBackend: "wsl",
+			mockDistros:   []string{},
+			// on non-windows expected is true, on windows it's false
+			expected:      stdruntime.GOOS != "windows",
+		},
+		{
+			name:          "wsl backend, has distros",
+			activeBackend: "wsl",
+			mockDistros:   []string{"Ubuntu"},
+			expected:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &DdevService{
+				cachedBackend: tt.activeBackend,
+			}
+
+			// Capture original cache so we don't mess up other tests
+			originalCache := wslDistrosCache
+			t.Cleanup(func() {
+				wslDistrosCache = originalCache
+			})
+
+			// Override cache
+			wslDistrosCache = tt.mockDistros
+
+			got := d.WSLExists()
+
+			if got != tt.expected {
+				t.Errorf("WSLExists() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
+}
