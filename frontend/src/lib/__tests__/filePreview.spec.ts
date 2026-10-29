@@ -109,25 +109,29 @@ describe('filePreview', () => {
   })
 
   describe('detectLanguage', () => {
-    it('should detect language based on extension', () => {
-      expect(detectLanguage('test.ts')).toBe('typescript')
-      expect(detectLanguage('TEST.PY')).toBe('python')
-      expect(detectLanguage('index.html')).toBe('xml')
-    })
-
-    it('should detect language based on filename', () => {
-      expect(detectLanguage('Dockerfile')).toBe('dockerfile')
-      expect(detectLanguage('Vagrantfile')).toBe('ruby')
-      expect(detectLanguage('.gitignore')).toBe('bash')
-    })
-
-    it('should return plaintext for unknown extensions', () => {
-      expect(detectLanguage('unknown.xyz')).toBe('plaintext')
-      expect(detectLanguage('no-extension')).toBe('plaintext')
-    })
-
-    it('should handle empty string', () => {
-      expect(detectLanguage('')).toBe('plaintext')
+    it.each([
+      ['test.js', 'javascript'],
+      ['test.ts', 'typescript'],
+      ['TEST.PY', 'python'],
+      ['main.go', 'go'],
+      ['app.rs', 'rust'],
+      ['script.sh', 'bash'],
+      ['query.sql', 'sql'],
+      ['index.html', 'xml'],
+      ['styles.css', 'css'],
+      ['data.json', 'json'],
+      ['config.yaml', 'yaml'],
+      ['component.vue', 'xml'],
+      ['Dockerfile', 'dockerfile'],
+      ['Vagrantfile', 'ruby'],
+      ['.gitignore', 'bash'],
+      ['.env', 'bash'],
+      ['.env.example', 'bash'],
+      ['unknown.xyz', 'plaintext'],
+      ['no-extension', 'plaintext'],
+      ['', 'plaintext'],
+    ])('should detect language correctly for %s -> %s', (filename, expected) => {
+      expect(detectLanguage(filename)).toBe(expected)
     })
   })
 
