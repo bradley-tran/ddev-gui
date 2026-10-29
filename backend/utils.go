@@ -86,6 +86,9 @@ func shellEnvVars(ctx context.Context) []string {
 
 // GenerateRandomString returns a cryptographically secure random hex string of length n.
 func GenerateRandomString(n int) (string, error) {
+	if n < 0 {
+		return "", errors.New("negative length")
+	}
 	b := make([]byte, n/2+1)
 	if _, err := rand.Read(b); err != nil {
 		return "", err
