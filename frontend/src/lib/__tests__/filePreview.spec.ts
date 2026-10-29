@@ -147,6 +147,20 @@ describe('filePreview', () => {
       expect(mimeFromExt(filename)).toBe(expected)
     })
 
+    it.each([
+      ['png', 'image/png'],
+      ['jpg', 'image/jpeg'],
+      ['jpeg', 'image/jpeg'],
+      ['gif', 'image/gif'],
+      ['svg', 'image/svg+xml'],
+      ['webp', 'image/webp'],
+      ['ico', 'image/x-icon'],
+      ['bmp', 'image/bmp'],
+      ['avif', 'image/avif'],
+    ])('should map extension %s to mime type %s', (ext, expected) => {
+      expect(mimeFromExt(`test.${ext}`)).toBe(expected)
+    })
+
     it('should return default image/png for unknown or non-image extensions', () => {
       expect(mimeFromExt('test.txt')).toBe('image/png')
       expect(mimeFromExt('no-extension')).toBe('image/png')
