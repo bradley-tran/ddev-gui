@@ -132,10 +132,19 @@ describe('filePreview', () => {
   })
 
   describe('mimeFromExt', () => {
-    it('should return correct mime type for images', () => {
-      expect(mimeFromExt('test.png')).toBe('image/png')
-      expect(mimeFromExt('image.JPG')).toBe('image/jpeg')
-      expect(mimeFromExt('logo.svg')).toBe('image/svg+xml')
+    it.each([
+      ['test.png', 'image/png'],
+      ['test.jpg', 'image/jpeg'],
+      ['test.jpeg', 'image/jpeg'],
+      ['test.gif', 'image/gif'],
+      ['test.svg', 'image/svg+xml'],
+      ['test.webp', 'image/webp'],
+      ['test.ico', 'image/x-icon'],
+      ['test.bmp', 'image/bmp'],
+      ['test.avif', 'image/avif'],
+      ['image.JPG', 'image/jpeg'],
+    ])('should return correct mime type for images (%s -> %s)', (filename, expected) => {
+      expect(mimeFromExt(filename)).toBe(expected)
     })
 
     it('should return default image/png for unknown or non-image extensions', () => {
