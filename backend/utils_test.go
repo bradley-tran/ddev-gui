@@ -96,7 +96,7 @@ func TestEncodePowerShellCommand(t *testing.T) {
 }
 
 func TestGenerateRandomString(t *testing.T) {
-	t.Run("Length", func(t *testing.T) {
+	t.Run("VerifyOutputLength", func(t *testing.T) {
 		lengths := []int{8, 12, 16, 32}
 		for _, l := range lengths {
 			got, err := GenerateRandomString(l)
@@ -109,7 +109,7 @@ func TestGenerateRandomString(t *testing.T) {
 		}
 	})
 
-	t.Run("Uniqueness", func(t *testing.T) {
+	t.Run("VerifyConsecutiveCallsProduceDifferentStrings", func(t *testing.T) {
 		s1, _ := GenerateRandomString(16)
 		s2, _ := GenerateRandomString(16)
 		if s1 == s2 {
@@ -117,7 +117,7 @@ func TestGenerateRandomString(t *testing.T) {
 		}
 	})
 
-	t.Run("HexCharacters", func(t *testing.T) {
+	t.Run("VerifyHexCharacters", func(t *testing.T) {
 		got, _ := GenerateRandomString(32)
 		for _, r := range got {
 			isHex := (r >= '0' && r <= '9') || (r >= 'a' && r <= 'f')
