@@ -320,6 +320,10 @@ describe('utils', () => {
       expect(uid()).toMatch(/^id_/)
     })
 
+    it('should match the expected regex format', () => {
+      expect(uid()).toMatch(/^id_\d+_[a-z0-9]+$/)
+    })
+
     it('should generate unique IDs', () => {
       const id1 = uid()
       const id2 = uid()
