@@ -648,3 +648,166 @@ func TestDrushUli_Error(t *testing.T) {
 		t.Fatalf("expected error message to contain execution failure, got: %v", err)
 	}
 }
+func TestDrushUliAsUser_Success(t *testing.T) {
+	tempDir := t.TempDir()
+	projectDir := filepath.Join(tempDir, "project")
+	if err := os.Mkdir(projectDir, 0755); err != nil {
+		t.Fatalf("failed to create project dir: %v", err)
+	}
+
+	describePayload, err := json.Marshal(map[string]any{
+		"raw": map[string]string{
+			"approot": projectDir,
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal describe payload: %v", err)
+	}
+
+	describeFile := filepath.Join(tempDir, "describe.json")
+	if err := os.WriteFile(describeFile, describePayload, 0644); err != nil {
+		t.Fatalf("failed to write describe payload: %v", err)
+	}
+
+	argsFile := filepath.Join(tempDir, "args.txt")
+	mockOutputFile := filepath.Join(tempDir, "mock_output.txt")
+	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptNameDrush())
+
+	mockOutput := "http://default/user/login?destination=..."
+	if err := os.WriteFile(mockOutputFile, []byte(mockOutput), 0644); err != nil {
+		t.Fatalf("failed to write mock output file: %v", err)
+	}
+	if err := os.WriteFile(fakeDdevPath, []byte(fakeDdevScriptDrush()), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev script: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+	t.Setenv("TEST_DDEV_DESCRIBE_FILE", describeFile)
+	t.Setenv("TEST_DDEV_ARGS_FILE", argsFile)
+	t.Setenv("TEST_DDEV_MOCK_OUTPUT_FILE", mockOutputFile)
+
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	output, err := svc.DrushUliAsUser("demo", "123")
+	if err != nil {
+		t.Fatalf("DrushUliAsUser returned error: %v", err)
+	}
+
+	if strings.TrimSpace(output) != mockOutput {
+		t.Fatalf("expected output %q, got %q", mockOutput, output)
+	}
+
+	argsRaw, err := os.ReadFile(argsFile)
+	if err != nil {
+		t.Fatalf("failed to read fake ddev args: %v", err)
+	}
+	if !strings.Contains(string(argsRaw), "drush uli") || !strings.Contains(string(argsRaw), "--uid=123") {
+		t.Fatalf("expected drush command to include uli and --uid=123, got %q", strings.TrimSpace(string(argsRaw)))
+	}
+}
+
+func TestDrushUliAsUser_EmptyProject(t *testing.T) {
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	output, err := svc.DrushUliAsUser(" ", "123")
+	if err == nil {
+		t.Fatal("expected error for empty project name, got nil")
+	}
+
+	if output != "" {
+		t.Fatalf("expected output '', got %q", output)
+	}
+
+	if err.Error() != "project name is required" {
+		t.Fatalf("expected error 'project name is required', got %q", err.Error())
+	}
+}
+
+func TestDrushUliAsUser_EmptyUID(t *testing.T) {
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	output, err := svc.DrushUliAsUser("demo", " ")
+	if err == nil {
+		t.Fatal("expected error for empty user ID, got nil")
+	}
+
+	if output != "" {
+		t.Fatalf("expected output '', got %q", output)
+	}
+
+	if err.Error() != "user ID is required" {
+		t.Fatalf("expected error 'user ID is required', got %q", err.Error())
+	}
+}
+
+func TestDrushUliAsUser_Error(t *testing.T) {
+	tempDir := t.TempDir()
+	projectDir := filepath.Join(tempDir, "project")
+	if err := os.Mkdir(projectDir, 0755); err != nil {
+		t.Fatalf("failed to create project dir: %v", err)
+	}
+
+	describePayload, err := json.Marshal(map[string]any{
+		"raw": map[string]string{
+			"approot": projectDir,
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to marshal describe payload: %v", err)
+	}
+
+	describeFile := filepath.Join(tempDir, "describe.json")
+	if err := os.WriteFile(describeFile, describePayload, 0644); err != nil {
+		t.Fatalf("failed to write describe payload: %v", err)
+	}
+
+	fakeDdevPath := filepath.Join(tempDir, fakeDdevScriptNameDrush())
+
+	// Create a script that exits with non-zero status
+	var scriptContent string
+	if runtime.GOOS == "windows" {
+		scriptContent = "@echo off\r\n" +
+			"if \"%1\"==\"describe\" (\r\n" +
+			"  type \"%TEST_DDEV_DESCRIBE_FILE%\"\r\n" +
+			"  exit /b 0\r\n" +
+			")\r\n" +
+			"echo Error executing drush uli\r\n" +
+			"exit /b 1\r\n"
+	} else {
+		scriptContent = "#!/bin/sh\n" +
+			"if [ \"$1\" = \"describe\" ]; then\n" +
+			"  cat \"$TEST_DDEV_DESCRIBE_FILE\"\n" +
+			"  exit 0\n" +
+			"fi\n" +
+			"echo \"Error executing drush uli\" >&2\n" +
+			"exit 1\n"
+	}
+
+	if err := os.WriteFile(fakeDdevPath, []byte(scriptContent), 0755); err != nil {
+		t.Fatalf("failed to write fake ddev script: %v", err)
+	}
+
+	originalPath := os.Getenv("PATH")
+	t.Setenv("PATH", tempDir+string(os.PathListSeparator)+originalPath)
+	t.Setenv("TEST_DDEV_DESCRIBE_FILE", describeFile)
+
+	svc := &DdevService{
+		config: &ConfigService{data: map[string]any{"backend": "local"}},
+	}
+
+	_, err = svc.DrushUliAsUser("demo", "123")
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "Error executing drush uli") && !strings.Contains(err.Error(), "exit status 1") {
+		t.Fatalf("expected error message to contain execution failure, got: %v", err)
+	}
+}
