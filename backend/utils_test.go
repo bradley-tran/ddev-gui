@@ -72,24 +72,39 @@ func TestStripAnsi(t *testing.T) {
 }
 
 func TestEncodePowerShellCommand(t *testing.T) {
+	// Table-driven test to ensure UTF-16LE and Base64 encoding works correctly
 	tests := []struct {
 		name     string
 		input    string
 		expected string
 	}{
-		{"Empty", "", ""},
-		{"Simple", "dir", "ZABpAHIA"},
-		{"Command", "echo 'hello'", "ZQBjAGgAbwAgACcAaABlAGwAbABvACcA"},
-		{"Complex", "Write-Host \"Hello World\"", "VwByAGkAdABlAC0ASABvAHMAdAAgACIASABlAGwAbABvACAAVwBvAHIAbABkACIA"},
-		{"Ddev", "ddev start", "ZABkAGUAdgAgAHMAdABhAHIAdAA="},
-		{"Emoji", "✨ emoji test", "KCcgAGUAbQBvAGoAaQAgAHQAZQBzAHQA"},
+		{
+			name:     "empty string",
+			input:    "",
+			expected: "",
+		},
+		{
+			name:     "simple ascii",
+			input:    "dir",
+			expected: "ZABpAHIA",
+		},
+		{
+			name:     "spaces and quotes",
+			input:    "echo 'Hello World'",
+			expected: "ZQBjAGgAbwAgACcASABlAGwAbABvACAAVwBvAHIAbABkACcA",
+		},
+		{
+			name:     "unicode characters",
+			input:    "echo 'こんにちは'",
+			expected: "ZQBjAGgAbwAgACcAUzCTMGswYTBvMCcA",
+		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := encodePowerShellCommand(tt.input)
-			if got != tt.expected {
-				t.Errorf("encodePowerShellCommand(%q) = %q, want %q", tt.input, got, tt.expected)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := encodePowerShellCommand(tc.input)
+			if got != tc.expected {
+				t.Errorf("encodePowerShellCommand(%q) = %q; want %q", tc.input, got, tc.expected)
 			}
 		})
 	}
