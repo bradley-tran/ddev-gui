@@ -1,7 +1,43 @@
 import { describe, expect, it } from 'vitest'
-import { matchesAddonSearch, filterAddons, type AddonItem } from '../addonFilter'
+import { parseSearch, matchesAddonSearch, filterAddons, type AddonItem } from '../addonFilter'
 
 describe('addonFilter', () => {
+  describe('parseSearch', () => {
+    it('should return empty tokens and null pattern for empty or whitespace query', () => {
+      expect(parseSearch('')).toEqual({ query: '', tokens: [], pattern: null })
+      expect(parseSearch('   ')).toEqual({ query: '', tokens: [], pattern: null })
+    })
+
+    it('should split query into tokens and ignore extra whitespace', () => {
+      const result = parseSearch('  redis   mysql  ')
+      expect(result.query).toBe('redis   mysql')
+      expect(result.tokens).toEqual(['redis', 'mysql'])
+    })
+
+    it('should return null pattern if query length < 3', () => {
+      const result = parseSearch('re')
+      expect(result.query).toBe('re')
+      expect(result.tokens).toEqual(['re'])
+      expect(result.pattern).toBeNull()
+    })
+
+    it('should generate regex pattern if query length >= 3', () => {
+      const result = parseSearch('redis')
+      expect(result.query).toBe('redis')
+      expect(result.tokens).toEqual(['redis'])
+      expect(result.pattern).toBeInstanceOf(RegExp)
+      expect(result.pattern?.source).toBe('\\bredis')
+      expect(result.pattern?.flags).toBe('i')
+    })
+
+    it('should escape regex characters in tokens', () => {
+      const result = parseSearch('php 8.1+ [test]')
+      expect(result.tokens).toEqual(['php', '8.1+', '[test]'])
+      expect(result.pattern).toBeInstanceOf(RegExp)
+      // `.` `+` `[` `]` should be escaped: `8\.1\+` and `\[test\]`
+      expect(result.pattern?.source).toBe('\\bphp.*\\b8\\.1\\+.*\\b\\[test\\]')
+    })
+  })
   describe('matchesAddonSearch', () => {
     it('should return true if search is empty or whitespace', () => {
       const item: AddonItem = { repo: 'ddev/ddev-redis' }
