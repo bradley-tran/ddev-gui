@@ -96,24 +96,25 @@ func TestEncodePowerShellCommand(t *testing.T) {
 }
 
 func TestGenerateRandomString(t *testing.T) {
-	t.Run("Length", func(t *testing.T) {
-		lengths := []int{8, 12, 16, 32}
-		for _, l := range lengths {
-			got, err := GenerateRandomString(l)
+	// 1. Verify the output length
+	t.Run("VerifyOutputLength", func(t *testing.T) {
+		for _, length := range []int{8, 12, 16, 32} {
+			result, err := GenerateRandomString(length)
 			if err != nil {
-				t.Fatalf("GenerateRandomString(%d) error: %v", l, err)
+				t.Fatalf("Failed to generate string of length %d: %v", length, err)
 			}
-			if len(got) != l {
-				t.Errorf("GenerateRandomString(%d) length = %d, want %d", l, len(got), l)
+			if len(result) != length {
+				t.Errorf("Expected length %d, got %d", length, len(result))
 			}
 		}
 	})
 
-	t.Run("Uniqueness", func(t *testing.T) {
-		s1, _ := GenerateRandomString(16)
-		s2, _ := GenerateRandomString(16)
-		if s1 == s2 {
-			t.Errorf("GenerateRandomString(16) produced identical strings: %q", s1)
+	// 2. Make sure consecutive calls produce different random strings
+	t.Run("ConsecutiveCallsUniqueness", func(t *testing.T) {
+		str1, _ := GenerateRandomString(16)
+		str2, _ := GenerateRandomString(16)
+		if str1 == str2 {
+			t.Errorf("Consecutive calls produced identical strings: %q", str1)
 		}
 	})
 
@@ -124,6 +125,23 @@ func TestGenerateRandomString(t *testing.T) {
 			if !isHex {
 				t.Errorf("GenerateRandomString() produced non-hex character: %q", r)
 			}
+		}
+	})
+
+	t.Run("ZeroLength", func(t *testing.T) {
+		got, err := GenerateRandomString(0)
+		if err != nil {
+			t.Fatalf("GenerateRandomString(0) error: %v", err)
+		}
+		if got != "" {
+			t.Errorf("GenerateRandomString(0) = %q, want empty string", got)
+		}
+	})
+
+	t.Run("NegativeLength", func(t *testing.T) {
+		_, err := GenerateRandomString(-1)
+		if err == nil {
+			t.Error("GenerateRandomString(-1) expected error, got nil")
 		}
 	})
 }
