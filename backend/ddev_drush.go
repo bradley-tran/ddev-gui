@@ -33,29 +33,7 @@ func (d *DdevService) DrushUli(name string) (string, error) {
 		combined = strings.TrimSpace(out)
 	}
 
-	// Try to extract a URL from the output (drush uli outputs a URL)
-	scanner := bufio.NewScanner(strings.NewReader(combined))
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if strings.HasPrefix(line, "http://") || strings.HasPrefix(line, "https://") {
-			return line, nil
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		return "", fmt.Errorf("error parsing drush output: %w", err)
-	}
-
-	if err != nil {
-		cleaned := stripAnsi(combined)
-		if cleaned != "" {
-			return "", fmt.Errorf("drush uli error: %s", cleaned)
-		}
-		return "", err
-	}
-	if strings.TrimSpace(out) != "" {
-		return strings.TrimSpace(out), nil
-	}
-	return "", errors.New("drush uli returned no URL - is this a Drupal project with a working site?")
+	return parseDrushUliOutput(out, combined, err)
 }
 
 // DrushUliAsUser runs `ddev drush uli --uid=<uid>` for the given project and returns
@@ -92,6 +70,10 @@ func (d *DdevService) DrushUliAsUser(name, uid string) (string, error) {
 		combined = strings.TrimSpace(out)
 	}
 
+	return parseDrushUliOutput(out, combined, err)
+}
+
+func parseDrushUliOutput(out, combined string, err error) (string, error) {
 	// Try to extract a URL from the output (drush uli outputs a URL)
 	scanner := bufio.NewScanner(strings.NewReader(combined))
 	for scanner.Scan() {
@@ -100,8 +82,8 @@ func (d *DdevService) DrushUliAsUser(name, uid string) (string, error) {
 			return line, nil
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		return "", fmt.Errorf("error parsing drush output: %w", err)
+	if scanErr := scanner.Err(); scanErr != nil {
+		return "", fmt.Errorf("error parsing drush output: %w", scanErr)
 	}
 
 	if err != nil {
