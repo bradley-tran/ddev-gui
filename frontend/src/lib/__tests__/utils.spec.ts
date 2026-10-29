@@ -316,8 +316,8 @@ describe('utils', () => {
   })
 
   describe('uid', () => {
-    it('should generate a string starting with id_', () => {
-      expect(uid()).toMatch(/^id_/)
+    it('should generate a string matching the expected format', () => {
+      expect(uid()).toMatch(/^id_\d+_[a-z0-9]+$/)
     })
 
     it('should generate unique IDs', () => {
