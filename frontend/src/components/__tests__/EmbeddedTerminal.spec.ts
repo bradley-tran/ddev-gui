@@ -111,4 +111,55 @@ describe('EmbeddedTerminal', () => {
 
     wrapper.unmount()
   })
+
+  it('displays error messages when command execution fails', async () => {
+    if (!window.go?.backend || !window.runtime) {
+      throw new Error('Wails mocks are not available')
+    }
+
+    const ddevService = window.go.backend.DdevService as unknown as {
+      ExecCommand: Mock
+    }
+    const runtime = window.runtime as unknown as {
+      EventsOn: Mock
+      EventsOff: Mock
+    }
+
+    const listeners = new Map<string, (...args: unknown[]) => void>()
+    runtime.EventsOn.mockImplementation((event: string, callback: (...args: unknown[]) => void) => {
+      listeners.set(event, callback)
+    })
+
+    ddevService.ExecCommand.mockRejectedValueOnce(new Error('Failed to execute command'))
+
+    const wrapper = mount(EmbeddedTerminal, {
+      props: {
+        projectName: 'demo',
+      },
+      global: {
+        plugins: [i18nPlugin],
+      },
+      attachTo: document.body,
+    })
+
+    await flushPromises()
+
+    await wrapper.get('[data-testid="embedded-terminal-input"]').setValue('badcommand')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Failed to execute command')
+    expect(wrapper.find('.terminal-line-error').exists()).toBe(true)
+
+    // Test ignoring 'exit status' errors
+    ddevService.ExecCommand.mockRejectedValueOnce(new Error('Command failed with exit status 1'))
+
+    await wrapper.get('[data-testid="embedded-terminal-input"]').setValue('anothercommand')
+    await wrapper.get('form').trigger('submit')
+    await flushPromises()
+
+    expect(wrapper.text()).not.toContain('Command failed with exit status 1')
+
+    wrapper.unmount()
+  })
 })
