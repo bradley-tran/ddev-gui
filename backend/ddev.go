@@ -798,7 +798,7 @@ func (d *DdevService) execCommandWSL(dirHint, command string, timeout time.Durat
 func (d *DdevService) execCommandLocal(dirHint, command string, timeout time.Duration, onLine func(string), emitDone func(int)) (string, error) {
 	execCtx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	cmd := exec.CommandContext(execCtx, "ddev", "exec", "--", "bash", "-c", command)
+	cmd := exec.CommandContext(execCtx, "ddev", "exec", "--", "bash", "-c", "$1", "--", command)
 	cmd.Dir = dirHint
 	cmd.Env = os.Environ()
 
