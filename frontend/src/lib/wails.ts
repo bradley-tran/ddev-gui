@@ -1,3 +1,9 @@
+import { Application, Events, Window } from '@wailsio/runtime'
+import {
+  ConfigService as BoundConfigService,
+  DdevService as BoundDdevService,
+} from '../../bindings/ddev-gui/backend'
+
 declare global {
   interface Window {
     go?: {
@@ -78,8 +84,8 @@ interface WailsDdevService {
 
 interface WailsConfigService {
   GetAll(): Promise<string>
-  Set(key: string, value: unknown): Promise<string>
-  SetProjectConfig(project: string, key: string, value: unknown): Promise<string>
+  Set(key: string, value: unknown): Promise<string | void>
+  SetProjectConfig(project: string, key: string, value: unknown): Promise<string | void>
 }
 
 interface WailsRuntime {
@@ -102,12 +108,22 @@ function ensureBinding<T>(binding: T | undefined, name: string): T {
   return binding
 }
 
+function useLegacyBridge(): boolean {
+  return import.meta.env.MODE === 'test' || Boolean(window.go)
+}
+
 function getDdevService(): WailsDdevService {
-  return ensureBinding(window.go?.backend?.DdevService, 'window.go.backend.DdevService')
+  if (useLegacyBridge()) {
+    return ensureBinding(window.go?.backend?.DdevService, 'window.go.backend.DdevService')
+  }
+  return BoundDdevService
 }
 
 function getConfigService(): WailsConfigService {
-  return ensureBinding(window.go?.backend?.ConfigService, 'window.go.backend.ConfigService')
+  if (useLegacyBridge()) {
+    return ensureBinding(window.go?.backend?.ConfigService, 'window.go.backend.ConfigService')
+  }
+  return BoundConfigService
 }
 
 type RuntimeCallback = (...args: unknown[]) => void
@@ -128,7 +144,13 @@ function ensureRuntimeBridge(event: string): RuntimeCallback {
   }
 
   runtimeBridges.set(event, bridge)
-  window.runtime?.EventsOn(event, bridge)
+  if (window.runtime) {
+    window.runtime.EventsOn(event, bridge)
+  } else {
+    Events.On(event, (ev) => {
+      bridge(ev.data)
+    })
+  }
   return bridge
 }
 
@@ -228,7 +250,11 @@ export const Runtime = {
     if (!cb) {
       runtimeListeners.delete(event)
       runtimeBridges.delete(event)
-      window.runtime?.EventsOff(event)
+      if (window.runtime) {
+        window.runtime.EventsOff(event)
+      } else {
+        Events.Off(event)
+      }
       return
     }
 
@@ -239,12 +265,45 @@ export const Runtime = {
     if (listeners.size === 0) {
       runtimeListeners.delete(event)
       runtimeBridges.delete(event)
-      window.runtime?.EventsOff(event)
+      if (window.runtime) {
+        window.runtime.EventsOff(event)
+      } else {
+        Events.Off(event)
+      }
     }
   },
-  emit: (event: string, data?: unknown) => window.runtime?.EventsEmit(event, data),
-  minimise: () => window.runtime?.WindowMinimise(),
-  toggleMaximise: () => window.runtime?.WindowToggleMaximise(),
-  isMaximised: () => window.runtime?.WindowIsMaximised() ?? Promise.resolve(false),
-  quit: () => window.runtime?.Quit(),
+  emit: (event: string, data?: unknown) => {
+    if (window.runtime) {
+      window.runtime.EventsEmit(event, data)
+      return
+    }
+    return Events.Emit(event, data)
+  },
+  minimise: () => {
+    if (window.runtime) {
+      window.runtime.WindowMinimise()
+      return
+    }
+    return Window.Minimise()
+  },
+  toggleMaximise: () => {
+    if (window.runtime) {
+      window.runtime.WindowToggleMaximise()
+      return
+    }
+    return Window.ToggleMaximise()
+  },
+  isMaximised: () => {
+    if (window.runtime) {
+      return window.runtime.WindowIsMaximised()
+    }
+    return Window.IsMaximised()
+  },
+  quit: () => {
+    if (window.runtime) {
+      window.runtime.Quit()
+      return
+    }
+    return Application.Quit()
+  },
 }

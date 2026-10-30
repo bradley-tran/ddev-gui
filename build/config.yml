@@ -1,0 +1,43 @@
+# This file is used to configure the build process.
+version: '3'
+
+# This information is used to generate the build assets.
+info:
+  companyName: ""
+  productName: "DDEV GUI"
+  productIdentifier: "com.wails.ddev-gui"
+  description: "A minimal Wails v3 desktop app to drive common ddev commands via a simple GUI."
+  copyright: ""
+  comments: "A desktop app for managing DDEV projects"
+  version: "0.0.0.0"
+
+# Dev mode configuration
+dev_mode:
+  root_path: .
+  log_level: warn
+  debounce: 1000
+  ignore:
+    dir:
+      - .git
+      - node_modules
+      - frontend
+      - bin
+      - build
+    file:
+      - .DS_Store
+      - .gitignore
+      - .gitkeep
+    watched_extension:
+      - "*.go"
+    git_ignore: true
+  executes:
+    - cmd: wails3 generate bindings -ts -d frontend/bindings
+      type: blocking
+    - cmd: npm --prefix frontend install
+      type: once
+    - cmd: npm --prefix frontend run dev -- --port ${WAILS_VITE_PORT} --strictPort
+      type: background
+    - cmd: go build -gcflags=all="-l" -o build/bin/ddev-gui{{. Ext}}
+      type: blocking
+    - cmd: ./build/bin/ddev-gui{{. Ext}}
+      type: primary

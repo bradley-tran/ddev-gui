@@ -1,12 +1,12 @@
 # Wails build artifacts
 build/*
 !build/appicon.png
+!build/config.yml
+!build/windows/
+build/windows/*.syso
 build/bin/
 dist/
 wails.log
-
-# Wails JS bindings (generated)
-frontend/wailsjs/
 
 # Go build outputs
 *.exe

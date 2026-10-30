@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	wruntime "github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // Status returns `ddev describe <project>` output.
@@ -80,18 +80,19 @@ func (d *DdevService) ExportDB(project string) (string, error) {
 	}
 
 	// Show native save-file dialog
-	if d.ctx == nil {
+	app := application.Get()
+	if d.ctx == nil || app == nil {
 		return "", errors.New("application context not set")
 	}
 	defaultName := project + "-db.sql.gz"
-	savePath, err := wruntime.SaveFileDialog(d.ctx, wruntime.SaveDialogOptions{
-		Title:           "Export Database - " + project,
-		DefaultFilename: defaultName,
-		Filters: []wruntime.FileFilter{
+	savePath, err := app.Dialog.SaveFileWithOptions(&application.SaveFileDialogOptions{
+		Title:    "Export Database - " + project,
+		Filename: defaultName,
+		Filters: []application.FileFilter{
 			{DisplayName: "Gzipped SQL (*.sql.gz)", Pattern: "*.sql.gz"},
 			{DisplayName: "All Files (*.*)", Pattern: "*.*"},
 		},
-	})
+	}).PromptForSingleSelection()
 	if err != nil {
 		return "", fmt.Errorf("save dialog error: %w", err)
 	}
@@ -117,16 +118,18 @@ func (d *DdevService) ImportDBSelectFile(project string) (string, error) {
 	if d.activeBackend() == "ssh" {
 		return "", errors.New("database import is not supported with the SSH backend - use the remote server's command line instead")
 	}
-	if d.ctx == nil {
+	app := application.Get()
+	if d.ctx == nil || app == nil {
 		return "", errors.New("application context not set")
 	}
-	openPath, err := wruntime.OpenFileDialog(d.ctx, wruntime.OpenDialogOptions{
-		Title: "Import Database - " + strings.TrimSpace(project),
-		Filters: []wruntime.FileFilter{
+	openPath, err := app.Dialog.OpenFileWithOptions(&application.OpenFileDialogOptions{
+		Title:          "Import Database - " + strings.TrimSpace(project),
+		CanChooseFiles: true,
+		Filters: []application.FileFilter{
 			{DisplayName: "SQL Files (*.sql;*.sql.gz;*.sql.bz2;*.sql.xz;*.gz;*.bz2;*.xz;*.zip;*.tar;*.tar.gz;*.tgz)", Pattern: "*.sql;*.sql.gz;*.sql.bz2;*.sql.xz;*.gz;*.bz2;*.xz;*.zip;*.tar;*.tar.gz;*.tgz"},
 			{DisplayName: "All Files (*.*)", Pattern: "*.*"},
 		},
-	})
+	}).PromptForSingleSelection()
 	if err != nil {
 		return "", fmt.Errorf("open dialog error: %w", err)
 	}

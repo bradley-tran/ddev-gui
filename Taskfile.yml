@@ -6,12 +6,32 @@ tasks:
   dev:
     desc: Start the development server
     cmds:
-      - wails dev
+      - wails3 dev
+
+  generate:bindings:
+    desc: Generate Wails v3 frontend bindings
+    cmds:
+      - wails3 generate bindings -ts -d frontend/bindings
+
+  build:frontend:
+    desc: Build the frontend assets
+    dir: frontend
+    cmds:
+      - npm run build
 
   build:
     desc: Build the application
+    deps:
+      - build:frontend
     cmds:
-      - wails build
+      - go build -tags production -trimpath -buildvcs=false -ldflags="-w -s{{if eq OS "windows"}} -H windowsgui{{end}}" -o build/bin/ddev-gui{{exeExt}}
+
+  run:
+    desc: Build and run the application
+    deps:
+      - build
+    cmds:
+      - ./build/bin/ddev-gui{{exeExt}}
 
   test-backend:
     desc: Run backend tests

@@ -81,7 +81,7 @@ onMounted(() => {
           <span style="font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.04em">
             {{ t('about.builtWith') }}
           </span>
-          <span style="font-size: 13px; color: var(--text-primary)">Wails v2</span>
+          <span style="font-size: 13px; color: var(--text-primary)">Wails v3</span>
         </div>
       </div>
     </div>

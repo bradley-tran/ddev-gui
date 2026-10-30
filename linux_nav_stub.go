@@ -1,5 +1,5 @@
-//go:build !linux
-// +build !linux
+//go:build !linux || !gtk3
+// +build !linux !gtk3
 
 package main
 

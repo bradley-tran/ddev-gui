@@ -1,6 +1,6 @@
 # DDEV GUI
 
-A native desktop application for managing [DDEV](https://github.com/ddev/ddev) projects through an intuitive graphical interface. Built with [Wails v2](https://github.com/wailsapp/wails) (Go + Vue 3 + TypeScript) and styled with a **Fluent UI** design system for a modern Windows 11 look and feel.
+A native desktop application for managing [DDEV](https://github.com/ddev/ddev) projects through an intuitive graphical interface. Built with [Wails v3](https://github.com/wailsapp/wails) (Go + Vue 3 + TypeScript) and styled with a **Fluent UI** design system for a modern Windows 11 look and feel.
 
 ## Screenshots
 ### Project List
@@ -38,15 +38,15 @@ A native desktop application for managing [DDEV](https://github.com/ddev/ddev) p
 
 ## Prerequisites
 
-- **Go 1.23+**
+- **Go 1.25+**
 - **Node.js 22+** and **npm**
-- **Wails CLI** installed and prerequisites met:
+- **Wails v3 CLI** installed and prerequisites met:
   ```
-  go install github.com/wailsapp/wails/v2/cmd/wails@latest
+  go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0
   ```
   - Windows: WebView2 Runtime + MSVC build tools
-  - Linux: `libgtk-3-dev`, `libwebkit2gtk-4.1-dev`, `pkg-config`
-  - See: https://wails.io/docs/gettingstarted/installation
+  - Linux: `libgtk-3-dev`, `libwebkit2gtk-4.1-dev`, `pkg-config` (or `libgtk-4-dev`, `libwebkitgtk-6.0-dev`)
+  - See: https://v3.wails.io/
 - **DDEV** installed and available on `PATH` (or inside WSL on Windows)
 - **[Task](https://taskfile.dev/)** (optional)
 
@@ -59,10 +59,10 @@ npm install
 cd ..
 
 # Development mode (hot-reload)
-wails dev
+wails3 dev
 
 # Production build
-wails build
+task build
 # Binary output: build/bin/ddev-gui (.exe on Windows)
 ```
 
@@ -84,14 +84,14 @@ wails build
 │   │   ├── lib/            # Utilities and Wails bridge
 │   │   └── App.vue         # Main application component
 │   └── package.json        # Frontend dependencies and scripts
-├── build/                   # Platform assets (icons, manifest)
-├── wails.json               # Wails project configuration
+├── build/                   # Platform assets and Wails v3 config (build/config.yml)
+├── Taskfile.yml             # Task runner configuration
 └── go.mod / go.sum          # Go module dependencies
 ```
 
 ## Architecture
 
-The app uses **Wails v2 Go bindings** for frontend-to-backend communication. The frontend (Vue 3 + Pinia) calls Go methods directly via a typed bridge. Push notifications from the backend (e.g., streaming command output) use the Wails event bus.
+The app uses **Wails v3 Go bindings** for frontend-to-backend communication. The frontend (Vue 3 + Pinia) calls Go methods directly via a typed bridge. Push notifications from the backend (e.g., streaming command output) use the Wails event bus.
 
 ```
 Frontend (Vue 3)  ──  Go Bindings  ──  DdevService  ──  ddev CLI

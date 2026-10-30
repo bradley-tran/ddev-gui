@@ -1,4 +1,5 @@
 import type { DdevProject } from './types'
+import { Runtime } from './wails'
 
 export function getProjectName(project: DdevProject): string {
   return String(project.name ?? project.project ?? project.projectname ?? '')
@@ -125,12 +126,12 @@ export function openUrl(url: string, openInBrowser = true): void {
   if (!url) return
 
   if (getIsLinux()) {
-    window.runtime?.EventsEmit('open:url', { url })
+    Runtime.emit('open:url', { url })
     return
   }
 
   if (openInBrowser) {
-    window.runtime?.EventsEmit('open:url', { url })
+    Runtime.emit('open:url', { url })
     return
   }
 

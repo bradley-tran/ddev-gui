@@ -1,5 +1,5 @@
-//go:build linux
-// +build linux
+//go:build linux && gtk3
+// +build linux,gtk3
 
 package main
 
@@ -45,21 +45,22 @@ import "C"
 import (
 	"context"
 
-	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 var navCtx context.Context
 
 //export goMouseNav
 func goMouseNav(button C.int) {
-	if navCtx == nil {
+	app := application.Get()
+	if app == nil {
 		return
 	}
 	switch int(button) {
 	case 8:
-		go runtime.EventsEmit(navCtx, "mouse:back")
+		go app.Event.Emit("mouse:back")
 	case 9:
-		go runtime.EventsEmit(navCtx, "mouse:forward")
+		go app.Event.Emit("mouse:forward")
 	}
 }
 

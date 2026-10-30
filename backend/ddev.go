@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	wruntime "github.com/wailsapp/wails/v2/pkg/runtime"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type DdevService struct {
@@ -229,6 +229,24 @@ func (d *DdevService) SetContext(ctx context.Context) {
 				log.Printf("[ddev] telemetry preference apply failed (will retry next launch): %v", err)
 			}
 		}()
+	}
+}
+
+// ServiceStartup is called by Wails v3 when the service starts.
+func (d *DdevService) ServiceStartup(ctx context.Context, options application.ServiceOptions) error {
+	d.SetContext(ctx)
+	return nil
+}
+
+// ServiceShutdown is called by Wails v3 when the application shuts down.
+func (d *DdevService) ServiceShutdown() error {
+	d.Shutdown()
+	return nil
+}
+
+func (d *DdevService) emitEvent(name string, data ...any) {
+	if app := application.Get(); app != nil {
+		app.Event.Emit(name, data...)
 	}
 }
 
@@ -608,7 +626,7 @@ func (d *DdevService) WpCoreInstall(name string) (string, error) {
 
 	// Step 1: Download WordPress core files
 	if d.ctx != nil {
-		wruntime.EventsEmit(d.ctx, "ddev:output", "Downloading WordPress core…")
+		d.emitEvent("ddev:output", "Downloading WordPress core…")
 	}
 	_, err := d.runDirect(context.Background(), dirHint, nil, "wp", "core", "download")
 	if err != nil {
@@ -626,9 +644,9 @@ func (d *DdevService) WpCoreInstall(name string) (string, error) {
 	}
 
 	if d.ctx != nil {
-		wruntime.EventsEmit(d.ctx, "ddev:output", "Installing WordPress…")
-		wruntime.EventsEmit(d.ctx, "ddev:output", "WordPress Admin User: admin")
-		wruntime.EventsEmit(d.ctx, "ddev:output", "WordPress Admin Password: "+password)
+		d.emitEvent("ddev:output", "Installing WordPress…")
+		d.emitEvent("ddev:output", "WordPress Admin User: admin")
+		d.emitEvent("ddev:output", "WordPress Admin Password: "+password)
 	}
 	siteURL := fmt.Sprintf("https://%s.ddev.site", name)
 	return d.runDirect(context.Background(), dirHint, nil,
@@ -654,7 +672,7 @@ func (d *DdevService) LaravelInit(name string) (string, error) {
 
 	// Step 1: Generate application key
 	if d.ctx != nil {
-		wruntime.EventsEmit(d.ctx, "ddev:output", "Generating Laravel app key…")
+		d.emitEvent("ddev:output", "Generating Laravel app key…")
 	}
 	_, err := d.runDirect(context.Background(), dirHint, nil, "exec", "php", "artisan", "key:generate")
 	if err != nil {
@@ -663,7 +681,7 @@ func (d *DdevService) LaravelInit(name string) (string, error) {
 
 	// Step 2: Run database migrations
 	if d.ctx != nil {
-		wruntime.EventsEmit(d.ctx, "ddev:output", "Running Laravel migrations…")
+		d.emitEvent("ddev:output", "Running Laravel migrations…")
 	}
 	return d.runDirect(context.Background(), dirHint, nil, "exec", "php", "artisan", "migrate", "--force")
 }
@@ -726,13 +744,13 @@ func (d *DdevService) ExecCommand(project, command string) (string, error) {
 
 	onLine := func(line string) {
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, outputEvent, line)
+			d.emitEvent(outputEvent, line)
 		}
 	}
 
 	emitDone := func(exitCode int) {
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, doneEvent, exitCode)
+			d.emitEvent(doneEvent, exitCode)
 		}
 	}
 
@@ -858,7 +876,7 @@ func (d *DdevService) runStream(ctx context.Context, stream bool, args ...string
 		var onLine func(string)
 		if stream && d.ctx != nil {
 			onLine = func(line string) {
-				wruntime.EventsEmit(d.ctx, "ddev:output", line)
+				d.emitEvent("ddev:output", line)
 			}
 		}
 
@@ -880,7 +898,7 @@ func (d *DdevService) runStream(ctx context.Context, stream bool, args ...string
 		var onLine func(string)
 		if stream && d.ctx != nil {
 			onLine = func(line string) {
-				wruntime.EventsEmit(d.ctx, "ddev:output", line)
+				d.emitEvent("ddev:output", line)
 			}
 		}
 
@@ -925,7 +943,7 @@ func (d *DdevService) runStream(ctx context.Context, stream bool, args ...string
 			scanner := bufio.NewScanner(tee)
 			for scanner.Scan() {
 				line := scanner.Text()
-				wruntime.EventsEmit(d.ctx, "ddev:output", line)
+				d.emitEvent("ddev:output", line)
 			}
 		}
 
@@ -965,7 +983,7 @@ func (d *DdevService) runDirect(ctx context.Context, dir string, envVars []strin
 		var onLine func(string)
 		if d.ctx != nil {
 			onLine = func(line string) {
-				wruntime.EventsEmit(d.ctx, "ddev:output", line)
+				d.emitEvent("ddev:output", line)
 			}
 		}
 		output, exitCode, execErr := d.sshShell.Exec(dir, fullArgs, envVars, timeout, onLine)
@@ -1049,7 +1067,7 @@ func (d *DdevService) runDirect(ctx context.Context, dir string, envVars []strin
 		line := scanner.Text()
 		lines = append(lines, line)
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", line)
+			d.emitEvent("ddev:output", line)
 		}
 	}
 
@@ -1234,7 +1252,7 @@ func (d *DdevService) ComposerInstall(name, ptype string) (string, error) {
 	if testErr == nil {
 		// composer.json already exists - just install dependencies
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Running composer install…")
+			d.emitEvent("ddev:output", "Running composer install…")
 		}
 		return d.runDirect(context.Background(), dirHint, composerEnv, "composer", "install", "--no-interaction")
 	}
@@ -1246,7 +1264,7 @@ func (d *DdevService) ComposerInstall(name, ptype string) (string, error) {
 	}
 
 	if d.ctx != nil {
-		wruntime.EventsEmit(d.ctx, "ddev:output", fmt.Sprintf("Running composer create-project %s …", pkg))
+		d.emitEvent("ddev:output", fmt.Sprintf("Running composer create-project %s …", pkg))
 	}
 	// ddev composer create-project is a special DDEV command that handles the
 	// current directory automatically and runs post-install scripts. No target
@@ -1259,7 +1277,7 @@ func (d *DdevService) ComposerInstall(name, ptype string) (string, error) {
 	// For Drupal projects, also require drush (official quickstart step)
 	if strings.HasPrefix(strings.ToLower(strings.TrimSpace(ptype)), "drupal") {
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Installing drush/drush…")
+			d.emitEvent("ddev:output", "Installing drush/drush…")
 		}
 		_, _ = d.runDirect(context.Background(), dirHint, composerEnv, "composer", "require", "drush/drush")
 	}
@@ -1267,7 +1285,7 @@ func (d *DdevService) ComposerInstall(name, ptype string) (string, error) {
 	// For TYPO3, create the FIRST_INSTALL file so the install wizard starts
 	if strings.ToLower(strings.TrimSpace(ptype)) == "typo3" {
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Creating FIRST_INSTALL file…")
+			d.emitEvent("ddev:output", "Creating FIRST_INSTALL file…")
 		}
 		_, _ = d.runDirect(context.Background(), dirHint, nil, "exec", "touch", "public/FIRST_INSTALL")
 	}
@@ -1353,7 +1371,7 @@ func (d *DdevService) CloneRepo(name, repoURL string) (string, error) {
 	}
 
 	if d.ctx != nil {
-		wruntime.EventsEmit(d.ctx, "ddev:output", fmt.Sprintf("Cloning %s …", repoURL))
+		d.emitEvent("ddev:output", fmt.Sprintf("Cloning %s …", repoURL))
 	}
 
 	timeout := 10 * time.Minute
@@ -1381,7 +1399,7 @@ func (d *DdevService) cloneSSH(name, repoURL, targetDir string, timeout time.Dur
 	var onLine func(string)
 	if d.ctx != nil {
 		onLine = func(line string) {
-			wruntime.EventsEmit(d.ctx, "ddev:output", line)
+			d.emitEvent("ddev:output", line)
 		}
 	}
 	output, exitCode, execErr := d.sshShell.Exec("", args, nil, timeout, onLine)
@@ -1433,7 +1451,7 @@ func (d *DdevService) cloneWSL(name, repoURL, targetDir string, timeout time.Dur
 		lines = append(lines, line)
 		mu.Unlock()
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", line)
+			d.emitEvent("ddev:output", line)
 		}
 	}
 
@@ -1530,14 +1548,14 @@ func (d *DdevService) InstallDdev() (string, error) {
 	// 5) Verify checksum
 	if expectedHash != "" {
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Verifying installer checksum…")
+			d.emitEvent("ddev:output", "Verifying installer checksum…")
 		}
 		if !d.verifyInstallerChecksum(fname, expectedHash) {
 			_ = os.Remove(fname) // delete corrupt file
 			return "", errors.New("checksum mismatch - download may be corrupted, please try again")
 		}
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Checksum verified ✓")
+			d.emitEvent("ddev:output", "Checksum verified ✓")
 		}
 	}
 
@@ -1693,13 +1711,13 @@ func (d *DdevService) downloadInstaller(url, dest string) error {
 			if d.ctx != nil && time.Since(lastEmit) >= 250*time.Millisecond {
 				if totalBytes > 0 {
 					pct := float64(downloaded) / float64(totalBytes) * 100
-					wruntime.EventsEmit(d.ctx, "ddev:output",
+					d.emitEvent("ddev:output",
 						fmt.Sprintf("Downloading installer… %.1f MB / %.1f MB (%.0f%%)",
 							float64(downloaded)/(1024*1024),
 							float64(totalBytes)/(1024*1024),
 							pct))
 				} else {
-					wruntime.EventsEmit(d.ctx, "ddev:output",
+					d.emitEvent("ddev:output",
 						fmt.Sprintf("Downloading installer… %.1f MB",
 							float64(downloaded)/(1024*1024)))
 				}
@@ -1716,7 +1734,7 @@ func (d *DdevService) downloadInstaller(url, dest string) error {
 
 	// Final progress message
 	if d.ctx != nil {
-		wruntime.EventsEmit(d.ctx, "ddev:output",
+		d.emitEvent("ddev:output",
 			fmt.Sprintf("Download complete - %.1f MB", float64(downloaded)/(1024*1024)))
 	}
 

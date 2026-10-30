@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-
-	wruntime "github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // DrushUli runs `ddev drush uli` for the given project and returns the one-time login URL.
@@ -53,7 +51,7 @@ func (d *DdevService) DrushUliAsUser(name, uid string) (string, error) {
 	// Clear all Drupal sessions server-side so the ULI link works
 	// even if a user is already logged in via the browser.
 	if d.ctx != nil {
-		wruntime.EventsEmit(d.ctx, "ddev:output", "Clearing existing sessions…")
+		d.emitEvent("ddev:output", "Clearing existing sessions…")
 	}
 	d.runDirect(context.Background(), dirHint, nil, "drush", "sql:query", "TRUNCATE sessions")
 
@@ -160,9 +158,9 @@ func (d *DdevService) DrushSiteInstall(name string) (string, error) {
 	}
 
 	if d.ctx != nil {
-		wruntime.EventsEmit(d.ctx, "ddev:output", "Running Drupal site install…")
-		wruntime.EventsEmit(d.ctx, "ddev:output", "Drupal Admin User: admin")
-		wruntime.EventsEmit(d.ctx, "ddev:output", "Drupal Admin Password: "+password)
+		d.emitEvent("ddev:output", "Running Drupal site install…")
+		d.emitEvent("ddev:output", "Drupal Admin User: admin")
+		d.emitEvent("ddev:output", "Drupal Admin Password: "+password)
 	}
 
 	// First try running drush si to see if drush is available
@@ -187,14 +185,14 @@ func (d *DdevService) DrushSiteInstall(name string) (string, error) {
 func (d *DdevService) ensureDrushInstalled(dirHint string, commandErr error, output string, postInstallMsg string) (bool, error) {
 	if commandErr != nil && strings.Contains(strings.ToLower(output), "drush is not available") {
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush not found - installing drush/drush via Composer…")
+			d.emitEvent("ddev:output", "Drush not found - installing drush/drush via Composer…")
 		}
 		_, installErr := d.runDirect(context.Background(), dirHint, nil, "composer", "require", "drush/drush")
 		if installErr != nil {
 			return false, fmt.Errorf("failed to install drush: %v", installErr)
 		}
 		if d.ctx != nil {
-			wruntime.EventsEmit(d.ctx, "ddev:output", "Drush installed. "+postInstallMsg)
+			d.emitEvent("ddev:output", "Drush installed. "+postInstallMsg)
 		}
 		return true, nil
 	}

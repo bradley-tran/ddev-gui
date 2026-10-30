@@ -1,5 +1,31 @@
 import { beforeEach, vi } from 'vitest'
 
+vi.mock('@wailsio/runtime', () => ({
+  Events: {
+    On: vi.fn(() => vi.fn()),
+    Off: vi.fn(),
+    Emit: vi.fn(),
+  },
+  Window: {
+    Minimise: vi.fn(),
+    ToggleMaximise: vi.fn(),
+    IsMaximised: vi.fn().mockResolvedValue(false),
+  },
+  Application: {
+    Quit: vi.fn(),
+  },
+  Call: {
+    ByID: vi.fn().mockResolvedValue(undefined),
+    ByName: vi.fn().mockResolvedValue(undefined),
+  },
+  CancellablePromise: Promise,
+  Create: {
+    Array: () => (v: unknown) => v,
+    Struct: () => (v: unknown) => v,
+    Any: (v: unknown) => v,
+  },
+}))
+
 window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
 const mockRuntime = {
@@ -64,6 +90,13 @@ const mockConfigService = {
   Set: vi.fn().mockResolvedValue(''),
   SetProjectConfig: vi.fn().mockResolvedValue(''),
 }
+
+Object.defineProperty(window, 'wails', {
+  value: {
+    invoke: vi.fn(),
+  },
+  writable: true,
+})
 
 Object.defineProperty(window, 'runtime', {
   value: mockRuntime,
