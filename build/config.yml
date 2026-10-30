@@ -37,7 +37,7 @@ dev_mode:
       type: once
     - cmd: npm --prefix frontend run dev -- --port ${WAILS_VITE_PORT} --strictPort
       type: background
-    - cmd: go build -gcflags=all="-l" -o build/bin/ddev-gui{{. Ext}}
+    - cmd: go build -tags gtk3 -gcflags=all="-l" -o build/bin/ddev-gui{{. Ext}}
       type: blocking
     - cmd: ./build/bin/ddev-gui{{. Ext}}
       type: primary

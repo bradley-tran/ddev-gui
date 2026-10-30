@@ -24,7 +24,7 @@ tasks:
     deps:
       - build:frontend
     cmds:
-      - go build -tags production -trimpath -buildvcs=false -ldflags="-w -s{{if eq OS "windows"}} -H windowsgui{{end}}" -o build/bin/ddev-gui{{exeExt}}
+      - go build -tags "production,gtk3" -trimpath -buildvcs=false -ldflags="-w -s{{if eq OS "windows"}} -H windowsgui{{end}}" -o build/bin/ddev-gui{{exeExt}}
 
   run:
     desc: Build and run the application
@@ -36,7 +36,7 @@ tasks:
   test-backend:
     desc: Run backend tests
     cmds:
-      - go test ./backend
+      - go test -tags gtk3 ./backend
 
   test-frontend:
     desc: Run frontend tests

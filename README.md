@@ -41,8 +41,12 @@ A native desktop application for managing [DDEV](https://github.com/ddev/ddev) p
 - **Go 1.25+**
 - **Node.js 22+** and **npm**
 - **Wails v3 CLI** installed and prerequisites met:
-  ```
+  ```bash
+  # Windows / Linux (GTK4)
   go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0
+
+  # Linux (GTK3)
+  go install -tags gtk3 github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0
   ```
   - Windows: WebView2 Runtime + MSVC build tools
   - Linux: `libgtk-3-dev`, `libwebkit2gtk-4.1-dev`, `pkg-config` (or `libgtk-4-dev`, `libwebkitgtk-6.0-dev`)
