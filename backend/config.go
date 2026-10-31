@@ -20,6 +20,7 @@ func NewConfigService() *ConfigService {
 	cs := &ConfigService{
 		data: map[string]any{
 			"openLinksInBrowser": true,
+			"closeToTray":        true,
 			"showLog":            false,
 			"devMode":            false,
 			"projects":           map[string]any{},
@@ -89,6 +90,23 @@ func (cs *ConfigService) Get(key string) any {
 	cs.mu.RLock()
 	defer cs.mu.RUnlock()
 	return cs.data[key]
+}
+
+// GetCloseToTray returns whether closing the main window should hide it to the system tray.
+// Defaults to true when not configured or when the stored value is not a boolean.
+func (cs *ConfigService) GetCloseToTray() bool {
+	cs.mu.RLock()
+	defer cs.mu.RUnlock()
+
+	v, exists := cs.data["closeToTray"]
+	if !exists || v == nil {
+		return true
+	}
+	val, ok := boolFromJSON(v)
+	if !ok {
+		return true
+	}
+	return val
 }
 
 // Set sets a top-level config key and saves to disk.

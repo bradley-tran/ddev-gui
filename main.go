@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"log"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"ddev-gui/backend"
@@ -27,6 +28,12 @@ const (
 
 //go:embed frontend/dist
 var assets embed.FS
+
+//go:embed build/appicon.png
+var appIcon []byte
+
+//go:embed build/windows/icon.ico
+var appIconICO []byte
 
 func main() {
 	cfg := backend.NewConfigService()
@@ -62,8 +69,14 @@ func main() {
 		bgType = application.BackgroundTypeSolid
 	}
 
+	iconData := appIcon
+	if runtime2.GOOS == "windows" {
+		iconData = appIconICO
+	}
+
 	app := application.New(application.Options{
 		Name: "DDEV GUI",
+		Icon: iconData,
 		Services: []application.Service{
 			application.NewService(svc),
 			application.NewService(cfg),
@@ -246,9 +259,54 @@ func main() {
 		}()
 	})
 
+	var isQuitting atomic.Bool
+
+	showMainWindow := func() {
+		if mainWindow.IsMinimised() {
+			mainWindow.UnMinimise()
+		}
+		mainWindow.Show()
+		mainWindow.Focus()
+	}
+
+	trayMenu := app.NewMenu()
+	trayMenu.Add("Show DDEV GUI").OnClick(func(ctx *application.Context) {
+		showMainWindow()
+	})
+	trayMenu.AddSeparator()
+	trayMenu.Add("Quit").OnClick(func(ctx *application.Context) {
+		isQuitting.Store(true)
+		if mainWindow.IsVisible() {
+			saveWindowBounds(mainWindow, cfg)
+		}
+		app.Quit()
+	})
+
+	tray := app.SystemTray.New()
+	tray.SetIcon(iconData)
+	tray.SetTooltip("DDEV GUI")
+	if runtime2.GOOS == "linux" {
+		tray.SetLabel("DDEV GUI")
+	}
+	tray.SetMenu(trayMenu)
+	tray.OnClick(func() {
+		if mainWindow.IsVisible() && !mainWindow.IsMinimised() {
+			saveWindowBounds(mainWindow, cfg)
+			mainWindow.Hide()
+		} else {
+			showMainWindow()
+		}
+	})
+
 	mainWindow.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
-		// Save window bounds right before the window closes
-		saveWindowBounds(mainWindow, cfg)
+		if mainWindow.IsVisible() {
+			// Save window bounds right before the window closes
+			saveWindowBounds(mainWindow, cfg)
+		}
+		if !isQuitting.Load() && cfg.GetCloseToTray() {
+			e.Cancel()
+			mainWindow.Hide()
+		}
 	})
 
 	err = app.Run()

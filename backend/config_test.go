@@ -25,6 +25,9 @@ func TestNewConfigService(t *testing.T) {
 	if cs.Get("openLinksInBrowser") != true {
 		t.Errorf("Expected openLinksInBrowser to be true, got %v", cs.Get("openLinksInBrowser"))
 	}
+	if cs.Get("closeToTray") != true {
+		t.Errorf("Expected closeToTray to be true, got %v", cs.Get("closeToTray"))
+	}
 	if cs.Get("showLog") != false {
 		t.Errorf("Expected showLog to be false, got %v", cs.Get("showLog"))
 	}
@@ -338,6 +341,31 @@ func TestIntFromJSON(t *testing.T) {
 		if val != tt.expected || ok != tt.ok {
 			t.Errorf("intFromJSON(%v) = (%v, %v), want (%v, %v)", tt.input, val, ok, tt.expected, tt.ok)
 		}
+	}
+}
+
+func TestConfigService_GetCloseToTray(t *testing.T) {
+	cs := &ConfigService{
+		data: map[string]any{},
+	}
+
+	if !cs.GetCloseToTray() {
+		t.Errorf("Expected default GetCloseToTray() to be true")
+	}
+
+	cs.data["closeToTray"] = false
+	if cs.GetCloseToTray() {
+		t.Errorf("Expected GetCloseToTray() to be false when set to false")
+	}
+
+	cs.data["closeToTray"] = true
+	if !cs.GetCloseToTray() {
+		t.Errorf("Expected GetCloseToTray() to be true when set to true")
+	}
+
+	cs.data["closeToTray"] = "invalid"
+	if !cs.GetCloseToTray() {
+		t.Errorf("Expected GetCloseToTray() to fall back to true on invalid type")
 	}
 }
 
