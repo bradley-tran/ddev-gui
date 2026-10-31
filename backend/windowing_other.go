@@ -18,3 +18,6 @@ func ShowWindow(cmd *exec.Cmd) {}
 func BuildWindowsCmd(command string, args []string) *exec.Cmd {
 	return exec.Command(command, args...)
 }
+
+// ApplyWindowIcon is a no-op on non-Windows platforms.
+func ApplyWindowIcon(hwnd uintptr, icoData []byte) {}

@@ -237,7 +237,15 @@ func main() {
 		}
 	})
 
+	applyWinIcon := func(_ *application.WindowEvent) {
+		backend.ApplyWindowIcon(uintptr(mainWindow.NativeWindow()), iconData)
+	}
+	mainWindow.OnWindowEvent(events.Windows.WindowShow, applyWinIcon)
+	mainWindow.OnWindowEvent(events.Windows.WindowDPIChanged, applyWinIcon)
+
 	mainWindow.OnWindowEvent(events.Common.WindowRuntimeReady, func(e *application.WindowEvent) {
+		backend.ApplyWindowIcon(uintptr(mainWindow.NativeWindow()), iconData)
+
 		// Restore saved window position (if we have one)
 		if bounds.X != 0 || bounds.Y != 0 {
 			mainWindow.SetPosition(bounds.X, bounds.Y)

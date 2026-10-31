@@ -14,8 +14,10 @@ import (
 // into a Windows .ico container so that both small (SM_CXSMICON) and large
 // (SM_CXICON) icon lookups match an exact pre-filtered entry across standard
 // and custom Windows DPI scale factors (100% through 400%).
+// Ordered largest-first (256 down to 16) so WIC and shell thumbnail handlers
+// that inspect frame 0 see the full-resolution 256x256 icon first.
 var DefaultWindowsICOSizes = []int{
-	16, 18, 20, 22, 24, 28, 32, 36, 40, 44, 48, 56, 64, 72, 80, 96, 128, 256,
+	256, 128, 96, 80, 72, 64, 56, 48, 44, 40, 36, 32, 28, 24, 22, 20, 18, 16,
 }
 
 // BuildWindowsICO decodes a high-resolution source PNG and builds a multi-size
@@ -82,6 +84,59 @@ func BuildWindowsICO(pngData []byte, sizes ...int) ([]byte, error) {
 		out.Write(e.data)
 	}
 	return out.Bytes(), nil
+}
+
+// SelectICOFrame returns the raw image payload (PNG or DIB bytes) from an ICO
+// container that best matches targetSize (exact match preferred, then smallest
+// entry >= targetSize, otherwise largest available entry).
+func SelectICOFrame(icoData []byte, targetSize int) ([]byte, error) {
+	const headerSize = 6
+	const dirEntrySize = 16
+	if len(icoData) < headerSize || string(icoData[:4]) != "\x00\x00\x01\x00" {
+		return nil, fmt.Errorf("invalid ICO header")
+	}
+	count := int(binary.LittleEndian.Uint16(icoData[4:6]))
+	if count <= 0 || len(icoData) < headerSize+count*dirEntrySize {
+		return nil, fmt.Errorf("invalid ICO directory count %d", count)
+	}
+
+	bestIdx := -1
+	bestSize := 0
+	for i := 0; i < count; i++ {
+		entry := icoData[headerSize+i*dirEntrySize : headerSize+(i+1)*dirEntrySize]
+		w := int(entry[0])
+		if w == 0 {
+			w = 256
+		}
+		dataSize := int(binary.LittleEndian.Uint32(entry[8:12]))
+		dataOffset := int(binary.LittleEndian.Uint32(entry[12:16]))
+		if dataSize <= 0 || dataOffset < headerSize+count*dirEntrySize || dataOffset+dataSize > len(icoData) {
+			continue
+		}
+		if w == targetSize {
+			return icoData[dataOffset : dataOffset+dataSize], nil
+		}
+		if bestIdx == -1 {
+			bestIdx = i
+			bestSize = w
+		} else if bestSize < targetSize {
+			if w > bestSize {
+				bestIdx = i
+				bestSize = w
+			}
+		} else if w >= targetSize && w < bestSize {
+			bestIdx = i
+			bestSize = w
+		}
+	}
+
+	if bestIdx == -1 {
+		return nil, fmt.Errorf("no valid ICO frames found")
+	}
+	entry := icoData[headerSize+bestIdx*dirEntrySize : headerSize+(bestIdx+1)*dirEntrySize]
+	dataSize := int(binary.LittleEndian.Uint32(entry[8:12]))
+	dataOffset := int(binary.LittleEndian.Uint32(entry[12:16]))
+	return icoData[dataOffset : dataOffset+dataSize], nil
 }
 
 // resizeImageArea resizes src to dstW x dstH using exact box/area integration

@@ -13,6 +13,11 @@ tasks:
     cmds:
       - wails3 generate bindings -ts -d frontend/bindings
 
+  generate:syso:
+    desc: Generate Windows resource (.syso) file
+    cmds:
+      - wails3 generate syso -arch amd64 -icon build/windows/icon.ico -manifest build/windows/wails.exe.manifest -info build/windows/info.json -out rsrc_windows_amd64.syso
+
   build:frontend:
     desc: Build the frontend assets
     dir: frontend

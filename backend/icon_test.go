@@ -123,6 +123,9 @@ func TestWindowsIconFileHasAllDPISizes(t *testing.T) {
 		if img.Bounds().Dx() != w || img.Bounds().Dy() != w {
 			t.Fatalf("entry %d bounds = %v, want %dx%d", i, img.Bounds(), w, w)
 		}
+		if i == 0 && w != 256 {
+			t.Errorf("build/windows/icon.ico frame 0 size = %dx%d, want 256x256 first", w, w)
+		}
 		foundSizes[w] = true
 	}
 
@@ -130,5 +133,88 @@ func TestWindowsIconFileHasAllDPISizes(t *testing.T) {
 		if !foundSizes[want] {
 			t.Errorf("build/windows/icon.ico missing %dx%d entry", want, want)
 		}
+	}
+}
+
+func TestSelectICOFrame(t *testing.T) {
+	icoPath := filepath.Join("..", "build", "windows", "icon.ico")
+	icoData, err := os.ReadFile(icoPath)
+	if err != nil {
+		t.Fatalf("read %s: %v", icoPath, err)
+	}
+
+	// Exact matches for standard and custom DPI small/big icon sizes
+	for _, want := range []int{16, 20, 24, 32, 40, 48, 64, 256} {
+		frame, err := SelectICOFrame(icoData, want)
+		if err != nil {
+			t.Fatalf("SelectICOFrame(%d) failed: %v", want, err)
+		}
+		img, err := png.Decode(bytes.NewReader(frame))
+		if err != nil {
+			t.Fatalf("decode selected frame for %d: %v", want, err)
+		}
+		if img.Bounds().Dx() != want || img.Bounds().Dy() != want {
+			t.Fatalf("SelectICOFrame(%d) returned %dx%d, want %dx%d", want, img.Bounds().Dx(), img.Bounds().Dy(), want, want)
+		}
+	}
+
+	// Non-exact intermediate size (e.g. 50) should select smallest entry >= 50 (56)
+	frame50, err := SelectICOFrame(icoData, 50)
+	if err != nil {
+		t.Fatalf("SelectICOFrame(50) failed: %v", err)
+	}
+	img50, err := png.Decode(bytes.NewReader(frame50))
+	if err != nil {
+		t.Fatalf("decode selected frame for 50: %v", err)
+	}
+	if img50.Bounds().Dx() != 56 {
+		t.Fatalf("SelectICOFrame(50) returned %dpx, want 56px", img50.Bounds().Dx())
+	}
+
+	// Size larger than max (e.g. 512) should fall back to largest available (256)
+	frame512, err := SelectICOFrame(icoData, 512)
+	if err != nil {
+		t.Fatalf("SelectICOFrame(512) failed: %v", err)
+	}
+	img512, err := png.Decode(bytes.NewReader(frame512))
+	if err != nil {
+		t.Fatalf("decode selected frame for 512: %v", err)
+	}
+	if img512.Bounds().Dx() != 256 {
+		t.Fatalf("SelectICOFrame(512) returned %dpx, want 256px", img512.Bounds().Dx())
+	}
+
+	if _, err := SelectICOFrame([]byte("invalid"), 16); err == nil {
+		t.Fatal("expected error for invalid ICO data")
+	}
+}
+
+func TestWindowsSysoAndMetadataFiles(t *testing.T) {
+	for _, rel := range []string{
+		filepath.Join("..", "build", "windows", "info.json"),
+		filepath.Join("..", "build", "windows", "wails.exe.manifest"),
+	} {
+		b, err := os.ReadFile(rel)
+		if err != nil {
+			t.Fatalf("read %s: %v", rel, err)
+		}
+		if bytes.Contains(b, []byte("{{")) {
+			t.Errorf("%s contains unexpanded template placeholder: %s", rel, string(b))
+		}
+	}
+
+	sysoPath := filepath.Join("..", "rsrc_windows_amd64.syso")
+	sysoData, err := os.ReadFile(sysoPath)
+	if err != nil {
+		t.Fatalf("read %s: %v", sysoPath, err)
+	}
+	if len(sysoData) < 1024 {
+		t.Fatalf("%s is unexpectedly small (%d bytes)", sysoPath, len(sysoData))
+	}
+	if !bytes.Contains(sysoData, []byte("\x89PNG\r\n\x1a\n")) {
+		t.Errorf("%s does not contain embedded PNG icon frames", sysoPath)
+	}
+	if !bytes.Contains(sysoData, []byte("com.wails.ddev-gui")) {
+		t.Errorf("%s does not contain expected application manifest identity", sysoPath)
 	}
 }
