@@ -44,6 +44,7 @@ const backendOptions = computed(() =>
 const isLinuxPlatform = document.body.classList.contains('platform-linux')
 
 const openLinksInBrowser = ref(coerceToBool(cfg.openLinksInBrowser))
+const closeToTray = ref(coerceToBool(cfg.closeToTray, true))
 const preferredEditor = ref<PreferredEditorType>(cfg.preferredEditor ?? 'vscode')
 const backend = ref<BackendType>(cfg.backend ?? 'wsl')
 const theme = ref<ThemeType>(cfg.theme ?? 'default')
@@ -89,6 +90,7 @@ async function handleSave() {
 
     const patch: Partial<AppConfig> = {
       openLinksInBrowser: openLinksInBrowser.value,
+      closeToTray: closeToTray.value,
       preferredEditor: preferredEditor.value,
       backend: backend.value,
       theme: theme.value,
@@ -97,6 +99,7 @@ async function handleSave() {
     }
 
     await ConfigService.set('openLinksInBrowser', openLinksInBrowser.value)
+    await ConfigService.set('closeToTray', closeToTray.value)
     await ConfigService.set('preferredEditor', preferredEditor.value)
     await ConfigService.set('backend', backend.value)
     await ConfigService.set('theme', theme.value)
@@ -166,6 +169,21 @@ async function handleSave() {
         </label>
         <p class="text-muted" style="margin-top: 0.25rem; font-size: 0.85em">
           {{ t('settings.openInBrowserDesc') }}
+        </p>
+      </div>
+
+      <div class="flu-form-group">
+        <label class="flu-toggle-label">
+          <input
+            id="settCloseToTray"
+            v-model="closeToTray"
+            type="checkbox"
+            class="flu-toggle"
+          >
+          <span>{{ t('settings.closeToTray') }}</span>
+        </label>
+        <p class="text-muted" style="margin-top: 0.25rem; font-size: 0.85em">
+          {{ t('settings.closeToTrayDesc') }}
         </p>
       </div>
 

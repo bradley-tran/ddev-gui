@@ -10,6 +10,7 @@ vi.mock('@wailsio/runtime', () => ({
     Minimise: vi.fn(),
     ToggleMaximise: vi.fn(),
     IsMaximised: vi.fn().mockResolvedValue(false),
+    Close: vi.fn(),
   },
   Application: {
     Quit: vi.fn(),
@@ -35,6 +36,7 @@ const mockRuntime = {
   WindowMinimise: vi.fn(),
   WindowToggleMaximise: vi.fn(),
   WindowIsMaximised: vi.fn().mockResolvedValue(false),
+  WindowClose: vi.fn(),
   Quit: vi.fn(),
 }
 

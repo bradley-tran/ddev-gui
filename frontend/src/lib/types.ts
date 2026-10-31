@@ -33,6 +33,7 @@ export interface AppConfig {
   viewMode?: ViewMode
   showLog?: boolean
   openLinksInBrowser?: boolean
+  closeToTray?: boolean
   ddevTelemetryOptIn?: boolean
   devMode?: boolean
   preferredEditor?: PreferredEditorType

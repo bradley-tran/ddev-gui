@@ -151,7 +151,7 @@ describe('Titlebar', () => {
 
     const minimiseSpy = vi.spyOn(Runtime, 'minimise')
     const toggleMaximiseSpy = vi.spyOn(Runtime, 'toggleMaximise')
-    const quitSpy = vi.spyOn(Runtime, 'quit')
+    const closeSpy = vi.spyOn(Runtime, 'close')
 
     await wrapper.find('#winMinimize').trigger('click')
     expect(minimiseSpy).toHaveBeenCalled()
@@ -160,7 +160,7 @@ describe('Titlebar', () => {
     expect(toggleMaximiseSpy).toHaveBeenCalled()
 
     await wrapper.find('#winClose').trigger('click')
-    expect(quitSpy).toHaveBeenCalled()
+    expect(closeSpy).toHaveBeenCalled()
   })
 
   it('toggles maximise on double click', async () => {

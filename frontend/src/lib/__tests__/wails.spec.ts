@@ -335,6 +335,11 @@ describe('wails bridge', () => {
       expect(getMockRuntime().WindowIsMaximised).toHaveBeenCalled()
     })
 
+    it('should call close', () => {
+      Runtime.close()
+      expect(getMockRuntime().WindowClose).toHaveBeenCalled()
+    })
+
     it('should call quit', () => {
       Runtime.quit()
       expect(getMockRuntime().Quit).toHaveBeenCalled()

@@ -539,6 +539,12 @@ msgstr "Mở liên kết dự án trong trình duyệt hệ thống"
 msgid "settings.openInBrowserDesc"
 msgstr "Khi tắt, liên kết sẽ mở trong cửa sổ nhúng bên trong ứng dụng."
 
+msgid "settings.closeToTray"
+msgstr "Thu nhỏ xuống khay hệ thống khi đóng"
+
+msgid "settings.closeToTrayDesc"
+msgstr "Khi bật, đóng cửa sổ sẽ ẩn ứng dụng vào khay hệ thống thay vì thoát hoàn toàn."
+
 msgid "settings.preferredEditor"
 msgstr "Trình soạn thảo ưu tiên"
 

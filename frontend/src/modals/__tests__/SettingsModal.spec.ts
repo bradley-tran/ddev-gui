@@ -27,6 +27,7 @@ describe('SettingsModal.vue', () => {
     appStore.setConfig({
       locale: 'en',
       openLinksInBrowser: true,
+      closeToTray: true,
       preferredEditor: 'vscode',
       theme: 'default',
       backend: 'wsl',
@@ -109,6 +110,7 @@ describe('SettingsModal.vue', () => {
     const configService = window.go!.backend!.ConfigService as any
     expect(configService.Set).toHaveBeenCalledWith('locale', 'en')
     expect(configService.Set).toHaveBeenCalledWith('openLinksInBrowser', true)
+    expect(configService.Set).toHaveBeenCalledWith('closeToTray', true)
 
     const ddevService = window.go!.backend!.DdevService as any
     expect(ddevService.ReloadBackend).toHaveBeenCalled()
@@ -186,5 +188,24 @@ describe('SettingsModal.vue', () => {
       user: 'remoteuser',
       keyPath: '/home/user/.ssh/id_rsa'
     })
+  })
+
+  it('toggles and saves closeToTray setting', async () => {
+    const wrapper = mountSettingsModal()
+    await flushPromises()
+
+    const closeToTrayToggle = wrapper.find('#settCloseToTray')
+    expect(closeToTrayToggle.exists()).toBe(true)
+    expect((closeToTrayToggle.element as HTMLInputElement).checked).toBe(true)
+
+    await closeToTrayToggle.setValue(false)
+
+    const saveButton = wrapper.find('button.flu-btn-accent')
+    await saveButton.trigger('click')
+    await flushPromises()
+
+    const configService = window.go!.backend!.ConfigService as any
+    expect(configService.Set).toHaveBeenCalledWith('closeToTray', false)
+    expect(appStore.config.closeToTray).toBe(false)
   })
 })

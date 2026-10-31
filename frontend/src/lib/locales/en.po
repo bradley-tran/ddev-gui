@@ -540,6 +540,12 @@ msgstr "Open project links in system browser"
 msgid "settings.openInBrowserDesc"
 msgstr "When disabled, links open in an embedded window inside the app."
 
+msgid "settings.closeToTray"
+msgstr "Close to system tray"
+
+msgid "settings.closeToTrayDesc"
+msgstr "When enabled, closing the window hides the app in the system tray instead of quitting."
+
 msgid "settings.preferredEditor"
 msgstr "Preferred editor"
 

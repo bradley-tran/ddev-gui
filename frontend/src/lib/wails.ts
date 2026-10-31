@@ -95,6 +95,7 @@ interface WailsRuntime {
   WindowMinimise(): void
   WindowToggleMaximise(): void
   WindowIsMaximised(): Promise<boolean>
+  WindowClose(): void
   Quit(): void
 }
 
@@ -298,6 +299,13 @@ export const Runtime = {
       return window.runtime.WindowIsMaximised()
     }
     return Window.IsMaximised()
+  },
+  close: () => {
+    if (window.runtime) {
+      window.runtime.WindowClose()
+      return
+    }
+    return Window.Close()
   },
   quit: () => {
     if (window.runtime) {

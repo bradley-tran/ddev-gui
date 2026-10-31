@@ -9,6 +9,7 @@ describe('config', () => {
         viewMode: 'list',
         showLog: true,
         openLinksInBrowser: true,
+        closeToTray: true,
         preferredEditor: 'vscode',
         theme: 'default',
         locale: 'en',
@@ -71,11 +72,13 @@ describe('config', () => {
       const input = {
         showLog: 'false',
         openLinksInBrowser: 'true',
+        closeToTray: 'false',
         devMode: 'true',
       }
       const result = normalizeAppConfig(input)
       expect(result.showLog).toBe(false)
       expect(result.openLinksInBrowser).toBe(true)
+      expect(result.closeToTray).toBe(false)
       expect(result.devMode).toBe(true)
     })
 

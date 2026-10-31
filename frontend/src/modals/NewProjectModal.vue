@@ -96,7 +96,7 @@ async function handleSubmit(event: Event) {
     await ConfigService.setProjectConfig(trimmedName, 'initialized', isInitialized)
     appStore.patchConfig({
       projects: {
-        ...(appStore.config.projects ?? {}),
+        ...appStore.config.projects,
         [trimmedName]: { initialized: isInitialized },
       },
     })

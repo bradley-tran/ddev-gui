@@ -244,7 +244,7 @@ onBeforeUnmount(() => {
           type="button"
           class="win-ctrl win-close"
           :title="t('titlebar.close')"
-          @click="Runtime.quit()"
+          @click="Runtime.close()"
         >
           <XIcon :size="15" :stroke-width="2" />
         </button>

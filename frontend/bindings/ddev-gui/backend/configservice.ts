@@ -29,6 +29,14 @@ export function GetAll(): $CancellablePromise<string> {
 }
 
 /**
+ * GetCloseToTray returns whether closing the main window should hide it to the system tray.
+ * Defaults to true when not configured or when the stored value is not a boolean.
+ */
+export function GetCloseToTray(): $CancellablePromise<boolean> {
+    return $Call.ByID(2421233259);
+}
+
+/**
  * GetProjectConfig returns the value of a per-project config key.
  */
 export function GetProjectConfig(projectName: string, key: string): $CancellablePromise<any> {
